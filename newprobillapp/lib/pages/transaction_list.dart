@@ -37,6 +37,7 @@ class TransactionService {
     );
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
+      print(jsonData);
       return List<Transaction>.from(
           jsonData['data'].map((x) => Transaction.fromJson(x)));
     } else {
@@ -140,16 +141,10 @@ class _TransactionListPageState extends State<TransactionListPage> {
 }
 
 // Widget for search bar
-class _SearchBar extends StatelessWidget {
+class _SearchBar extends StatefulWidget {
   final Function(String) onSearch;
   final String selectedColumn;
   final Function(String?) onColumnSelect;
-  final List<String> _columnNames = [
-    'Invoice',
-    'Transactions',
-    'Total',
-    'Date-time'
-  ];
 
   _SearchBar({
     required this.onSearch,
@@ -158,41 +153,76 @@ class _SearchBar extends StatelessWidget {
   });
 
   @override
+  State<_SearchBar> createState() => _SearchBarState();
+}
+
+class _SearchBarState extends State<_SearchBar> {
+  final List<String> _columnNames = [
+    'Invoice',
+    'Transactions',
+    'Total',
+    'Date-time'
+  ];
+
+  FocusNode focusNode = FocusNode();
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(
         children: [
           Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: TextField(
-                onChanged: onSearch,
-                decoration: const InputDecoration(
-                  hintText: 'Search',
-                  border: InputBorder.none,
-                  prefixIcon: Icon(Icons.search, color: Colors.grey),
+            child: TextField(
+              onTap: () {
+                setState(() {});
+              },
+              onSubmitted: (value) {
+                setState(() {});
+              },
+              focusNode: focusNode,
+              onChanged: widget.onSearch,
+              decoration: InputDecoration(
+                hintText: "Search",
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: const BorderSide(
+                    color: Color(0xffbfbfbf),
+                    width: 3.0,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: const BorderSide(
+                    color: green2,
+                    width: 3.0,
+                  ),
+                ),
+                suffixIcon: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.only(
+                        topRight: Radius.circular(8.0),
+                        bottomRight: Radius.circular(8.0)),
+                    color: focusNode.hasFocus ? green2 : darkGrey,
+                  ),
+                  child: DropdownButton<String>(
+                    value: widget.selectedColumn,
+                    onChanged: widget.onColumnSelect,
+                    style: const TextStyle(color: Colors.black),
+                    underline: Container(),
+                    icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                    items: _columnNames.map((columnName) {
+                      return DropdownMenuItem<String>(
+                        value: columnName,
+                        child: Text(columnName),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 10),
-          DropdownButton<String>(
-            value: selectedColumn,
-            onChanged: onColumnSelect,
-            style: const TextStyle(color: Colors.black),
-            underline: Container(),
-            icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
-            items: _columnNames.map((columnName) {
-              return DropdownMenuItem<String>(
-                value: columnName,
-                child: Text(columnName),
-              );
-            }).toList(),
           ),
         ],
       ),
@@ -212,12 +242,26 @@ class _TransactionList extends StatelessWidget {
     for (var transaction in transactions) {
       String month =
           DateFormat.yMMMM().format(DateTime.parse(transaction.createdAt));
+      print("Month: $month");
       if (!groupedTransactions.containsKey(month)) {
         groupedTransactions[month] = [];
       }
       groupedTransactions[month]!.add(transaction);
     }
     return groupedTransactions;
+  }
+
+  totalMonthAmount(List<Transaction> transactions) {
+    double totalAmount = 0;
+    for (var transaction in transactions) {
+      totalAmount += int.parse(transaction.totalPrice);
+    }
+
+    if (totalAmount > 0) {
+      return "₹${totalAmount.abs().toStringAsFixed(2)}";
+    } else {
+      return "-₹${totalAmount.abs().toStringAsFixed(2)}";
+    }
   }
 
   @override
@@ -241,12 +285,32 @@ class _TransactionList extends StatelessWidget {
               color: Colors.grey[300],
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Center(
-                child: Text(
-                  month,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        month,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Roboto_Regular',
+                          fontSize: 16,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        " Total: ${totalMonthAmount(monthTransactions)}",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Roboto_Regular',
+                          fontSize: 16,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
