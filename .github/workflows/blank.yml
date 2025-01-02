@@ -1,0 +1,37 @@
+name: Create Release
+
+on:
+  push:
+    branches: [ "main" ]
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:              
+    - uses: actions/checkout@v3
+      with:
+        lfs: 'true'
+        submodules: 'recursive'
+
+    - name: Create Release                
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}                          
+      with:
+        # tag_name: "v10"                               
+        tag_name: ${{ github.run_number }}
+        release_name: Release ${{ github.sha }}
+        # commit_sha: ${{ github.sha }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./app-debug.apk
+        asset_name: app-debug.apk
+        asset_content_type: application/zip
