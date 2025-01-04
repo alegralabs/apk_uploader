@@ -195,7 +195,9 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
         },
         selectedIndex: _selectedIndex,
       ),
-      drawer: const Sidebar(),
+      drawer: const Drawer(
+        child: Sidebar(),
+      ),
       appBar: AppBar(
         title: const Text(
           'Employees',

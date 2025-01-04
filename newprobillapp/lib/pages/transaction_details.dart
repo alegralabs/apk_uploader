@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:newprobillapp/components/color_constants.dart';
 import 'package:newprobillapp/models/transaction.dart';
 
 class TransactionDetailPage extends StatelessWidget {
@@ -28,7 +29,7 @@ class TransactionDetailPage extends StatelessWidget {
             color: Color.fromARGB(255, 0, 0, 0),
           ),
         ),
-        backgroundColor: const Color.fromRGBO(243, 203, 71, 1),
+        backgroundColor: green2,
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),

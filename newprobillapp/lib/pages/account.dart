@@ -10,6 +10,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 
 import 'package:newprobillapp/components/api_constants.dart';
+import 'package:newprobillapp/components/color_constants.dart';
 import 'package:newprobillapp/services/api_services.dart';
 
 String userDetailsAPI = "$baseUrl/user-detail";
@@ -113,13 +114,12 @@ class _UserAccountState extends State<UserAccount> {
         );
       }
       EasyLoading.show(status: 'Updating...');
-  
+
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
 
       EasyLoading.dismiss();
       if (response.statusCode == 201) {
-
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -228,67 +228,46 @@ class _UserAccountState extends State<UserAccount> {
   Widget textFieldCustom(TextEditingController controller, bool obscureText,
       String hintText, bool readOnly) {
     return TextFormField(
-      controller: controller,
-      obscureText: obscureText,
-      readOnly: readOnly,
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: Colors.white,
-        hintText: hintText,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide.none,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLogoPicker() {
-    return const Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        // userDetail!.logo.isNotEmpty && Uri.parse(logo as String).isAbsolute
-        //     ? SizedBox(
-        //         width: 50, // Set the width of the thumbnail
-        //         height: 50, // Set the height of the thumbnail
-        //         child: Image.network(logo as String),
-        //       )
-        //     : Container(
-        //         width: 50, // Set the width of the placeholder
-        //         height: 50, // Set the height of the placeholder
-        //         color: Colors.grey, // Placeholder color
-        //         child: const Icon(
-        //           Icons.image_not_supported, // Placeholder icon
-        //           color: Colors.white, // Icon color
-        //         ),
-        //       ),
-        const SizedBox(
-            width: 10), // Add some space between the button and the thumbnail
-        // ElevatedButton(
-        //   onPressed: pickLogoImage,
-        //   child: Text('Change Logo'),
-        // ),
-      ],
-    );
+        controller: controller,
+        obscureText: obscureText,
+        readOnly: readOnly,
+        decoration: InputDecoration(
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: const BorderSide(
+              color: Color(0xffbfbfbf),
+              width: 3.0,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: const BorderSide(
+              color: green2,
+              width: 3.0,
+            ),
+          ),
+          hintText: hintText,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+        ));
   }
 
   Widget _logoPicker() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: <Widget>[
+        const SizedBox(width: 10),
         ElevatedButton(
           onPressed: pickLogoImage,
+          style: ElevatedButton.styleFrom(
+              backgroundColor: green2,
+              foregroundColor: white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              )),
           child: const Text('Pick Logo'),
         ),
-        const SizedBox(
-            width: 10), // Add some space between the button and the thumbnail
-        logoImageFile != null
-            ? SizedBox(
-                width: 50, // Set the width of the thumbnail
-                height: 50, // Set the height of the thumbnail
-                child: Image.file(File(logoImageFile!.path)),
-              )
-            : Container(), // If no image is selected, display an empty container
       ],
     );
   }
@@ -296,23 +275,15 @@ class _UserAccountState extends State<UserAccount> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(246, 247, 255, 1),
+      //  backgroundColor: const Color.fromRGBO(246, 247, 255, 1),
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context); // Go back when pressed
-          },
-        ),
-        toolbarHeight: 40,
         title: const Text(
           'Account Details',
           style: TextStyle(
             color: Color.fromARGB(255, 0, 0, 0),
           ),
         ),
-        backgroundColor: const Color.fromRGBO(
-            243, 203, 71, 1), // Change this color to whatever you desire
+        backgroundColor: green2, // Change this color to whatever you desire
       ),
       body: userDetail == null
           ? const Center(child: CircularProgressIndicator())
@@ -339,11 +310,20 @@ class _UserAccountState extends State<UserAccount> {
                       gstinController, false, 'GSTIN Number', false),
                   const SizedBox(height: 10.0),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Logo: '),
-                      _buildLogoPicker(),
-                      _logoPicker(),
+                      const Expanded(flex: 1, child: Text('Logo:')),
+                      logoImageFile != null
+                          ? SizedBox(
+                              width: 50,
+                              height: 50,
+                              child: Image.file(File(logoImageFile!.path)),
+                            )
+                          : Container(),
+                      Expanded(
+                        flex: 2,
+                        child: _logoPicker(),
+                      ),
                       // Display current logo and replace logo button
                     ],
                   ),
@@ -357,9 +337,12 @@ class _UserAccountState extends State<UserAccount> {
 
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
-                      backgroundColor:
-                          const Color(0xFF0B5ED7), // Change the color here
+                      backgroundColor: blue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
                     ),
+
                     child: const Text('Update Changes'),
                   ),
                 ],

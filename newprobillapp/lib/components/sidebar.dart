@@ -79,6 +79,81 @@ class _SidebarState extends State<Sidebar> {
 
   @override
   Widget build(BuildContext context) {
+    Widget drawerHeader = Container(
+      padding: EdgeInsets.only(
+          left: 20,
+          top: MediaQuery.of(context).padding.top,
+          bottom: 10,
+          right: 10),
+      decoration: const BoxDecoration(
+        color: green2,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            radius: 45,
+            backgroundImage: logo?.image,
+            backgroundColor: green2,
+          ),
+          const SizedBox(
+            width: 20,
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      _name,
+                      style: const TextStyle(
+                        color: Color.fromARGB(255, 0, 0, 0),
+                        fontSize: 22,
+                        fontFamily: 'Roboto_Regular',
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (isAdmin == 1)
+                      const Text(
+                        "(Admin)",
+                        style: TextStyle(
+                          fontFamily: 'Roboto_Regular',
+                          fontSize: 18,
+                        ),
+                      ),
+                  ],
+                ),
+                Text(
+                  shopName,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: white,
+                  ),
+                ),
+                Text(
+                  address,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: white,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  phone,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
     return Scaffold(
       body: PopScope(
         canPop: false,
@@ -93,79 +168,7 @@ class _SidebarState extends State<Sidebar> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            SizedBox(
-              height: MediaQuery.of(context).size.height * 0.23,
-              child: DrawerHeader(
-                decoration: const BoxDecoration(
-                  color: green2,
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    CircleAvatar(
-                      radius: 45,
-                      backgroundImage: logo?.image,
-                      backgroundColor: green2,
-                    ),
-                    const SizedBox(
-                      width: 20,
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Wrap(
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              Text(
-                                _name,
-                                style: const TextStyle(
-                                  color: Color.fromARGB(255, 0, 0, 0),
-                                  fontSize: 22,
-                                  fontFamily: 'Roboto_Regular',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              if (isAdmin == 1)
-                                const Text(
-                                  "(Admin)",
-                                  style: TextStyle(
-                                    fontFamily: 'Roboto_Regular',
-                                    fontSize: 18,
-                                  ),
-                                ),
-                            ],
-                          ),
-                          Text(
-                            shopName,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: white,
-                            ),
-                          ),
-                          Text(
-                            address,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: white,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            phone,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            drawerHeader,
             ListTile(
               leading: const Icon(Icons.add),
               title: const Text('Add Inventory'),

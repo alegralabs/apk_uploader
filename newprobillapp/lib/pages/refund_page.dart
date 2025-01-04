@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,11 +9,14 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:newprobillapp/components/api_constants.dart';
 import 'package:newprobillapp/components/bill_widget.dart';
 import 'package:newprobillapp/components/bottom_navigation_bar.dart';
+import 'package:newprobillapp/components/color_constants.dart';
+import 'package:newprobillapp/components/quantity_modal_bottom_sheet.dart';
 import 'package:newprobillapp/components/sidebar.dart';
 import 'package:newprobillapp/components/microphone_button.dart';
 import 'package:newprobillapp/services/api_services.dart';
-import 'package:newprobillapp/services/internet_checker.dart';
-// import 'package:newprobillapp/services/local_database.dart';
+import 'package:newprobillapp/services/home_bill_item_provider.dart';
+
+//import 'package:newprobillapp/services/local_database.dart';
 import 'package:newprobillapp/services/local_database_2.dart';
 import 'package:newprobillapp/services/refund_bill_item_provider.dart';
 import 'package:newprobillapp/services/result.dart';
@@ -26,18 +31,19 @@ class RefundPage extends StatefulWidget {
   const RefundPage({super.key});
 
   @override
-  State<RefundPage> createState() => _RefundPageState();
+  State<RefundPage> createState() => RefundPageState();
 }
 
-class _RefundPageState extends State<RefundPage> {
+class RefundPageState extends State<RefundPage> {
   int quantity = 0;
   int _selectedIndex = 1;
-  TextEditingController _nameController = TextEditingController();
-  TextEditingController _quantityController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController quantityController = TextEditingController();
+
   final FocusNode _nameFocusNode = FocusNode();
   final FocusNode _quantityFocusNode = FocusNode();
   final SpeechToText _speechToText = SpeechToText();
-  bool _speechEnabled = false;
+
   String string = '';
   double confidence = 0;
   final _localDatabase = LocalDatabase2.instance;
@@ -48,29 +54,28 @@ class _RefundPageState extends State<RefundPage> {
   String salePrice = '';
   String? itemNameforTable;
   String? token;
+  String? apiKey;
   bool validProductName = true;
   bool isquantityavailable = false;
   bool isSuggetion = false;
-
+  String textToDisplay = '';
   String? availableStockValue = '';
 
   String unitOfQuantity = '';
   double quantityNumeric = 0;
 
-  bool _wasListening = false;
+  String spokenUnit = '';
   double itemColumnHeight = 0;
 
   bool wasListening = false;
 
   final FocusNode _searchFocus = FocusNode();
-
+  bool? quantityPopup;
   bool shouldOpenDropdown = false;
   //QuickSellSuggestionModel? newItems;
 
   //New Variable
   bool itemSelected = false;
-  bool _hasSpeech = false;
-  final bool _logEvents = false;
 
   String lastWords = '';
   String lastError = '';
@@ -129,29 +134,33 @@ class _RefundPageState extends State<RefundPage> {
   ];
 
   final int itemsPerPage = 15; // Number of items to load at a time
-  ScrollController _scrollController =
+  final ScrollController _scrollController =
       ScrollController(); // Scroll controller to detect scrolling
   bool isLoadingMore = false; // Flag to show loading indicator
   int currentPage = 0; // Current page for loading items
 
-  String quantitySelectedValue = '';
   //GlobalKey<AutoCompleteTextFieldState<String>> quantityKey = GlobalKey();
   String _errorMessage = '';
+  var listQuantity = 1;
+  Map? currentVoice;
+  List<Map>? voices;
 
+  @override
   void initState() {
     super.initState();
     initializeData();
-
+    initTTS();
     initSpeech();
   }
 
+  @override
   void dispose() {
     // _stopListening();
     _speechToText.stop();
 
     _speechToText.cancel();
     _nameController.dispose();
-    _quantityController.dispose();
+    quantityController.dispose();
     _nameFocusNode.dispose();
     _quantityFocusNode.dispose();
     _scrollController.dispose();
@@ -160,13 +169,41 @@ class _RefundPageState extends State<RefundPage> {
   }
 
   void initSpeech() async {
-    _speechEnabled =
-        await _speechToText.initialize(onStatus: (status) => setState(() {}));
+    await _speechToText.initialize(onStatus: (status) => setState(() {}));
     setState(() {});
+  }
+
+  void initTTS() {
+    flutterTts.getVoices.then((value) {
+      try {
+        voices = List<Map>.from(value);
+
+        // print(voices);
+
+        setState(() {
+          voices = voices!
+              .where((element) => element['locale'].contains('en'))
+              .toList();
+          // print(voices);
+          currentVoice = voices![0];
+          setVoice(currentVoice!);
+        });
+      } catch (e) {
+        print(e);
+      }
+    });
+  }
+
+  void setVoice(Map voice) {
+    Platform.isAndroid
+        ? flutterTts.setVoice({"name": "en-in-x-cxx-local"})
+        : flutterTts.setVoice({"name": "com.apple.ttsbundle.Rishi-compact"});
+    // flutterTts.speak("This is my voice!");
   }
 
   void initializeData() async {
     token = await APIService.getToken();
+    apiKey = await APIService.getXApiKey();
   }
 
   void _startListening() async {
@@ -174,8 +211,9 @@ class _RefundPageState extends State<RefundPage> {
     print("Start Listening");
 
     await _speechToText.listen(
+      localeId: 'en-IN',
       onResult: resultListener,
-      pauseFor: const Duration(seconds: 10),
+      pauseFor: const Duration(seconds: 5),
       listenOptions: SpeechListenOptions(
         enableHapticFeedback: true,
         partialResults: true,
@@ -213,7 +251,6 @@ class _RefundPageState extends State<RefundPage> {
     setState(() {
       string = result.recognizedWords;
       // confidence = result.confidence;
-      print(string);
     });
   }
 
@@ -227,6 +264,7 @@ class _RefundPageState extends State<RefundPage> {
 
         validProductName = true;
         _parseSpeech(recognizedWord, result.finalResult);
+        //extractNameQuantityUnit(recognizedWord);
       });
     }
   }
@@ -235,123 +273,63 @@ class _RefundPageState extends State<RefundPage> {
     await flutterTts.speak(errorAnnounce);
   }
 
-  Widget _parseSpeech(String words, bool finalResult) {
+  _parseSpeech(String words, bool finalResult) {
+    string = words;
     print("words: $words");
-    // print('parsespeech called');
-    RegExp regex = RegExp(
-        r'(\w+(?:\s+\w+)*)\s+quantity\s+((?:\d+\s*|(?:\w+\s*)+))\s+(packs|bags|bag|bottle|bottles|box|boxes|bundle|bundles|can|cans|cartoon|cartoons|cartan|gram|grams|gm|g|kilogram|kg|kilograms|litre|litres|ltr|meter|m|meters|ms|millilitre|ml|millilitres|number|numerbs|pack|packs|packet|packets|pair|pairs|piece|pieces|roll|rolls|squarefeet|sqf|squarefeets|sqfts|squaremeters|squaremeter)');
+    print("finalResult: $finalResult");
 
-    Match? match = regex.firstMatch(words);
+    // Separate letters and numbers in combined words (e.g., abc123 -> abc 123)
+    words = words.replaceAllMapped(RegExp(r'([a-zA-Z]+)(\d+)'), (match) {
+      return '${match.group(1)} ${match.group(2)}';
+    });
 
-    if (match != null) {
-      String product = match.group(1) ?? "";
-      String quantity = match.group(2) ?? "";
-      String unitOfQuantity = match.group(3) ?? "";
+    // Remove specific keywords and trim whitespace
+    words = words
+        .replaceAll(RegExp(r'\bquantity\b', caseSensitive: false), '')
+        .trim();
+    words =
+        words.replaceAll(RegExp(r'\b-\b', caseSensitive: false), ' ').trim();
+    final regex = RegExp(
+        r'^(.*?)\s+(\d+|[a-zA-Z]+)?\s?(packs?|bags?|bottles?|boxes?|bundles?|cans?|cartoons?|cartan|grams?|gm|g|kilograms?|kgs?|kilo|litres?|ltr|meters?|ms?|millilitres?|ml|numbers?|pack(?:ets?)?|pairs?|pieces?|packages?|rolls?|squarefeet|sqf|squarefeets?|squaremeters?|m)\b',
+        caseSensitive: false);
+    // final regex = RegExp(
+    //     r'^(.*?)\s+(?:(?:\d{1,3}(?:,\d{3})*|\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million|billion)(?:\s+(?:and\s+)?(?:\d{1,3}(?:,\d{3})*|\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million|billion))*)\s+(packs?|bags?|bottles?|boxes?|bundles?|cans?|cartoons?|cartan|grams?|gm|g|kilograms?|kgs?|kilo|litres?|ltr|meters?|ms?|millilitres?|ml|numbers?|pack(?:ets?)?|pairs?|pieces?|rolls?|squarefeet|sqf|squarefeets?|squaremeters?|m)\b',
+    //     caseSensitive: false);
 
-      // productNameController.text = product;
-      //  print('2');
-      _localDatabase.searchDatabase(product);
-
-      text2num(quantity);
-      extractAndCombineNumbers(text2num(quantity).toString());
-      isInputThroughText = false;
-
-      Future.delayed(Duration(seconds: 1), () {
-        if (mounted) setState(() {});
-      });
-
-      if (product.isEmpty) {
-        if (mounted) {
-          setState(() {
-            _errorMessage = 'Product is missing';
-            speak(_errorMessage);
-          });
-        }
-        return _productErrorWidget(_errorMessage);
-      }
-      if (quantity.isEmpty) {
-        if (mounted) {
-          setState(() {
-            _errorMessage = 'Quantity is missing';
-            speak(_errorMessage);
-          });
-        }
-        return _productErrorWidget(_errorMessage);
-      }
-      if (unitOfQuantity.isEmpty) {
-        if (mounted) {
-          setState(() {
-            _errorMessage = 'Unit is missing';
-            speak(_errorMessage);
-          });
-        }
-        return _productErrorWidget(_errorMessage);
-      }
-      Future.delayed(const Duration(seconds: 1), () {
-        if (_localDatabase.suggestions.isEmpty) {
-          print('Product Not Available');
-          speak('Product Not Available');
-        }
-      });
-
-      if (mounted) {
-        setState(
-          () {
-            _errorMessage = ''; // Clear error message on successful parsing
-          },
-        );
-      }
-    } else {
-      if (finalResult == true) {
-        if (words.contains('quantity')) {
-          if (words.startsWith('quantity')) {
-            if (mounted) {
-              setState(() {
-                _errorMessage = 'Product is missing';
-                speak(_errorMessage);
-              });
-            }
-            return _productErrorWidget(_errorMessage);
-          } else if (words.endsWith('quantity')) {
-            if (mounted) {
-              setState(() {
-                _errorMessage = 'Quantity and unit are missing';
-                speak(_errorMessage);
-              });
-            }
-            return _productErrorWidget(_errorMessage);
-          } else {
-            if (mounted) {
-              setState(() {
-                _errorMessage = 'unit is missing';
-                speak(_errorMessage);
-              });
-            }
-            return _productErrorWidget(_errorMessage);
-          }
-        } else {
-          if (mounted) {
-            setState(() {
-              _errorMessage = 'Quantity word is missing';
-              speak(_errorMessage);
-            });
-          }
-          return _productErrorWidget(_errorMessage);
-        }
-      }
+    Match? match;
+    if (words != "") {
+      match = regex.firstMatch(words);
     }
-    if (mounted) setState(() {});
-    return _productErrorWidget('');
-  }
 
-  Widget _productErrorWidget(error) {
-    return Align(
-        alignment: Alignment.center,
-        child: Text(
-          'Error: $error',
-          style:
-              const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-        ));
+    String product = match?.group(1) ?? words;
+    String quantity = match?.group(2) ?? "one";
+
+    String unitOfQuantity = match?.group(3) ?? "";
+    // Provider.of(context, listen: false).assignQuantity(quantity);
+    // Provider.of(context, listen: false).assignUnit(unitOfQuantity);
+
+    print("product: $product");
+    print("quantity: $quantity");
+    print("unit: $unitOfQuantity");
+    product = product.replaceAll(RegExp(r'\b\d+\b'), '').trim();
+
+    match?.group(2) == null ? quantityPopup = true : quantityPopup = false;
+    _localDatabase.searchDatabase(product);
+
+    text2num(quantity);
+    extractAndCombineNumbers(text2num(quantity).toString());
+    isInputThroughText = false;
+
+    spokenUnit = unitOfQuantity;
+
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) setState(() {});
+      print("suggestions is empty: ${_localDatabase.suggestions.isEmpty}");
+      if (_localDatabase.suggestions.isEmpty && finalResult == true) {
+        print('Product Not Available');
+        speak('Product Not Available. Please try again.');
+      }
+    });
   }
 
   void deleteProductFromTable(int index) {
@@ -418,15 +396,15 @@ class _RefundPageState extends State<RefundPage> {
                   if (mounted) {
                     setState(() {
                       _localDatabase.clearSuggestions();
-                      _quantityController.clear();
+                      quantityController.clear();
                       _nameController.clear();
                       isInputThroughText ? _nameFocusNode.nextFocus() : null;
-
+                      _stopListening();
                       // print('dropdown: $_dropdownItemsQuantity');
                     });
                   }
                 },
-                child: Container(
+                child: SizedBox(
                   height: MediaQuery.of(context).size.height,
                   width: MediaQuery.of(context).size.width,
                 ),
@@ -434,26 +412,27 @@ class _RefundPageState extends State<RefundPage> {
               Column(
                 children: [
                   Container(
+                    height: _localDatabase.suggestions.length * 55,
                     margin: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                     constraints: BoxConstraints(
                         maxHeight: MediaQuery.of(context).size.height * 0.5),
                     decoration: BoxDecoration(
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
-                          spreadRadius: 5,
+                          color: Colors.grey.withOpacity(0.2),
+                          spreadRadius: 3,
                           blurRadius: 7,
                           offset: const Offset(0, 0),
                         ),
                       ],
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(15),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: ListView.separated(
                       padding: EdgeInsets.zero,
                       itemCount: dataLength,
                       itemBuilder: (context, index) {
-                        if (index == dataLength) {
+                        if (index >= dataLength) {
                           return const Center(
                               child: CircularProgressIndicator());
                         }
@@ -461,35 +440,78 @@ class _RefundPageState extends State<RefundPage> {
                         final suggestion = _localDatabase.suggestions[index];
                         final itemIdforStock = (suggestion.itemId).toString();
 
+                        if (quantity > 1) {
+                          listQuantity = quantity;
+                        }
                         return ListTile(
                           title: Text(suggestion.name),
                           trailing: isInputThroughText
                               ? Text(
                                   "${suggestion.quantity} ${suggestion.unit}")
-                              : Text("$quantity ${suggestion.unit}"),
+                              : Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    quantityPopup != true
+                                        ? Text("$listQuantity ")
+                                        : const SizedBox.shrink(),
+                                    Text(listQuantity > 50 &&
+                                            suggestion.unit == 'KG'
+                                        ? 'g'
+                                        : suggestion.unit),
+                                  ],
+                                ),
                           onTap: () {
                             _stopListening();
                             if (mounted) {
-                              setState(() {
-                                searching = false;
-                                availableStockValue =
-                                    suggestion.quantity.toString();
-                                _nameController.text = suggestion.name;
-                                _quantityController.text = quantity.toString();
-                                unit = suggestion.unit;
-                                _selectedQuantitySecondaryUnit = unit;
+                              setState(
+                                () {
+                                  searching = false;
+                                  availableStockValue =
+                                      suggestion.quantity.toString();
+                                  _nameController.text = suggestion.name;
+                                  quantityController.text =
+                                      Provider.of<RefundBillItemProvider>(
+                                              context,
+                                              listen: false)
+                                          .quantity
+                                          .toString();
+                                  Provider.of<RefundBillItemProvider>(context,
+                                          listen: false)
+                                      .assignQuantity(listQuantity);
+                                  unit = suggestion.unit;
+                                  Provider.of<RefundBillItemProvider>(context,
+                                          listen: false)
+                                      .assignUnit(unit);
+                                  listQuantity > 50
+                                      ? {
+                                          (unit == 'KG' || unit == 'GM')
+                                              ? _selectedQuantitySecondaryUnit =
+                                                  'GM'
+                                              : (unit == 'LTR' || unit == 'ML')
+                                                  ? _selectedQuantitySecondaryUnit =
+                                                      'ML'
+                                                  : _selectedQuantitySecondaryUnit =
+                                                      unit
+                                        }
+                                      : _selectedQuantitySecondaryUnit = unit;
+                                  if (quantityPopup == true) {
+                                    speak("Enter the quantity.");
+                                    showModalBottomSheet(
+                                        context: context,
+                                        builder: (context) {
+                                          return QuantityModalBottomSheet();
+                                        });
+                                  }
 
-                                itemId = itemIdforStock;
-                                // assignQuantityFunction(itemIdforStock, token!);
-                                itemSelected = true;
-                                _localDatabase.clearSuggestions();
-
-                                _unitDropdownItems(unit);
-                              });
+                                  itemId = itemIdforStock;
+                                  // assignQuantityFunction(itemIdforStock, token!);
+                                  itemSelected = true;
+                                  _localDatabase.clearSuggestions();
+                                  listQuantity = 1;
+                                  _unitDropdownItems(unit);
+                                },
+                              );
                             }
-
-                            print('dropdownItems: $_dropdownItems');
-                            print('dropdown: $_dropdownItemsQuantity');
                           },
                         );
                       },
@@ -519,7 +541,7 @@ class _RefundPageState extends State<RefundPage> {
                     ),
                   ],
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Center(
                   child: Text(
@@ -539,22 +561,24 @@ class _RefundPageState extends State<RefundPage> {
       _dropdownItemsQuantity = ["KG", "GM"];
     } else if (unit.toLowerCase() == 'ltr') {
       _dropdownItemsQuantity = ["LTR", "ML"];
-    } else
+    } else {
       _dropdownItemsQuantity = [unit];
+    }
     //_dropdownItemsQuantity = _dropdownItems;
   }
 
-  Future<int?> checkStockStatus(
-      String itemId, String quantity, String relatedUnit, String token) async {
+  Future<int?> checkStockStatus(String itemId, String quantity,
+      String relatedUnit, String token, String apiKey) async {
     relatedUnit = relatedUnit.toLowerCase();
-    print('itemId: $itemId, quantity: $quantity, relatedUnit: $relatedUnit');
-
+    //  print('itemId: $itemId, quantity: $quantity, relatedUnit: $relatedUnit');
+    print('checkStockStatus');
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/stock-quantity'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
+          'auth-key': apiKey,
         },
         body: jsonEncode({
           'item_id': itemId,
@@ -567,12 +591,12 @@ class _RefundPageState extends State<RefundPage> {
         final Map<String, dynamic> responseData = json.decode(response.body);
         if (responseData.containsKey('stockStatus')) {
           itemNameforTable = responseData['data']?['item_name'] as String?;
-
+          print('responseData: $responseData');
           int? stockStatus = int.tryParse(responseData['stockStatus']);
-          if (stockStatus == 1) {
+          if (stockStatus == 2) {
             salePrice = responseData['data']['sale_price'];
           }
-          print("Stock Status: $stockStatus");
+          //   print("Stock Status: $stockStatus");
           return stockStatus;
         } else {
           // If stockStatus is not present in the response, return -1 to indicate an error
@@ -625,7 +649,8 @@ class _RefundPageState extends State<RefundPage> {
 
   void addProductTable(
       String itemName, double finalQuantity, String unit, double salePrice) {
-    double amount = salePrice * finalQuantity; // Calculate the amount
+    double amount = salePrice * finalQuantity;
+    print('addProductTable '); // Calculate the amount
     if (mounted) {
       setState(() {
         Provider.of<RefundBillItemProvider>(context, listen: false).addItem({
@@ -720,7 +745,8 @@ class _RefundPageState extends State<RefundPage> {
       var response = await http.post(
         Uri.parse(apiUrl),
         headers: {
-          "Authorization": "Bearer $token", // Include bearer token
+          "Authorization": "Bearer $token",
+          "auth-key": "$apiKey", // Include bearer token
         },
         body: formData,
       );
@@ -749,7 +775,7 @@ class _RefundPageState extends State<RefundPage> {
         );
         // Optionally, you can handle further actions after saving the data
       } else {
-        print(response.body);
+        //  print(response.body);
         EasyLoading.dismiss();
 
         // Handle other HTTP status codes
@@ -767,7 +793,7 @@ class _RefundPageState extends State<RefundPage> {
     if (mounted) {
       setState(() {
         _nameController.clear();
-        _quantityController.clear();
+        quantityController.clear();
         _errorMessage = "";
         validProductName =
             true; // Clear error message when clearing the text field
@@ -791,9 +817,9 @@ class _RefundPageState extends State<RefundPage> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  print(lastError);
+                  //   print(lastError);
                   lastError = '';
-                  print("l:$lastError");
+                  // print("l:$lastError");
                   //  quantityWord = true;
                 });
               },
@@ -814,8 +840,9 @@ class _RefundPageState extends State<RefundPage> {
           ],
         ),
       );
-    } else
-      return SizedBox.shrink();
+    } else {
+      return const SizedBox.shrink();
+    }
   }
 
   //////////////////////////////////////////////////////////////////////
@@ -828,7 +855,15 @@ class _RefundPageState extends State<RefundPage> {
 
   @override
   Widget build(BuildContext context) {
-    // _selectedQuantitySecondaryUnit = _dropdownItemsQuantity[0];
+    // _selectedQuantitySecondaryUnit =
+    //     Provider.of<RefundBillItemProvider>(context, listen: false).unit;
+
+    var screenWidth = MediaQuery.of(context).size.width;
+    var screenHeight = MediaQuery.of(context).size.height;
+    quantityController.text =
+        Provider.of<RefundBillItemProvider>(context, listen: false)
+            .quantity
+            .toString();
     bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
     return Scaffold(
       drawer: const Drawer(
@@ -839,6 +874,7 @@ class _RefundPageState extends State<RefundPage> {
           ? null
           : InkWell(
               onTap: () {
+                _localDatabase.suggestions.clear();
                 _speechToText.isListening
                     ? _stopListening()
                     : _startListening();
@@ -856,55 +892,72 @@ class _RefundPageState extends State<RefundPage> {
         selectedIndex: _selectedIndex,
       ),
       appBar: AppBar(
-        title: const Text('Probill'),
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        title: Text(
+          string != "" ? string : "Probill",
+          style: const TextStyle(fontSize: 18, fontFamily: 'Roboto'),
+        ),
+        backgroundColor: green2,
       ),
       body: SingleChildScrollView(
         child: GestureDetector(
           onTap: () {
             _nameFocusNode.unfocus();
             _quantityFocusNode.unfocus();
+            _stopListening();
           },
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Stack(children: [
               Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  _errorWidgetView(lastError, isquantityavailable),
                   TextField(
+                    onTap: () {
+                      setState(() {});
+                    },
                     onChanged: (m) {
-                      if (mounted) {
-                        setState(() {
-                          searching = true;
-                        });
-                      }
                       _localDatabase.searchDatabase(_nameController.text);
+                      searching = true;
+
                       isInputThroughText = true;
+
+                      Future.delayed(const Duration(milliseconds: 100), () {
+                        setState(() {});
+                      });
 
                       if (_nameController.text == '') {
                         validProductName = true;
                         _localDatabase.clearSuggestions();
                         if (mounted) setState(() {});
                       }
-                      // updateSuggestionList(m);
-                      // _localDatabase.searchDatabase(m);
                     },
                     controller: _nameController,
                     decoration: InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: const BorderSide(
+                          color: Color(0xffbfbfbf),
+                          width: 3.0,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: const BorderSide(
+                          color: green2,
+                          width: 3.0,
+                        ),
+                      ),
                       suffixIcon: _nameController.text.isNotEmpty
                           ? IconButton(
                               onPressed: () {
                                 _nameController.clear();
-                                _quantityController.clear();
+                                quantityController.clear();
                                 _localDatabase.clearSuggestions();
-                                _dropdownItemsQuantity = _dropdownItems;
-                                _selectedQuantitySecondaryUnit =
-                                    _dropdownItems[0];
                                 setState(() {});
                               },
                               icon: const Icon(Icons.cancel),
                             )
-                          : SizedBox.shrink(),
+                          : const SizedBox.shrink(),
                       hintText: "Enter Product Name",
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0),
@@ -912,81 +965,161 @@ class _RefundPageState extends State<RefundPage> {
                     ),
                     focusNode: _nameFocusNode,
                   ),
-                  const SizedBox(height: 8.0),
+                  const SizedBox(height: 16.0),
                   TextField(
-                    controller: _quantityController,
+                    onTap: () {
+                      setState(() {});
+                    },
+                    controller: TextEditingController(
+                      text: Provider.of<RefundBillItemProvider>(context)
+                                  .quantity ==
+                              0
+                          ? ''
+                          : Provider.of<RefundBillItemProvider>(context)
+                              .quantity
+                              .toString(),
+                    ),
+                    keyboardType: TextInputType.number,
+                    onChanged: (value) {
+                      if (value.isEmpty) {
+                        Provider.of<RefundBillItemProvider>(context,
+                                listen: false)
+                            .assignQuantity(0);
+                        return;
+                      }
+
+                      try {
+                        final quantity = int.parse(value);
+                        Provider.of<RefundBillItemProvider>(context,
+                                listen: false)
+                            .assignQuantity(quantity);
+                      } catch (e) {
+                        // Revert to last valid value or empty
+                        final sanitizedValue =
+                            value.replaceAll(RegExp(r'[^0-9]'), '');
+                        Provider.of<RefundBillItemProvider>(context,
+                                listen: false)
+                            .assignQuantity(sanitizedValue.isEmpty
+                                ? 0
+                                : int.parse(sanitizedValue));
+
+                        // Update controller text
+                        final newPosition = value.length;
+                        TextEditingController(text: sanitizedValue).selection =
+                            TextSelection.fromPosition(
+                          TextPosition(
+                              offset: min(newPosition, sanitizedValue.length)),
+                        );
+                      }
+                    },
                     decoration: InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: const BorderSide(
+                          color: Color(0xffbfbfbf),
+                          width: 3.0,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: const BorderSide(
+                          color: green2,
+                          width: 3.0,
+                        ),
+                      ),
                       hintText: "Enter Quantity",
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0),
                       ),
-                      suffixIcon: DropdownButton<String>(
-                        elevation: 16,
-                        menuMaxHeight: MediaQuery.of(context).size.height * 0.3,
-                        value: _selectedQuantitySecondaryUnit,
-                        onChanged: (newValue) {
-                          setState(() {
-                            _selectedQuantitySecondaryUnit = newValue;
-                            quantitySelectedValue = newValue ??
-                                ''; // Update quantitySelectedValue with the selected value
-                          });
-                        },
-                        items: _dropdownItemsQuantity
-                            .map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(
-                              value,
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                          );
-                        }).toList(),
+                      suffixIcon: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 2),
+                        decoration: BoxDecoration(
+                          borderRadius: const BorderRadius.only(
+                              topRight: Radius.circular(8.0),
+                              bottomRight: Radius.circular(8.0)),
+                          color:
+                              _quantityFocusNode.hasFocus ? green2 : darkGrey,
+                        ),
+                        child: DropdownButton<String>(
+                          elevation: 16,
+                          menuMaxHeight: screenHeight * 0.3,
+                          value: Provider.of<RefundBillItemProvider>(context,
+                                  listen: false)
+                              .unit,
+                          onChanged: (newValue) {
+                            setState(() {
+                              Provider.of<RefundBillItemProvider>(context,
+                                      listen: false)
+                                  .assignUnit(newValue!);
+                              _selectedQuantitySecondaryUnit =
+                                  Provider.of<RefundBillItemProvider>(context,
+                                          listen: false)
+                                      .unit;
+                            });
+                          },
+                          items: _dropdownItemsQuantity
+                              .map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(
+                                value,
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            );
+                          }).toList(),
+                        ),
                       ),
                     ),
                     focusNode: _quantityFocusNode,
                   ),
                   const SizedBox(
-                    height: 8,
+                    height: 15,
                   ),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      Container(
-                        width: MediaQuery.of(context).size.width * 0.3,
-                        height: 45,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(25),
-                          color: (_nameController.text.isEmpty ||
-                                  _quantityController.text.isEmpty)
-                              ? const Color.fromRGBO(210, 211, 211, 1)
-                              : const Color(0xff28a745),
-                        ),
-                        padding: const EdgeInsets.all(5.0),
-                        child: MaterialButton(
+                      SizedBox(
+                        height: screenHeight * 0.05,
+                        width: screenWidth * 0.3,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            elevation: 1.0,
+                            backgroundColor: (_nameController.text.isEmpty ||
+                                    quantityController.text.isEmpty)
+                                ? lightGrey
+                                : blue,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
                           onPressed: () async {
                             _stopListening();
-                            // print("Add button pressed");
-                            // print(
-                            //     "_nameController.text: ${_nameController.text}, _quantityController.text: ${_quantityController.text}");
+
                             if (_nameController.text.isNotEmpty &&
-                                _quantityController.text.isNotEmpty) {
-                              String quantityValue = _quantityController.text;
+                                quantityController.text.isNotEmpty) {
+                              String quantityValue = quantityController.text;
                               double? quantityValueforConvert =
                                   double.tryParse(quantityValue);
                               _primaryUnit = unit;
                               double quantityValueforTable =
                                   convertQuantityBasedOnUnit(
                                       _primaryUnit!,
-                                      _selectedQuantitySecondaryUnit!,
+                                      Provider.of<RefundBillItemProvider>(
+                                              context,
+                                              listen: false)
+                                          .unit,
                                       quantityValueforConvert!);
-                              print(
-                                  "quantityValueforTable:$quantityValueforTable");
+                              //  print("quantityValueforTable:$quantityValueforTable");
                               int? stockStatus = await checkStockStatus(
                                   itemId,
                                   quantityValueforTable.toString(),
-                                  _selectedQuantitySecondaryUnit!,
-                                  token!);
-                              if (stockStatus == 1 &&
+                                  Provider.of<RefundBillItemProvider>(context,
+                                          listen: false)
+                                      .unit,
+                                  token!,
+                                  "$apiKey");
+                              print("stockStatus: $stockStatus");
+                              if (stockStatus == 2 &&
                                   validProductName == true) {
                                 //print("tryParse");
 
@@ -998,13 +1131,10 @@ class _RefundPageState extends State<RefundPage> {
                                     unit,
                                     salePriceforTable!);
                                 _nameController.clear();
-                                _quantityController.clear();
+                                quantityController.clear();
 
                                 //  _dropdownItemsQuantity.insert(0, "Unit");
-                                _selectedQuantitySecondaryUnit =
-                                    _dropdownItemsQuantity[
-                                        0]; // Reset to default value
-                                quantitySelectedValue = '';
+                                // Reset to default value
 
                                 if (mounted) {
                                   setState(() {
@@ -1012,6 +1142,9 @@ class _RefundPageState extends State<RefundPage> {
                                     _selectedQuantitySecondaryUnit =
                                         _dropdownItemsQuantity[0];
                                     _localDatabase.clearSuggestions();
+                                    Provider.of<RefundBillItemProvider>(context,
+                                            listen: false)
+                                        .assignQuantity(0);
                                   });
                                 }
                               } else if (stockStatus == 0) {
@@ -1037,56 +1170,65 @@ class _RefundPageState extends State<RefundPage> {
                               }
                             }
                           },
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                          child: const Center(
+                          child: Center(
                             child: Text(
                               "ADD",
                               style: TextStyle(
                                   fontSize: 18,
-                                  color: Colors.white,
+                                  color: (_nameController.text.isEmpty ||
+                                          quantityController.text.isEmpty)
+                                      ? darkGrey
+                                      : white,
                                   fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
                       ),
-                      Container(
-                        width: MediaQuery.of(context).size.width * 0.3,
-                        height: 45,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(25),
-                          color: (_nameController.text.isEmpty ||
-                                  _quantityController.text.isEmpty)
-                              ? const Color.fromRGBO(210, 211, 211, 1)
-                              : Colors.red,
-                        ),
-                        padding: const EdgeInsets.all(5.0),
-                        child: MaterialButton(
+                      SizedBox(
+                        width: screenWidth * 0.05,
+                      ),
+                      SizedBox(
+                        height: screenHeight * 0.05,
+                        width: screenWidth * 0.3,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            elevation: 1.0,
+                            backgroundColor: (_nameController.text.isEmpty ||
+                                    quantityController.text.isEmpty)
+                                ? lightGrey
+                                : red,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
                           onPressed: () async {
                             _stopListening();
-                            // print("Add button pressed");
-                            // print(
-                            //     "_nameController.text: ${_nameController.text}, _quantityController.text: ${_quantityController.text}");
+
                             if (_nameController.text.isNotEmpty &&
-                                _quantityController.text.isNotEmpty) {
-                              String quantityValue = _quantityController.text;
+                                quantityController.text.isNotEmpty) {
+                              String quantityValue = quantityController.text;
                               double? quantityValueforConvert =
                                   double.tryParse(quantityValue);
                               _primaryUnit = unit;
                               double quantityValueforTable =
                                   convertQuantityBasedOnUnit(
                                       _primaryUnit!,
-                                      _selectedQuantitySecondaryUnit!,
+                                      Provider.of<RefundBillItemProvider>(
+                                              context,
+                                              listen: false)
+                                          .unit,
                                       quantityValueforConvert!);
-                              print(
-                                  "quantityValueforTable:$quantityValueforTable");
+                              //  print("quantityValueforTable:$quantityValueforTable");
                               int? stockStatus = await checkStockStatus(
                                   itemId,
                                   quantityValueforTable.toString(),
-                                  _selectedQuantitySecondaryUnit!,
-                                  token!);
-                              if (stockStatus == 1 &&
+                                  Provider.of<RefundBillItemProvider>(context,
+                                          listen: false)
+                                      .unit,
+                                  token!,
+                                  "$apiKey");
+                              print("stockStatus: $stockStatus");
+                              if (stockStatus == 2 &&
                                   validProductName == true) {
                                 //print("tryParse");
 
@@ -1098,13 +1240,10 @@ class _RefundPageState extends State<RefundPage> {
                                     unit,
                                     salePriceforTable!);
                                 _nameController.clear();
-                                _quantityController.clear();
+                                quantityController.clear();
 
                                 //  _dropdownItemsQuantity.insert(0, "Unit");
-                                _selectedQuantitySecondaryUnit =
-                                    _dropdownItemsQuantity[
-                                        0]; // Reset to default value
-                                quantitySelectedValue = '';
+                                // Reset to default value
 
                                 if (mounted) {
                                   setState(() {
@@ -1112,6 +1251,9 @@ class _RefundPageState extends State<RefundPage> {
                                     _selectedQuantitySecondaryUnit =
                                         _dropdownItemsQuantity[0];
                                     _localDatabase.clearSuggestions();
+                                    Provider.of<RefundBillItemProvider>(context,
+                                            listen: false)
+                                        .assignQuantity(0);
                                   });
                                 }
                               } else if (stockStatus == 0) {
@@ -1137,15 +1279,15 @@ class _RefundPageState extends State<RefundPage> {
                               }
                             }
                           },
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                          child: const Center(
+                          child: Center(
                             child: Text(
                               "REFUND",
                               style: TextStyle(
                                   fontSize: 18,
-                                  color: Colors.white,
+                                  color: (_nameController.text.isEmpty ||
+                                          quantityController.text.isEmpty)
+                                      ? darkGrey
+                                      : white,
                                   fontWeight: FontWeight.bold),
                             ),
                           ),
@@ -1156,13 +1298,39 @@ class _RefundPageState extends State<RefundPage> {
                   const SizedBox(
                     height: 8,
                   ),
-                  // TextButton(
-                  //   onPressed: _localDatabase.printData,
-                  //   child: const Text("Print Data"),
-                  // ),
-                  const Divider(
-                    color: Colors.grey,
-                    thickness: 1,
+                  Visibility(
+                    visible: Provider.of<RefundBillItemProvider>(context)
+                        .refundItemForBillRows
+                        .isNotEmpty,
+                    child: Stack(
+                      alignment: Alignment.centerRight,
+                      children: [
+                        const SizedBox(
+                          height: 50,
+                          child: Divider(
+                            color: Colors.grey,
+                            thickness: 1,
+                          ),
+                        ),
+                        Positioned(
+                          right: 20,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: black,
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            child: IconButton(
+                                onPressed: () {
+                                  saveData();
+                                },
+                                icon: const Icon(
+                                  Icons.print,
+                                  color: Colors.white,
+                                )),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Provider.of<RefundBillItemProvider>(context)
@@ -1227,18 +1395,17 @@ class _RefundPageState extends State<RefundPage> {
                             )
                           ]),
                         )
-                      : SizedBox.shrink(),
+                      : const SizedBox.shrink(),
                   Provider.of<RefundBillItemProvider>(context)
                           .refundItemForBillRows
                           .isNotEmpty
                       ? const Divider(
                           thickness: 1,
                         )
-                      : SizedBox.shrink(),
-
+                      : const SizedBox.shrink(),
                   SingleChildScrollView(
                     child: Container(
-                      height: MediaQuery.of(context).size.height * 0.29,
+                      height: screenHeight * 0.29,
                       padding: const EdgeInsets.only(left: 20.0),
                       child: Provider.of<RefundBillItemProvider>(context)
                               .refundItemForBillRows
@@ -1265,10 +1432,30 @@ class _RefundPageState extends State<RefundPage> {
                                 );
                               },
                             )
-                          : const Center(
-                              child: Text(
-                                'No items available',
-                                style: TextStyle(color: Colors.grey),
+                          : Center(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                    'assets/light-bulb.png',
+                                    width: 50,
+                                  ),
+                                  const SizedBox(
+                                    width: 20,
+                                  ),
+                                  SizedBox(
+                                    width: screenWidth * 0.7,
+                                    child: const Text(
+                                      'Tap mic and start by saying "Amul butter 2 pieces" select Product and click ADD',
+                                      overflow: TextOverflow.visible,
+                                      style: TextStyle(
+                                        color: black,
+                                        fontSize: 16,
+                                        fontFamily: 'Roboto_Regular',
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                     ),
@@ -1276,7 +1463,7 @@ class _RefundPageState extends State<RefundPage> {
                 ],
               ),
               SizedBox(
-                height: MediaQuery.of(context).size.height * 0.7,
+                height: screenHeight * 0.7,
               ),
               Positioned(
                 bottom: 50,
@@ -1285,7 +1472,7 @@ class _RefundPageState extends State<RefundPage> {
                       .refundItemForBillRows
                       .isNotEmpty,
                   child: SizedBox(
-                    width: MediaQuery.of(context).size.width,
+                    width: screenWidth,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
@@ -1319,30 +1506,70 @@ class _RefundPageState extends State<RefundPage> {
                       .refundItemForBillRows
                       .isNotEmpty,
                   child: SizedBox(
-                    width: MediaQuery.of(context).size.width,
+                    width: screenWidth,
                     child: Row(
                       mainAxisAlignment:
                           MainAxisAlignment.spaceAround, // Align buttons evenly
                       children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            // Action for print button
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xff007bff),
-                            foregroundColor: Colors.white, // white text color
+                        SizedBox(
+                          width: screenWidth * 0.25,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: const Text("Cancel Bill?"),
+                                      content: const Text(
+                                          "Are you sure you want to cancel the bill?"),
+                                      actions: [
+                                        TextButton(
+                                          child: const Text("No"),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                        TextButton(
+                                          child: const Text("Yes"),
+                                          onPressed: () {
+                                            Provider.of<RefundBillItemProvider>(
+                                                    context,
+                                                    listen: false)
+                                                .clearItems();
+
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ), // white text color
+                            ),
+                            child: const Text("Cancel"),
                           ),
-                          child: const Text("Print"),
                         ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xff28a745),
-                            foregroundColor: Colors.white, // white text color
+                        SizedBox(
+                          width: screenWidth * 0.25,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xff28a745),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              // white text color
+                            ),
+                            onPressed: () {
+                              saveData();
+                            },
+                            child: const Text("Save"),
                           ),
-                          onPressed: () {
-                            saveData();
-                          },
-                          child: const Text("Save"),
                         ),
                       ],
                     ),
@@ -1351,12 +1578,11 @@ class _RefundPageState extends State<RefundPage> {
               ),
               isInputThroughText
                   ? Positioned(
-                      top: MediaQuery.of(context).size.height *
-                          0.085, // Adjust the position as needed
+                      top: screenHeight * 0.07, // Adjust the position as needed
                       left: 0,
                       right: 0,
                       child: Container(
-                        width: MediaQuery.of(context).size.width - 100,
+                        width: screenWidth - 100,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(0),
 
@@ -1368,12 +1594,11 @@ class _RefundPageState extends State<RefundPage> {
                       ),
                     )
                   : Positioned(
-                      top: MediaQuery.of(context).size.height *
-                          0.015, // Adjust the position as needed
+                      top: screenHeight * 0.00,
                       left: 0,
                       right: 0,
                       child: Container(
-                        width: MediaQuery.of(context).size.width - 100,
+                        width: screenWidth - 100,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(0),
 

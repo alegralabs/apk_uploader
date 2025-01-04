@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:newprobillapp/components/api_constants.dart';
 import 'package:newprobillapp/components/bottom_navigation_bar.dart';
+import 'package:newprobillapp/components/color_constants.dart';
 import 'package:newprobillapp/components/sidebar.dart';
 import 'package:newprobillapp/pages/home_page.dart';
 import 'package:newprobillapp/pages/login_page.dart';
@@ -370,7 +371,7 @@ class _AddInventoryState extends State<AddInventory> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) async {
+      onPopInvokedWithResult: (didPop, result) async {
         _selectedIndex = 0;
         // Navigate to NextPage when user tries to pop MyHomePage
         Navigator.pushReplacement(
@@ -381,7 +382,9 @@ class _AddInventoryState extends State<AddInventory> {
         return;
       },
       child: Scaffold(
-        drawer: const Sidebar(),
+        drawer: const Drawer(
+          child: Sidebar(),
+        ),
         backgroundColor: const Color.fromRGBO(246, 247, 255, 1),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
@@ -389,13 +392,16 @@ class _AddInventoryState extends State<AddInventory> {
           },
           backgroundColor: const Color(0xff28a745),
           foregroundColor: Colors.white,
-          shape: CircleBorder(),
+          shape: const CircleBorder(),
           child: const Icon(Icons.check),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         appBar: AppBar(
-          toolbarHeight: 40,
-          backgroundColor: const Color(0xFFF2CC44),
+          title: const Text(
+            "Add Product",
+            style: TextStyle(fontFamily: 'Roboto_Regular'),
+          ),
+          backgroundColor: green2,
         ),
         bottomNavigationBar: CustomNavigationBar(
           onItemSelected: (index) {
@@ -676,6 +682,7 @@ class _AddInventoryState extends State<AddInventory> {
 
     postData['rate1'] = rateOneValueController.text;
     postData['rate2'] = rateTwoValueController.text;
+    var apiKey = await APIService.getXApiKey();
     try {
       var response = await http.post(
         Uri.parse('$baseUrl/add-item'),
@@ -683,10 +690,13 @@ class _AddInventoryState extends State<AddInventory> {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
+          'auth-key': '$apiKey',
         },
       );
       print("response: ${response.body}");
       if (response.statusCode == 200) {
+        LocalDatabase2.instance.clearTable();
+        LocalDatabase2.instance.fetchDataAndStoreLocally();
         showDialog(
           context: context,
           builder: (BuildContext context) {

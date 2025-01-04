@@ -53,7 +53,7 @@ class LocalDatabase2 {
     var token = await APIService.getToken();
     var apiKey = await APIService.getXApiKey();
     // print(apiKey);
-   // print('api key: $apiKey');
+    // print('api key: $apiKey');
     final response = await http.get(Uri.parse('$baseUrl/all-items'), headers: {
       'Authorization': 'Bearer $token',
       'auth-key': '$apiKey',
@@ -95,6 +95,7 @@ class LocalDatabase2 {
   void clearTable() async {
     Database db = await database;
     await db.delete(_tableName);
+    print('table cleared');
   }
 
   void clearSuggestions() {

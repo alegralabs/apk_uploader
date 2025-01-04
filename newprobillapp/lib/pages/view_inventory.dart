@@ -89,7 +89,9 @@ class _ProductListPageState extends State<ProductListPage> {
   Widget build(BuildContext context) {
     bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
     return Scaffold(
-      drawer: Sidebar(),
+      drawer: const Drawer(
+        child: Sidebar(),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: isKeyboardVisible
           ? null

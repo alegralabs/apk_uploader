@@ -35,7 +35,7 @@ class CustomNavigationBar extends StatelessWidget {
               icon: Icons.home_outlined,
               index: 0,
               onTap: () {
-                navigatorKey.currentState?.push(
+                navigatorKey.currentState?.pushReplacement(
                   CupertinoPageRoute(
                     builder: (_) => const HomePage(),
                   ),
@@ -50,7 +50,7 @@ class CustomNavigationBar extends StatelessWidget {
               icon: Icons.sync_alt_outlined,
               index: 1,
               onTap: () {
-                navigatorKey.currentState?.push(
+                navigatorKey.currentState?.pushReplacement(
                   CupertinoPageRoute(
                     builder: (_) => const RefundPage(),
                   ),
@@ -66,7 +66,7 @@ class CustomNavigationBar extends StatelessWidget {
               icon: Icons.inventory_2_outlined,
               index: 2,
               onTap: () {
-                navigatorKey.currentState?.push(
+                navigatorKey.currentState?.pushReplacement(
                   CupertinoPageRoute(
                     builder: (_) => const ProductListPage(),
                   ),
@@ -81,7 +81,7 @@ class CustomNavigationBar extends StatelessWidget {
               icon: Icons.person_outline,
               index: 3,
               onTap: () {
-                navigatorKey.currentState?.push(
+                navigatorKey.currentState?.pushReplacement(
                   CupertinoPageRoute(
                     builder: (_) => const EmployeeListPage(),
                   ),

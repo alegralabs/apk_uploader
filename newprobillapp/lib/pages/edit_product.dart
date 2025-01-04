@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:newprobillapp/components/api_constants.dart';
+import 'package:newprobillapp/components/color_constants.dart';
 import 'package:newprobillapp/pages/login_page.dart';
 import 'package:newprobillapp/services/api_services.dart';
 import 'package:newprobillapp/services/result.dart';
@@ -269,7 +270,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
           ? const Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  Color.fromRGBO(243, 203, 71, 1),
+                  green2,
                 ), // Change color here
               ), // Show loading indicator
             )

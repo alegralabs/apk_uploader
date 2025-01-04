@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:newprobillapp/components/api_constants.dart';
+import 'package:newprobillapp/components/color_constants.dart';
 import 'package:newprobillapp/pages/view_employee.dart';
 import 'package:newprobillapp/services/api_services.dart';
 import 'package:http/http.dart' as http;
@@ -60,7 +61,7 @@ class ViewEmployeeDetails extends StatelessWidget {
             color: Color.fromARGB(255, 0, 0, 0),
           ),
         ),
-        backgroundColor: const Color.fromRGBO(243, 203, 71, 1),
+        backgroundColor: green2,
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),

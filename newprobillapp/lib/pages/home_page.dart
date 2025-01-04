@@ -835,6 +835,8 @@ class HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     // _selectedQuantitySecondaryUnit =
     //     Provider.of<HomeBillItemProvider>(context, listen: false).unit;
+    var screenWidth = MediaQuery.of(context).size.width;
+    var screenHeight = MediaQuery.of(context).size.height;
     quantityController.text =
         Provider.of<HomeBillItemProvider>(context, listen: false)
             .quantity
@@ -1054,7 +1056,7 @@ class HomePageState extends State<HomePage> {
                   ),
                   SizedBox(
                     height: MediaQuery.of(context).size.height * 0.05,
-                    width: MediaQuery.of(context).size.width * 0.25,
+                    width: MediaQuery.of(context).size.width * 0.3,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         elevation: 1.0,
@@ -1372,52 +1374,65 @@ class HomePageState extends State<HomePage> {
                       mainAxisAlignment:
                           MainAxisAlignment.spaceAround, // Align buttons evenly
                       children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    title: const Text("Cancel Bill?"),
-                                    content: const Text(
-                                        "Are you sure you want to cancel the bill?"),
-                                    actions: [
-                                      TextButton(
-                                        child: const Text("No"),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                      TextButton(
-                                        child: const Text("Yes"),
-                                        onPressed: () {
-                                          Provider.of<HomeBillItemProvider>(
-                                                  context,
-                                                  listen: false)
-                                              .clearItems();
+                        SizedBox(
+                          width: screenWidth * 0.25,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: const Text("Cancel Bill?"),
+                                      content: const Text(
+                                          "Are you sure you want to cancel the bill?"),
+                                      actions: [
+                                        TextButton(
+                                          child: const Text("No"),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                        TextButton(
+                                          child: const Text("Yes"),
+                                          onPressed: () {
+                                            Provider.of<HomeBillItemProvider>(
+                                                    context,
+                                                    listen: false)
+                                                .clearItems();
 
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                    ],
-                                  );
-                                });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white, // white text color
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ), // white text color
+                            ),
+                            child: const Text("Cancel"),
                           ),
-                          child: const Text("Cancel"),
                         ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xff28a745),
-                            foregroundColor: Colors.white, // white text color
+                        SizedBox(
+                          width: screenWidth * 0.25,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xff28a745),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              // white text color
+                            ),
+                            onPressed: () {
+                              saveData();
+                            },
+                            child: const Text("Save"),
                           ),
-                          onPressed: () {
-                            saveData();
-                          },
-                          child: const Text("Save"),
                         ),
                       ],
                     ),

@@ -1,15 +1,21 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:newprobillapp/components/api_constants.dart';
 import 'package:newprobillapp/components/bottom_navigation_bar.dart';
+import 'package:newprobillapp/components/color_constants.dart';
 import 'package:newprobillapp/components/sidebar.dart';
+import 'package:newprobillapp/pages/home_page.dart';
+import 'package:newprobillapp/pages/view_employee.dart';
 import 'package:newprobillapp/services/api_services.dart';
+import 'package:newprobillapp/services/global_internet_connection_handler.dart';
 import 'package:newprobillapp/services/result.dart';
 
 class EmployeeSignUpPage extends StatefulWidget {
@@ -61,7 +67,11 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
       if (response.statusCode == 200) {
         var responseBody = await response.stream.bytesToString();
         print(responseBody);
-        showApiResponseDialog(context, jsonDecode(responseBody));
+        // showApiResponseDialog(context, jsonDecode(responseBody));
+        Fluttertoast.showToast(msg: 'User added successfully');
+        navigatorKey.currentState?.pushReplacement(
+          CupertinoPageRoute(builder: (_) => const EmployeeListPage()),
+        ); // Navigate to the login screen();
       } else {
         // Request successful
         var responseBody = await response.stream.bytesToString();
@@ -90,30 +100,30 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
     }
   }
 
-  void showApiResponseDialog(
-      BuildContext context, Map<String, dynamic> response) {
-    String title;
-    String content;
+  // void showApiResponseDialog(
+  //     BuildContext context, Map<String, dynamic> response) {
+  //   String title;
+  //   String content;
 
-    // Determine title and content based on the response
-    if (response['status'] == 'success') {
-      title = "Success";
-      content = response['message'];
-    } else if (response['status'] == 'failed' &&
-        response['message'] == 'Validation Error!') {
-      title = "Validation Error";
-      content = "Please check the following errors:\n";
+  //   // Determine title and content based on the response
+  //   if (response['status'] == 'success') {
+  //     title = "Success";
+  //     content = response['message'];
+  //   } else if (response['status'] == 'failed' &&
+  //       response['message'] == 'Validation Error!') {
+  //     title = "Validation Error";
+  //     content = "Please check the following errors:\n";
 
-      // Loop through validation errors
-      Map<String, dynamic> errors = response['data'];
-      errors.forEach((field, messages) {
-        content += "$field: ${messages[0]}\n";
-      });
-    } else {
-      title = "Error";
-      content = response['message'] ?? "An unexpected error occurred";
-    }
-  }
+  //     // Loop through validation errors
+  //     Map<String, dynamic> errors = response['data'];
+  //     errors.forEach((field, messages) {
+  //       content += "$field: ${messages[0]}\n";
+  //     });
+  //   } else {
+  //     title = "Error";
+  //     content = response['message'] ?? "An unexpected error occurred";
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -136,18 +146,19 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
           }
         },
       ),
-      drawer: const Sidebar(),
+      drawer: const Drawer(
+        child: Sidebar(),
+      ),
       appBar: AppBar(
         //automaticallyImplyLeading: false,
         title: const Text(
           'Add Employee',
           style: TextStyle(
-            color: Color.fromARGB(255, 0, 0, 0),
+            color: black,
           ),
         ),
-        backgroundColor: const Color.fromRGBO(243, 203, 71, 1),
+        backgroundColor: green2,
       ),
-      backgroundColor: const Color.fromRGBO(246, 247, 255, 1),
       bottomNavigationBar: CustomNavigationBar(
         onItemSelected: (index) {
           // Handle navigation item selection

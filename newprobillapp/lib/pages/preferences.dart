@@ -189,7 +189,7 @@ class _PreferencesPageState extends State<PreferencesPage> {
             ? const Center(
                 child: CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    Color.fromRGBO(243, 203, 71, 1),
+                    green2,
                   ), // Change color here
                 ), // Show loading indicator
               )
