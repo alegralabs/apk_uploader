@@ -134,16 +134,16 @@ class _NoInternetScreenState extends State<NoInternetScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                 const Icon(
                     Icons.wifi_off_rounded,
                     size: 80,
-                    color: Colors.red.shade700,
+                    color: red,
                   ),
                   const SizedBox(height: 24),
                   Text(
                     'No Internet Connection',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Colors.red.shade700,
+                          color: red,
                           fontWeight: FontWeight.bold,
                         ),
                   ),
@@ -152,13 +152,12 @@ class _NoInternetScreenState extends State<NoInternetScreen> {
                     'Please check your internet connection and try again.',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.red.shade700,
+                          color: red,
                         ),
                   ),
                   const SizedBox(height: 24),
-                  CircularProgressIndicator(
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(Colors.red.shade700),
+                 const  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(red),
                   ),
                 ],
               ),

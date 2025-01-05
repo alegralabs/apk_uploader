@@ -205,7 +205,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                     child: Text(
                                       'Must be a 10-digit number',
                                       style: TextStyle(
-                                        color: Colors.red,
+                                        color: red,
                                         fontSize: 12.0,
                                       ),
                                     ),

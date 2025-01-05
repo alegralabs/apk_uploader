@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:intl/intl.dart';
 import 'package:newprobillapp/components/api_constants.dart';
+import 'package:newprobillapp/components/button_and_textfield_styles.dart';
 import 'package:newprobillapp/components/color_constants.dart';
 import 'package:newprobillapp/models/transaction.dart';
 import 'package:newprobillapp/pages/transaction_details.dart';
@@ -174,55 +175,31 @@ class _SearchBarState extends State<_SearchBar> {
         children: [
           Expanded(
             child: TextField(
-              onTap: () {
-                setState(() {});
-              },
-              onSubmitted: (value) {
-                setState(() {});
-              },
-              focusNode: focusNode,
-              onChanged: widget.onSearch,
-              decoration: InputDecoration(
-                hintText: "Search",
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: const BorderSide(
-                    color: Color(0xffbfbfbf),
-                    width: 3.0,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: const BorderSide(
-                    color: green2,
-                    width: 3.0,
-                  ),
-                ),
-                suffixIcon: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.only(
-                        topRight: Radius.circular(8.0),
-                        bottomRight: Radius.circular(8.0)),
-                    color: focusNode.hasFocus ? green2 : darkGrey,
-                  ),
-                  child: DropdownButton<String>(
-                    value: widget.selectedColumn,
-                    onChanged: widget.onColumnSelect,
-                    style: const TextStyle(color: Colors.black),
-                    underline: Container(),
-                    icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
-                    items: _columnNames.map((columnName) {
-                      return DropdownMenuItem<String>(
-                        value: columnName,
-                        child: Text(columnName),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ),
-            ),
+                onTap: () {
+                  setState(() {});
+                },
+                onSubmitted: (value) {
+                  setState(() {});
+                },
+                focusNode: focusNode,
+                onChanged: widget.onSearch,
+                decoration: customTfDecorationWithSuffix(
+                    "Search",
+                    DropdownButton<String>(
+                      value: widget.selectedColumn,
+                      onChanged: widget.onColumnSelect,
+                      style: const TextStyle(color: Colors.black),
+                      underline: Container(),
+                      icon:
+                          const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                      items: _columnNames.map((columnName) {
+                        return DropdownMenuItem<String>(
+                          value: columnName,
+                          child: Text(columnName),
+                        );
+                      }).toList(),
+                    ),
+                    focusNode)),
           ),
         ],
       ),

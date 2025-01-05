@@ -785,7 +785,7 @@ class HomePageState extends State<HomePage> {
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height * 0.1,
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.red),
+          border: Border.all(color: red),
           color: const Color.fromARGB(255, 211, 130, 124),
         ),
         child: Column(
@@ -870,7 +870,7 @@ class HomePageState extends State<HomePage> {
       ),
       appBar: AppBar(
         title: Text(
-          string != "" ? string : "Probill",
+          string != "" ? string : "ReadyBill",
           style: const TextStyle(fontSize: 18, fontFamily: 'Roboto'),
         ),
         backgroundColor: green2,
@@ -1268,7 +1268,7 @@ class HomePageState extends State<HomePage> {
                       : const SizedBox.shrink(),
                   SingleChildScrollView(
                     child: Container(
-                      height: MediaQuery.of(context).size.height * 0.29,
+                      height: MediaQuery.of(context).size.height * 0.25,
                       padding: const EdgeInsets.only(left: 20.0),
                       child: Provider.of<HomeBillItemProvider>(context)
                               .homeItemForBillRows
@@ -1377,6 +1377,23 @@ class HomePageState extends State<HomePage> {
                         SizedBox(
                           width: screenWidth * 0.25,
                           child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: green2,
+                              foregroundColor: white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              // white text color
+                            ),
+                            onPressed: () {
+                              saveData();
+                            },
+                            child: const Text("Save"),
+                          ),
+                        ),
+                        SizedBox(
+                          width: screenWidth * 0.25,
+                          child: ElevatedButton(
                             onPressed: () {
                               showDialog(
                                   context: context,
@@ -1408,30 +1425,13 @@ class HomePageState extends State<HomePage> {
                                   });
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
+                              backgroundColor: red,
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ), // white text color
                             ),
                             child: const Text("Cancel"),
-                          ),
-                        ),
-                        SizedBox(
-                          width: screenWidth * 0.25,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xff28a745),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              // white text color
-                            ),
-                            onPressed: () {
-                              saveData();
-                            },
-                            child: const Text("Save"),
                           ),
                         ),
                       ],

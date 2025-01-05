@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:newprobillapp/components/api_constants.dart';
 import 'package:newprobillapp/components/bottom_navigation_bar.dart';
+import 'package:newprobillapp/components/button_and_textfield_styles.dart';
 import 'package:newprobillapp/components/color_constants.dart';
 import 'package:newprobillapp/components/sidebar.dart';
 import 'package:newprobillapp/pages/employee_signup.dart';
@@ -247,66 +248,60 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
             thickness: 1,
             height: 5,
           ),
-          SingleChildScrollView(
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height * 0.52,
-              child: ListView.separated(
-                separatorBuilder: (context, index) => const Divider(
-                  thickness: 0.2,
-                  height: 0,
-                ),
-                controller: _scrollController, // Attach the scroll controller
-                itemCount: _filteredEmployees.length + 1,
-                itemBuilder: (context, index) {
-                  if (index == _filteredEmployees.length) {
-                    // Display loading indicator at the bottom
-                    return _isLoadingMore
-                        ? const Center(child: CircularProgressIndicator())
-                        : const SizedBox();
-                  }
-                  final Employee = _filteredEmployees[index];
-                  return InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                          builder: (context) =>
-                              ViewEmployeeDetails(user: Employee),
-                        ),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            flex: 2, // Larger space for item name
-                            child: Text(
-                              Employee.name,
-                              style: const TextStyle(fontSize: 14),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Expanded(
-                            flex: 2, // Larger space for item name
-                            child: Text(
-                              Employee.mobile,
-                              style: const TextStyle(fontSize: 14),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+          Expanded(
+            child: ListView.separated(
+              separatorBuilder: (context, index) => const Divider(
+                thickness: 0.2,
+                height: 0,
               ),
+              controller: _scrollController, 
+              itemCount: _filteredEmployees.length + 1,
+              itemBuilder: (context, index) {
+                if (index == _filteredEmployees.length) {
+
+                  return _isLoadingMore
+                      ? const Center(child: CircularProgressIndicator())
+                      : const SizedBox();
+                }
+                final employee = _filteredEmployees[index];
+                return InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      CupertinoPageRoute(
+                        builder: (context) =>
+                            ViewEmployeeDetails(user: employee),
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 2, // Larger space for item name
+                          child: Text(
+                            employee.name,
+                            style: const TextStyle(fontSize: 14),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2, // Larger space for item name
+                          child: Text(
+                            employee.mobile,
+                            style: const TextStyle(fontSize: 14),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
-          ),
-          const SizedBox(
-            height: 20,
           ),
         ],
       ),
@@ -314,61 +309,58 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
   }
 }
 
-class _SearchBar extends StatelessWidget {
+class _SearchBar extends StatefulWidget {
   final Function(String) onSearch;
   final String selectedColumn;
   final Function(String?) onColumnSelect;
-  final List<String> _columnNames = [
-    'Name',
-    'Mobile',
-    'Address',
-  ];
 
-  _SearchBar({
+  const _SearchBar({
     required this.onSearch,
     required this.selectedColumn,
     required this.onColumnSelect,
   });
 
   @override
+  State<_SearchBar> createState() => _SearchBarState();
+}
+
+class _SearchBarState extends State<_SearchBar> {
+  final List<String> _columnNames = [
+    'Name',
+    'Mobile',
+    'Address',
+  ];
+  FocusNode focusNode = FocusNode();
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(8),
+      child: TextField(
+          focusNode: focusNode,
+          onTap: () {
+            setState(() {});
+          },
+          onSubmitted: (value) {
+            setState(() {});
+          },
+          onChanged: widget.onSearch,
+          decoration: customTfDecorationWithSuffix(
+              "Search",
+              DropdownButton<String>(
+                value: widget.selectedColumn,
+                onChanged: widget.onColumnSelect,
+                style: const TextStyle(color: Colors.black),
+                underline: Container(),
+                icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                items: _columnNames.map((columnName) {
+                  return DropdownMenuItem<String>(
+                    value: columnName,
+                    child: Text(columnName),
+                  );
+                }).toList(),
               ),
-              child: TextField(
-                onChanged: onSearch,
-                decoration: const InputDecoration(
-                  hintText: 'Search',
-                  border: InputBorder.none,
-                  prefixIcon: Icon(Icons.search, color: Colors.grey),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          DropdownButton<String>(
-            value: selectedColumn,
-            onChanged: onColumnSelect,
-            style: const TextStyle(color: Colors.black),
-            underline: Container(),
-            icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
-            items: _columnNames.map((columnName) {
-              return DropdownMenuItem<String>(
-                value: columnName,
-                child: Text(columnName),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
+              focusNode)),
     );
   }
 }

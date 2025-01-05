@@ -10,6 +10,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:newprobillapp/components/api_constants.dart';
 import 'package:newprobillapp/components/bottom_navigation_bar.dart';
+import 'package:newprobillapp/components/button_and_textfield_styles.dart';
 import 'package:newprobillapp/components/color_constants.dart';
 import 'package:newprobillapp/components/sidebar.dart';
 import 'package:newprobillapp/pages/home_page.dart';
@@ -100,38 +101,13 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
     }
   }
 
-  // void showApiResponseDialog(
-  //     BuildContext context, Map<String, dynamic> response) {
-  //   String title;
-  //   String content;
-
-  //   // Determine title and content based on the response
-  //   if (response['status'] == 'success') {
-  //     title = "Success";
-  //     content = response['message'];
-  //   } else if (response['status'] == 'failed' &&
-  //       response['message'] == 'Validation Error!') {
-  //     title = "Validation Error";
-  //     content = "Please check the following errors:\n";
-
-  //     // Loop through validation errors
-  //     Map<String, dynamic> errors = response['data'];
-  //     errors.forEach((field, messages) {
-  //       content += "$field: ${messages[0]}\n";
-  //     });
-  //   } else {
-  //     title = "Error";
-  //     content = response['message'] ?? "An unexpected error occurred";
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xff28a745),
-        foregroundColor: Colors.white,
+        backgroundColor: green2,
+        foregroundColor: black,
         shape: const CircleBorder(),
         child: const Icon(Icons.check),
         onPressed: () {
@@ -195,23 +171,20 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
+                      _buildTF(
+                          "Name", nameController, TextInputType.text, false),
                       const SizedBox(height: 10.0),
-                      // ElevatedButton(
-                      //   child: const Text("View User"),
-                      //   onPressed: () {
-                      //     Navigator.pushReplacement(
-                      //       context,
-                      //       CupertinoPageRoute(
-                      //           builder: (context) => const SubUserListPage()),
-                      //     );
-                      //   },
-                      // ),
+                      _buildTF("Mobile", mobileController, TextInputType.phone,
+                          false),
                       const SizedBox(height: 10.0),
-                      _buildNameTF(),
-                      _buildMobileTF(),
-                      _buildPasswordTF(),
-                      _buildConfirmPasswordTF(),
-                      _buildAddressTF(),
+                      _buildTF("Password", passwordController,
+                          TextInputType.text, true),
+                      const SizedBox(height: 10.0),
+                      _buildTF("Confirm Password", confirmPasswordController,
+                          TextInputType.text, false),
+                      const SizedBox(height: 10.0),
+                      _buildTF("Address", addressController, TextInputType.text,
+                          false),
                       const SizedBox(height: 40.0),
                       // _buildSignUpBtn(),
                       const SizedBox(height: 10.0),
@@ -227,217 +200,18 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
     );
   }
 
-  Widget _buildNameTF() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        const SizedBox(height: 10.0),
-        Container(
-          alignment: Alignment.centerLeft,
-          child: TextField(
-            controller: nameController,
-            keyboardType: TextInputType.text,
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
-                borderSide: BorderSide.none,
-              ),
-              prefixIcon: const Icon(
-                Icons.person,
-                color: Color.fromARGB(255, 0, 0, 0),
-              ),
-              hintText: 'Name',
-            ),
-          ),
-        ),
-      ],
+  Widget _buildTF(String hintText, TextEditingController controller,
+      TextInputType keyboardType, bool isObscure) {
+    return Container(
+      alignment: Alignment.centerLeft,
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        decoration: customTfInputDecoration(hintText),
+        obscureText: isObscure,
+      ),
     );
   }
-
-  Widget _buildMobileTF() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        const SizedBox(height: 10.0),
-        Container(
-          alignment: Alignment.centerLeft,
-          child: TextField(
-            controller: mobileController,
-            keyboardType: TextInputType.phone,
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: const EdgeInsets.only(top: 14.0),
-              prefixIcon: const Icon(
-                Icons.phone,
-                color: Color.fromARGB(255, 0, 0, 0),
-              ),
-              hintText: 'Mobile',
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPasswordTF() {
-    // Flag to toggle password visibility
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        const SizedBox(height: 10.0),
-        TextField(
-          controller: passwordController,
-          obscureText: isObscure,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding: const EdgeInsets.only(top: 14.0),
-            prefixIcon: const Icon(
-              Icons.lock,
-              color: Color.fromARGB(255, 0, 0, 0),
-            ),
-            hintText: 'Password',
-            suffixIcon: IconButton(
-              icon: Icon(
-                isObscure ? Icons.visibility : Icons.visibility_off,
-                color: const Color.fromARGB(255, 0, 0, 0),
-              ),
-              onPressed: () {
-                // Toggle password visibility
-                setState(() {
-                  isObscure = !isObscure;
-                });
-              },
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildConfirmPasswordTF() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        const SizedBox(height: 10.0),
-        Container(
-          alignment: Alignment.centerLeft,
-          child: TextField(
-            controller: confirmPasswordController,
-            obscureText: isObscureConfirm,
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: const EdgeInsets.only(top: 14.0),
-              prefixIcon: const Icon(
-                Icons.lock,
-                color: Color.fromARGB(255, 0, 0, 0),
-              ),
-              hintText: 'Confirm Password',
-              suffixIcon: IconButton(
-                icon: Icon(
-                  isObscureConfirm ? Icons.visibility : Icons.visibility_off,
-                  color: const Color.fromARGB(255, 0, 0, 0),
-                ),
-                onPressed: () {
-                  // Toggle password visibility
-                  isObscureConfirm = !isObscureConfirm;
-                  setState(() {});
-                },
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAddressTF() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        const SizedBox(height: 10.0),
-        Container(
-          alignment: Alignment.centerLeft,
-          child: TextField(
-            controller: addressController,
-            keyboardType: TextInputType.text,
-            style: const TextStyle(
-              color: Color.fromARGB(255, 7, 7, 7),
-              fontFamily: 'OpenSans',
-            ),
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: const EdgeInsets.only(top: 14.0),
-              prefixIcon: const Icon(
-                Icons.location_on,
-                color: Color.fromARGB(255, 0, 0, 0),
-              ),
-              hintText: 'Address',
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // Widget _buildSignUpBtn() {
-  //   return Container(
-  //     padding: const EdgeInsets.symmetric(vertical: 25.0),
-  //     width: double.infinity,
-  //     child: ElevatedButton(
-  //       onPressed: () {
-  //         if (mobileController.text == '' ||
-  //             nameController.text == '' ||
-  //             passwordController.text == '' ||
-  //             confirmPasswordController.text == '' ||
-  //             addressController.text == '') {
-  //           callAlert("all fields are required");
-  //         } else {
-  //           submitData();
-  //         }
-  //       },
-  //       style: ElevatedButton.styleFrom(
-  //         elevation: 5.0,
-  //         backgroundColor: const Color(0xff28a745),
-  //         padding: const EdgeInsets.all(15.0),
-  //         shape: RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.circular(0),
-  //         ),
-  //       ),
-  //       child: const Text(
-  //         'Add User',
-  //         style: TextStyle(
-  //           color: Colors.white,
-  //           letterSpacing: 1.5,
-  //           fontSize: 18.0,
-  //           fontWeight: FontWeight.bold,
-  //           fontFamily: 'OpenSans',
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
 
   callAlert(String message) {
     return showDialog<bool>(

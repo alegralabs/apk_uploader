@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:newprobillapp/components/api_constants.dart';
+import 'package:newprobillapp/components/button_and_textfield_styles.dart';
 import 'package:newprobillapp/components/color_constants.dart';
 import 'package:newprobillapp/pages/view_employee.dart';
 import 'package:newprobillapp/services/api_services.dart';
@@ -53,6 +54,13 @@ class ViewEmployeeDetails extends StatelessWidget {
       }
     }
 
+    buildTextField(String label, TextEditingController controller) {
+      return TextField(
+        decoration: customTfInputDecoration(label),
+        controller: controller,
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -67,43 +75,17 @@ class ViewEmployeeDetails extends StatelessWidget {
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
-            TextField(
-              decoration: const InputDecoration(
-                hintText: 'Enter Name',
-                border: OutlineInputBorder(),
-              ),
-              controller: nameController,
-            ),
+            buildTextField("Enter Name", nameController),
             const SizedBox(
               height: 20,
             ),
-            TextField(
-              decoration: const InputDecoration(
-                hintText: 'Enter Mobile Number',
-                border: OutlineInputBorder(),
-              ),
-              controller: mobileController,
-            ),
+            buildTextField("Enter Mobile Number", mobileController),
             const SizedBox(
               height: 20,
             ),
-            TextField(
-              decoration: const InputDecoration(
-                hintText: 'Enter Address',
-                border: OutlineInputBorder(),
-              ),
-              controller: addressController,
-            ),
+            buildTextField("Enter Address", addressController),
             const SizedBox(height: 20),
-            ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    //backgroundColor: Color(const Color(0xff28a745))
-                    ),
-                child: const Text('Update Employee Details'),
-                onPressed: () {
-                  // Update user details
-                  updateUserDetails();
-                }),
+            customElevatedButton("Update", green2, white, updateUserDetails),
           ],
         ),
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:newprobillapp/components/bottom_navigation_bar.dart';
+import 'package:newprobillapp/components/button_and_textfield_styles.dart';
 import 'package:newprobillapp/components/color_constants.dart';
 import 'package:newprobillapp/components/sidebar.dart';
 import 'package:newprobillapp/pages/add_product.dart';
@@ -25,6 +26,7 @@ class _ProductListPageState extends State<ProductListPage> {
   final ScrollController _scrollController =
       ScrollController(); // For scrolling
   int _selectedIndex = 2;
+  FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -115,7 +117,6 @@ class _ProductListPageState extends State<ProductListPage> {
         selectedIndex: _selectedIndex,
       ),
       appBar: AppBar(
-        // toolbarHeight: 40,
         title: const Text(
           'View & Update Inventory',
           style: TextStyle(
@@ -128,26 +129,17 @@ class _ProductListPageState extends State<ProductListPage> {
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: TextField(
-                      onChanged: _handleSearch,
-                      decoration: const InputDecoration(
-                        hintText: 'Search',
-                        border: InputBorder.none,
-                        prefixIcon: Icon(Icons.search, color: Colors.grey),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
+            child: TextField(
+              focusNode: _focusNode,
+              onTap: () {
+                setState(() {});
+              },
+              onSubmitted: (value) {
+                setState(() {});
+              },
+              onChanged: _handleSearch,
+              decoration: customTfDecorationWithSuffix(
+                "Search",
                 DropdownButton<String>(
                   value: _selectedColumn,
                   onChanged: _handleColumnSelect,
@@ -161,9 +153,11 @@ class _ProductListPageState extends State<ProductListPage> {
                     );
                   }).toList(),
                 ),
-              ],
+                _focusNode,
+              ),
             ),
           ),
+          const SizedBox(width: 10),
           const Padding(
             padding: EdgeInsets.only(left: 15, right: 15, top: 8.0, bottom: 8),
             child: Row(

@@ -807,7 +807,7 @@ class RefundPageState extends State<RefundPage> {
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height * 0.1,
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.red),
+          border: Border.all(color: red),
           color: const Color.fromARGB(255, 211, 130, 124),
         ),
         child: Column(
@@ -893,7 +893,7 @@ class RefundPageState extends State<RefundPage> {
       ),
       appBar: AppBar(
         title: Text(
-          string != "" ? string : "Probill",
+          string != "" ? string : "ReadyBill",
           style: const TextStyle(fontSize: 18, fontFamily: 'Roboto'),
         ),
         backgroundColor: green2,
@@ -1087,115 +1087,6 @@ class RefundPageState extends State<RefundPage> {
                             backgroundColor: (_nameController.text.isEmpty ||
                                     quantityController.text.isEmpty)
                                 ? lightGrey
-                                : blue,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          onPressed: () async {
-                            _stopListening();
-
-                            if (_nameController.text.isNotEmpty &&
-                                quantityController.text.isNotEmpty) {
-                              String quantityValue = quantityController.text;
-                              double? quantityValueforConvert =
-                                  double.tryParse(quantityValue);
-                              _primaryUnit = unit;
-                              double quantityValueforTable =
-                                  convertQuantityBasedOnUnit(
-                                      _primaryUnit!,
-                                      Provider.of<RefundBillItemProvider>(
-                                              context,
-                                              listen: false)
-                                          .unit,
-                                      quantityValueforConvert!);
-                              //  print("quantityValueforTable:$quantityValueforTable");
-                              int? stockStatus = await checkStockStatus(
-                                  itemId,
-                                  quantityValueforTable.toString(),
-                                  Provider.of<RefundBillItemProvider>(context,
-                                          listen: false)
-                                      .unit,
-                                  token!,
-                                  "$apiKey");
-                              print("stockStatus: $stockStatus");
-                              if (stockStatus == 2 &&
-                                  validProductName == true) {
-                                //print("tryParse");
-
-                                double? salePriceforTable =
-                                    double.tryParse(salePrice);
-                                addProductTable(
-                                    itemNameforTable!,
-                                    quantityValueforTable,
-                                    unit,
-                                    salePriceforTable!);
-                                _nameController.clear();
-                                quantityController.clear();
-
-                                //  _dropdownItemsQuantity.insert(0, "Unit");
-                                // Reset to default value
-
-                                if (mounted) {
-                                  setState(() {
-                                    _dropdownItemsQuantity = _dropdownItems;
-                                    _selectedQuantitySecondaryUnit =
-                                        _dropdownItemsQuantity[0];
-                                    _localDatabase.clearSuggestions();
-                                    Provider.of<RefundBillItemProvider>(context,
-                                            listen: false)
-                                        .assignQuantity(0);
-                                  });
-                                }
-                              } else if (stockStatus == 0) {
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text("Out of Stock"),
-                                      content: Text(
-                                          "You have only $availableStockValue left"),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(
-                                                context); // Close the dialog
-                                          },
-                                          child: const Text("OK"),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              }
-                            }
-                          },
-                          child: Center(
-                            child: Text(
-                              "ADD",
-                              style: TextStyle(
-                                  fontSize: 18,
-                                  color: (_nameController.text.isEmpty ||
-                                          quantityController.text.isEmpty)
-                                      ? darkGrey
-                                      : white,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: screenWidth * 0.05,
-                      ),
-                      SizedBox(
-                        height: screenHeight * 0.05,
-                        width: screenWidth * 0.3,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            elevation: 1.0,
-                            backgroundColor: (_nameController.text.isEmpty ||
-                                    quantityController.text.isEmpty)
-                                ? lightGrey
                                 : red,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -1282,6 +1173,115 @@ class RefundPageState extends State<RefundPage> {
                           child: Center(
                             child: Text(
                               "REFUND",
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  color: (_nameController.text.isEmpty ||
+                                          quantityController.text.isEmpty)
+                                      ? darkGrey
+                                      : white,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: screenWidth * 0.05,
+                      ),
+                      SizedBox(
+                        height: screenHeight * 0.05,
+                        width: screenWidth * 0.3,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            elevation: 1.0,
+                            backgroundColor: (_nameController.text.isEmpty ||
+                                    quantityController.text.isEmpty)
+                                ? lightGrey
+                                : blue,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: () async {
+                            _stopListening();
+
+                            if (_nameController.text.isNotEmpty &&
+                                quantityController.text.isNotEmpty) {
+                              String quantityValue = quantityController.text;
+                              double? quantityValueforConvert =
+                                  double.tryParse(quantityValue);
+                              _primaryUnit = unit;
+                              double quantityValueforTable =
+                                  convertQuantityBasedOnUnit(
+                                      _primaryUnit!,
+                                      Provider.of<RefundBillItemProvider>(
+                                              context,
+                                              listen: false)
+                                          .unit,
+                                      quantityValueforConvert!);
+                              //  print("quantityValueforTable:$quantityValueforTable");
+                              int? stockStatus = await checkStockStatus(
+                                  itemId,
+                                  quantityValueforTable.toString(),
+                                  Provider.of<RefundBillItemProvider>(context,
+                                          listen: false)
+                                      .unit,
+                                  token!,
+                                  "$apiKey");
+                              print("stockStatus: $stockStatus");
+                              if (stockStatus == 2 &&
+                                  validProductName == true) {
+                                //print("tryParse");
+
+                                double? salePriceforTable =
+                                    double.tryParse(salePrice);
+                                addProductTable(
+                                    itemNameforTable!,
+                                    quantityValueforTable,
+                                    unit,
+                                    salePriceforTable!);
+                                _nameController.clear();
+                                quantityController.clear();
+
+                                //  _dropdownItemsQuantity.insert(0, "Unit");
+                                // Reset to default value
+
+                                if (mounted) {
+                                  setState(() {
+                                    _dropdownItemsQuantity = _dropdownItems;
+                                    _selectedQuantitySecondaryUnit =
+                                        _dropdownItemsQuantity[0];
+                                    _localDatabase.clearSuggestions();
+                                    Provider.of<RefundBillItemProvider>(context,
+                                            listen: false)
+                                        .assignQuantity(0);
+                                  });
+                                }
+                              } else if (stockStatus == 0) {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: const Text("Out of Stock"),
+                                      content: Text(
+                                          "You have only $availableStockValue left"),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(
+                                                context); // Close the dialog
+                                          },
+                                          child: const Text("OK"),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              }
+                            }
+                          },
+                          child: Center(
+                            child: Text(
+                              "ADD",
                               style: TextStyle(
                                   fontSize: 18,
                                   color: (_nameController.text.isEmpty ||
@@ -1405,7 +1405,7 @@ class RefundPageState extends State<RefundPage> {
                       : const SizedBox.shrink(),
                   SingleChildScrollView(
                     child: Container(
-                      height: screenHeight * 0.29,
+                      height: screenHeight * 0.25,
                       padding: const EdgeInsets.only(left: 20.0),
                       child: Provider.of<RefundBillItemProvider>(context)
                               .refundItemForBillRows
@@ -1514,6 +1514,23 @@ class RefundPageState extends State<RefundPage> {
                         SizedBox(
                           width: screenWidth * 0.25,
                           child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xff28a745),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              // white text color
+                            ),
+                            onPressed: () {
+                              saveData();
+                            },
+                            child: const Text("Save"),
+                          ),
+                        ),
+                        SizedBox(
+                          width: screenWidth * 0.25,
+                          child: ElevatedButton(
                             onPressed: () {
                               showDialog(
                                   context: context,
@@ -1532,7 +1549,7 @@ class RefundPageState extends State<RefundPage> {
                                         TextButton(
                                           child: const Text("Yes"),
                                           onPressed: () {
-                                            Provider.of<RefundBillItemProvider>(
+                                            Provider.of<HomeBillItemProvider>(
                                                     context,
                                                     listen: false)
                                                 .clearItems();
@@ -1545,30 +1562,13 @@ class RefundPageState extends State<RefundPage> {
                                   });
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
+                              backgroundColor: red,
+                              foregroundColor: white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ), // white text color
                             ),
                             child: const Text("Cancel"),
-                          ),
-                        ),
-                        SizedBox(
-                          width: screenWidth * 0.25,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xff28a745),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              // white text color
-                            ),
-                            onPressed: () {
-                              saveData();
-                            },
-                            child: const Text("Save"),
                           ),
                         ),
                       ],

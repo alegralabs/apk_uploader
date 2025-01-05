@@ -36,7 +36,7 @@ class _BillWidgetState extends State<BillWidget> {
                   '${widget.itemForBillRows[widget.index]['itemName']}', 0.2),
               flex: 20,
             ),
-            SizedBox(
+            const SizedBox(
               width: 5,
             ),
             Expanded(

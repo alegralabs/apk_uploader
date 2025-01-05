@@ -10,6 +10,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 
 import 'package:newprobillapp/components/api_constants.dart';
+import 'package:newprobillapp/components/button_and_textfield_styles.dart';
 import 'package:newprobillapp/components/color_constants.dart';
 import 'package:newprobillapp/services/api_services.dart';
 
@@ -228,29 +229,11 @@ class _UserAccountState extends State<UserAccount> {
   Widget textFieldCustom(TextEditingController controller, bool obscureText,
       String hintText, bool readOnly) {
     return TextFormField(
-        controller: controller,
-        obscureText: obscureText,
-        readOnly: readOnly,
-        decoration: InputDecoration(
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-            borderSide: const BorderSide(
-              color: Color(0xffbfbfbf),
-              width: 3.0,
-            ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-            borderSide: const BorderSide(
-              color: green2,
-              width: 3.0,
-            ),
-          ),
-          hintText: hintText,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-        ));
+      controller: controller,
+      obscureText: obscureText,
+      readOnly: readOnly,
+      decoration: customTfInputDecoration(hintText),
+    );
   }
 
   Widget _logoPicker() {
@@ -331,20 +314,8 @@ class _UserAccountState extends State<UserAccount> {
                   textFieldCustom(
                       newPasswordController, true, 'New Password', false),
                   const SizedBox(height: 20.0),
-                  ElevatedButton(
-                    onPressed: _submitData,
-                    // Implement your update logic here
-
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: blue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                    ),
-
-                    child: const Text('Update Changes'),
-                  ),
+                  customElevatedButton(
+                      "Update Changes", blue, white, _submitData),
                 ],
               ),
             ),

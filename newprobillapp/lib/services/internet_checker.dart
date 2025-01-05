@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:newprobillapp/components/color_constants.dart';
 
 class InternetChecker extends StatefulWidget {
   final Widget child;
@@ -65,7 +66,6 @@ class _InternetCheckerState extends State<InternetChecker>
     }
   }
 
-
   Widget _buildNoInternetWidget() {
     return widget.noInternetWidget ??
         Material(
@@ -76,11 +76,11 @@ class _InternetCheckerState extends State<InternetChecker>
                   width: double.infinity,
                   padding:
                       const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                  color: Colors.red.shade100,
-                  child: Row(
+                  color: red,
+                  child: const Row(
                     children: [
-                      Icon(Icons.wifi_off, color: Colors.red.shade700),
-                      const SizedBox(width: 12),
+                      Icon(Icons.wifi_off, color: red),
+                      SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,15 +89,15 @@ class _InternetCheckerState extends State<InternetChecker>
                             Text(
                               'No Internet Connection',
                               style: TextStyle(
-                                color: Colors.red.shade700,
+                                color: red,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: 4),
                             Text(
                               'Please check your internet connection and try again',
                               style: TextStyle(
-                                color: Colors.red.shade700,
+                                color: red,
                                 fontSize: 12,
                               ),
                             ),

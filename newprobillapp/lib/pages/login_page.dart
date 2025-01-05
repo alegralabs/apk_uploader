@@ -64,7 +64,7 @@ class _LoginPageState extends State<LoginPage> {
     // Determine title and content based on the response
     if (response['status'] == 'success') {
       title = "Login Successful";
-      content = "Welcome to Probill";
+      content = "Welcome to ReadyBill";
 
       Navigator.pushReplacement(
         context,
@@ -233,7 +233,7 @@ class _LoginPageState extends State<LoginPage> {
                                     child: Text(
                                       'Must be a 10-digit number',
                                       style: TextStyle(
-                                        color: Colors.red,
+                                        color: red,
                                         fontSize: 12.0,
                                       ),
                                     ),
