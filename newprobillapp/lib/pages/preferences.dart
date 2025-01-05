@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:newprobillapp/components/api_constants.dart';
+import 'package:newprobillapp/components/button_and_textfield_styles.dart';
 import 'package:newprobillapp/components/color_constants.dart';
 import 'package:newprobillapp/components/sidebar.dart';
 import 'package:newprobillapp/pages/home_page.dart';
@@ -240,20 +241,9 @@ class _PreferencesPageState extends State<PreferencesPage> {
                         },
                       ),
                       const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: () {
-                          _saveUserPreferences();
-                        },
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.all(green2),
-                        ),
-                        child: const Text(
-                          'Save Changes',
-                          style: TextStyle(
-                            color: Color.fromARGB(255, 0, 0, 0),
-                          ),
-                        ),
-                      ),
+                      customElevatedButton("Save Changes", green2, white, () {
+                        _saveUserPreferences();
+                      }),
                     ],
                   ),
                 ),
