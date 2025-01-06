@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:newprobillapp/components/api_constants.dart';
-import 'package:newprobillapp/components/button_and_textfield_styles.dart';
+import 'package:newprobillapp/components/custom_components.dart';
 import 'package:newprobillapp/components/color_constants.dart';
-import 'package:newprobillapp/components/sidebar.dart';
+
 import 'package:newprobillapp/pages/home_page.dart';
 import 'package:newprobillapp/pages/login_page.dart';
 import 'package:newprobillapp/services/api_services.dart';
@@ -25,8 +25,6 @@ class _PreferencesPageState extends State<PreferencesPage> {
   bool maintainStock = false;
   bool showHSNSACCode = false;
   bool showHSNSACCodeInInvoice = false;
-
-  int _selectedIndex = 3;
 
   Future<void> _fetchUserPreferences() async {
     setState(() {
@@ -93,12 +91,14 @@ class _PreferencesPageState extends State<PreferencesPage> {
       isLoading = true;
     });
     var token = await APIService.getToken();
+    var apiKey = await APIService.getXApiKey();
     const String apiUrl = '$baseUrl/prefernce';
     final response = await http.post(
       Uri.parse(apiUrl),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
+        'auth-key': '$apiKey',
       },
       body: jsonEncode({
         'preference_mrp': maintainMRP ? 1 : 0,
@@ -166,89 +166,70 @@ class _PreferencesPageState extends State<PreferencesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) async {
-        // Navigate to NextPage when user tries to pop MyHomePage
-        Navigator.pushReplacement(
-          context,
-          CupertinoPageRoute(builder: (context) => const HomePage()),
-        );
-        // Return false to prevent popping the current route
-        return;
-      },
-      child: Scaffold(
-        appBar: AppBar(
-            title: const Text(
-              'Preferences',
-              style: TextStyle(
-                color: black,
-              ),
-            ),
-            backgroundColor: green2),
-        body: isLoading
-            ? const Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    green2,
-                  ), // Change color here
-                ), // Show loading indicator
-              )
-            : SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: 30),
-                      buildCheckbox('Do you maintain MRP?', maintainMRP,
-                          (value) {
+    return Scaffold(
+      appBar: customAppBar("Preferences"),
+      body: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  green2,
+                ), // Change color here
+              ), // Show loading indicator
+            )
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 30),
+                    buildCheckbox('Do you maintain MRP?', maintainMRP, (value) {
+                      setState(() {
+                        maintainMRP = value!;
+                      });
+                    }),
+                    buildCheckbox(
+                        'Do you want to show MRP in invoice?', showMRPInInvoice,
+                        (value) {
+                      setState(() {
+                        showMRPInInvoice = value!;
+                      });
+                    }),
+                    buildCheckbox(
+                      'Do you want to maintain stock?',
+                      maintainStock,
+                      (value) {
                         setState(() {
-                          maintainMRP = value!;
+                          maintainStock = value!;
                         });
-                      }),
-                      buildCheckbox('Do you want to show MRP in invoice?',
-                          showMRPInInvoice, (value) {
+                      },
+                    ),
+                    buildCheckbox(
+                      'Do you want HSN/ SAC code?',
+                      showHSNSACCode,
+                      (value) {
                         setState(() {
-                          showMRPInInvoice = value!;
+                          showHSNSACCode = value!;
                         });
-                      }),
-                      buildCheckbox(
-                        'Do you want to maintain stock?',
-                        maintainStock,
-                        (value) {
-                          setState(() {
-                            maintainStock = value!;
-                          });
-                        },
-                      ),
-                      buildCheckbox(
-                        'Do you want HSN/ SAC code?',
-                        showHSNSACCode,
-                        (value) {
-                          setState(() {
-                            showHSNSACCode = value!;
-                          });
-                        },
-                      ),
-                      buildCheckbox(
-                        'Do you want to show HSN/ SAC code \nin invoice?',
-                        showHSNSACCodeInInvoice,
-                        (value) {
-                          setState(() {
-                            showHSNSACCodeInInvoice = value!;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                      customElevatedButton("Save Changes", green2, white, () {
-                        _saveUserPreferences();
-                      }),
-                    ],
-                  ),
+                      },
+                    ),
+                    buildCheckbox(
+                      'Do you want to show HSN/ SAC code \nin invoice?',
+                      showHSNSACCodeInInvoice,
+                      (value) {
+                        setState(() {
+                          showHSNSACCodeInInvoice = value!;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    customElevatedButton("Save Changes", green2, white, () {
+                      _saveUserPreferences();
+                    }),
+                  ],
                 ),
               ),
-      ),
+            ),
     );
   }
 

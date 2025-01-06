@@ -7,7 +7,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:newprobillapp/components/api_constants.dart';
+
 import 'package:newprobillapp/components/bottom_navigation_bar.dart';
+import 'package:newprobillapp/components/custom_components.dart';
 import 'package:newprobillapp/components/color_constants.dart';
 import 'package:newprobillapp/components/sidebar.dart';
 import 'package:newprobillapp/pages/home_page.dart';
@@ -272,12 +274,19 @@ class _AddInventoryState extends State<AddInventory> {
       List<String> items, void Function(String?) onChanged) {
     return DropdownButtonFormField<String>(
       decoration: InputDecoration(
-        filled: true,
-        fillColor: Colors.white,
-        hintText: 'Units',
-        border: OutlineInputBorder(
+        enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide.none,
+          borderSide: const BorderSide(
+            color: Color(0xffbfbfbf),
+            width: 3.0,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8.0),
+          borderSide: const BorderSide(
+            color: green2,
+            width: 3.0,
+          ),
         ),
       ),
       hint: const Text(
@@ -396,13 +405,7 @@ class _AddInventoryState extends State<AddInventory> {
           child: const Icon(Icons.check),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        appBar: AppBar(
-          title: const Text(
-            "Add Product",
-            style: TextStyle(fontFamily: 'Roboto_Regular'),
-          ),
-          backgroundColor: green2,
-        ),
+        appBar: customAppBar("Add Product"),
         bottomNavigationBar: CustomNavigationBar(
           onItemSelected: (index) {
             // Handle navigation item selection
@@ -427,25 +430,11 @@ class _AddInventoryState extends State<AddInventory> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            ElevatedButton(
-                              onPressed: _handleUpload,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF31D2F2),
-                                foregroundColor:
-                                    Colors.white, // white text color
-                              ),
-                              child: const Text('Upload'),
-                            ),
+                            customElevatedButton(
+                                "Upload", blue, white, _handleUpload),
                             const SizedBox(width: 10),
-                            ElevatedButton(
-                              onPressed: _handleDownload,
-                              style: ElevatedButton.styleFrom(
-                                foregroundColor: Colors.white,
-                                backgroundColor:
-                                    const Color(0xFF5C636A), // white text color
-                              ),
-                              child: const Text('Download'),
-                            ),
+                            customElevatedButton(
+                                "Download", green2, white, _handleDownload)
                           ],
                         ),
                       ),
@@ -518,13 +507,6 @@ class _AddInventoryState extends State<AddInventory> {
                         ],
                       ),
 
-                      // Tax and Rate Input Boxes
-                      // Column(
-                      //   children: taxRateRows,
-                      // ),
-
-                      // new emplementation
-
                       const SizedBox(height: 16.0),
                       Visibility(
                         visible: maintainStock,
@@ -580,18 +562,7 @@ class _AddInventoryState extends State<AddInventory> {
       {bool isNumeric = false}) {
     return TextField(
       controller: textControllers,
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: Colors.white,
-        hintText: '$hintText *', // Adding asterisk (*) to the label text
-        labelStyle: const TextStyle(
-            color: Colors.black), // Setting label text color to black
-
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide.none,
-        ),
-      ),
+      decoration: customTfInputDecoration("$hintText *"),
       keyboardType: isNumeric
           ? TextInputType.number
           : TextInputType.text, // Set keyboardType based on isNumeric flag
@@ -608,41 +579,7 @@ class _AddInventoryState extends State<AddInventory> {
       return;
     }
 
-    // // Validate Text Field's to check their required
-    // if (itemNameValueController.text.isEmpty ||
-    //     fullUnitDropdownValue == null ||
-    //     shortUnitDropdownValue == null ||
-    //     rateOneValueController.text.isEmpty ||
-    //     mrpValueController.text.isEmpty &&
-    //     salePriceValueController.text.isEmpty &&
-    //     codeHSNSACvalueController.text.isEmpty &&
-    //     rateTwoValueController.text.isEmpty
-    //     ) {
-    //   Fluttertoast.showToast(
-    //     msg: "All fields are required.",
-    //     toastLength: Toast.LENGTH_SHORT,
-    //     gravity: ToastGravity.BOTTOM,
-    //     timeInSecForIosWeb: 1,
-    //     textColor: Colors.white,
-    //     fontSize: 16.0
-    // );
-    //   return;
-    // }
-
-    // // Validate tax fields for dropdown
-    // for (var value in taxControllers.values) {
-    //   if (value.characters.isEmpty) {
-    //     Fluttertoast.showToast(
-    //         msg: "Taxes must be declared.",
-    //         toastLength: Toast.LENGTH_SHORT,
-    //         gravity: ToastGravity.BOTTOM,
-    //         timeInSecForIosWeb: 1,
-    //         textColor: Colors.white,
-    //         fontSize: 16.0
-    //     );
-    //     return;
-    //   }
-    // }
+    
 
     Map<String, dynamic> postData = {
       'item_name': itemNameValueController.text,
@@ -659,26 +596,7 @@ class _AddInventoryState extends State<AddInventory> {
       index = index + 1;
       postData['tax$index'] = value;
     });
-    // if(value.isEmpty){
-    //   return showDialog(
-    //     context: context,
-    //     builder: (BuildContext context) {
-    //       return AlertDialog(
-    //         title: const Text(""),
-    //         content: const Text("Must Fill The Tax Value"),
-    //         actions: [
-    //           TextButton(
-    //             onPressed: () {
-    //               Navigator.of(context).pop();
-    //             },
-    //             child: const Text("OK"),
-    //           ),
-    //         ],
-    //       );
-    //     },
-    //   );
-    // }
-    // }
+   
 
     postData['rate1'] = rateOneValueController.text;
     postData['rate2'] = rateTwoValueController.text;
@@ -833,49 +751,32 @@ class _AddInventoryState extends State<AddInventory> {
       children: [
         Expanded(
           child: DropdownButtonFormField<String>(
-            value: taxControllers[index] ?? 'GST', // Provide a default value
-            onChanged: (String? value) {
-              setState(() {
-                taxControllers[index] = value!;
-              });
-            },
-            items: const [
-              DropdownMenuItem<String>(
-                value: 'GST',
-                child: Text('GST'),
-              ),
-              DropdownMenuItem<String>(
-                value: 'SASS',
-                child: Text('SASS'),
-              ),
-            ],
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Colors.white,
-              hintText: 'Tax' ' *',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
-                borderSide: BorderSide.none,
-              ),
-            ),
-          ),
+              value: taxControllers[index] ?? 'GST', // Provide a default value
+              onChanged: (String? value) {
+                setState(() {
+                  taxControllers[index] = value!;
+                });
+              },
+              items: const [
+                DropdownMenuItem<String>(
+                  value: 'GST',
+                  child: Text('GST'),
+                ),
+                DropdownMenuItem<String>(
+                  value: 'SASS',
+                  child: Text('SASS'),
+                ),
+              ],
+              hint: const Text('Select Tax'),
+              decoration: customTfInputDecoration("Select Tax")),
         ),
         const SizedBox(width: 16.0),
         Expanded(
           child: TextField(
-            controller:
-                index == 0 ? rateOneValueController : rateTwoValueController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Colors.white,
-              hintText: 'Rate' ' *',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
-                borderSide: BorderSide.none,
-              ),
-            ),
-          ),
+              controller:
+                  index == 0 ? rateOneValueController : rateTwoValueController,
+              keyboardType: TextInputType.number,
+              decoration: customTfInputDecoration("Rate *")),
         ),
         IconButton(
           icon: Icon(isFirstRow ? Icons.add : Icons.remove),

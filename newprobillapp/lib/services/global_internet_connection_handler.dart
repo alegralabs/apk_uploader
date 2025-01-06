@@ -26,6 +26,7 @@ class _InternetConnectivityHandlerState
   late InternetConnection _internetConnection;
   StreamSubscription? _connectivitySubscription;
   bool _isNoInternetScreenShowing = false;
+  Timer? _noInternetTimer;
 
   @override
   void initState() {
@@ -38,6 +39,7 @@ class _InternetConnectivityHandlerState
   @override
   void dispose() {
     _connectivitySubscription?.cancel();
+    _noInternetTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -69,21 +71,27 @@ class _InternetConnectivityHandlerState
 
   void _handleConnectivityChange(bool hasInternet) {
     debugPrint('Connectivity changed: hasInternet = $hasInternet');
-
     var lastRoute = ModalRoute.of(context);
-
     print("lastRoute: $lastRoute");
 
+    // Cancel any existing timer
+    _noInternetTimer?.cancel();
+
     if (!hasInternet && !_isNoInternetScreenShowing) {
-      _isNoInternetScreenShowing = true;
-      navigatorKey.currentState?.pushReplacement(
-        CupertinoPageRoute(builder: (_) => const NoInternetScreen()),
-      );
+      // Start a new timer when internet is lost
+      _noInternetTimer = Timer(const Duration(seconds: 3), () {
+        if (!hasInternet && mounted && !_isNoInternetScreenShowing) {
+          _isNoInternetScreenShowing = true;
+          navigatorKey.currentState?.push(
+            CupertinoPageRoute(builder: (_) => const NoInternetScreen()),
+          );
+        }
+      });
     } else if (hasInternet && _isNoInternetScreenShowing) {
+
+      _noInternetTimer?.cancel();
       _isNoInternetScreenShowing = false;
-      navigatorKey.currentState?.pushReplacement(
-        CupertinoPageRoute(builder: (_) => widget.child),
-      );
+      navigatorKey.currentState?.pop();
     }
   }
 
@@ -134,7 +142,7 @@ class _NoInternetScreenState extends State<NoInternetScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                 const Icon(
+                  const Icon(
                     Icons.wifi_off_rounded,
                     size: 80,
                     color: red,
@@ -156,7 +164,7 @@ class _NoInternetScreenState extends State<NoInternetScreen> {
                         ),
                   ),
                   const SizedBox(height: 24),
-                 const  CircularProgressIndicator(
+                  const CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(red),
                   ),
                 ],

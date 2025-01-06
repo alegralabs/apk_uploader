@@ -71,7 +71,9 @@ class _BillWidgetState extends State<BillWidget> {
                   ),
                   keyboardType: TextInputType.number,
                   onChanged: (newQuantity) {
-                    // Update the rate value in your data model
+                    if (newQuantity.isEmpty) {
+                      newQuantity = '0';
+                    }
                     widget.itemForBillRows[widget.index]['quantity'] =
                         double.parse(newQuantity);
                     // Recalculate the amount
@@ -118,7 +120,9 @@ class _BillWidgetState extends State<BillWidget> {
                   ),
                   keyboardType: TextInputType.number,
                   onChanged: (newRate) {
-                    // Update the rate value in your data model
+                    if (newRate.isEmpty) {
+                      newRate = '0';
+                    }
                     widget.itemForBillRows[widget.index]['rate'] =
                         double.parse(newRate);
                     // Recalculate the amount

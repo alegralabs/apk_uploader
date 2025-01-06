@@ -7,7 +7,7 @@ import 'dart:convert';
 
 import 'package:intl/intl.dart';
 import 'package:newprobillapp/components/api_constants.dart';
-import 'package:newprobillapp/components/button_and_textfield_styles.dart';
+import 'package:newprobillapp/components/custom_components.dart';
 import 'package:newprobillapp/components/color_constants.dart';
 import 'package:newprobillapp/models/transaction.dart';
 import 'package:newprobillapp/pages/transaction_details.dart';
@@ -119,11 +119,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: true,
-        backgroundColor: green2,
-        title: const Text('Sales & Refund'),
-      ),
+      appBar: customAppBar("Transactions"),
       body: Column(
         children: [
           _SearchBar(

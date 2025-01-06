@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:newprobillapp/components/color_constants.dart';
+import 'package:newprobillapp/components/custom_components.dart';
 import 'package:newprobillapp/models/transaction.dart';
 
 class TransactionDetailPage extends StatelessWidget {
@@ -13,24 +14,7 @@ class TransactionDetailPage extends StatelessWidget {
     int totalPrice = int.parse(transaction.totalPrice);
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios,
-            color: Colors.black,
-          ),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        title: const Text(
-          'Transaction Details',
-          style: TextStyle(
-            color: Color.fromARGB(255, 0, 0, 0),
-          ),
-        ),
-        backgroundColor: green2,
-      ),
+      appBar: customAppBar("Transaction Details"),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(

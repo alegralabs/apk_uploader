@@ -10,6 +10,7 @@ import 'package:newprobillapp/components/api_constants.dart';
 import 'package:newprobillapp/components/bill_widget.dart';
 import 'package:newprobillapp/components/bottom_navigation_bar.dart';
 import 'package:newprobillapp/components/color_constants.dart';
+import 'package:newprobillapp/components/custom_components.dart';
 import 'package:newprobillapp/components/quantity_modal_bottom_sheet.dart';
 import 'package:newprobillapp/components/sidebar.dart';
 import 'package:newprobillapp/components/microphone_button.dart';
@@ -891,13 +892,7 @@ class RefundPageState extends State<RefundPage> {
         },
         selectedIndex: _selectedIndex,
       ),
-      appBar: AppBar(
-        title: Text(
-          string != "" ? string : "ReadyBill",
-          style: const TextStyle(fontSize: 18, fontFamily: 'Roboto'),
-        ),
-        backgroundColor: green2,
-      ),
+      appBar: customAppBar(string != "" ? string : "ReadyBill"),
       body: SingleChildScrollView(
         child: GestureDetector(
           onTap: () {

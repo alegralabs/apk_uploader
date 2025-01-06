@@ -11,7 +11,7 @@ import 'package:newprobillapp/components/color_constants.dart';
 import 'package:newprobillapp/pages/forgot_password_page.dart';
 import 'package:newprobillapp/pages/home_page.dart';
 import 'package:newprobillapp/pages/sign_up_page.dart';
-import 'package:newprobillapp/pages/splash_screen.dart';
+
 import 'package:newprobillapp/services/api_services.dart';
 //import 'package:newprobillapp/services/local_database.dart';
 import 'package:newprobillapp/services/local_database_2.dart';

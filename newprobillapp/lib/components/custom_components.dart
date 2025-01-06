@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:newprobillapp/components/color_constants.dart';
 
@@ -30,8 +28,6 @@ ElevatedButton customElevatedButton(String text, Color backgroundColor,
     Color textColor, VoidCallback onPressed) {
   return ElevatedButton(
     onPressed: onPressed,
-
-
     style: ButtonStyle(
         foregroundColor: WidgetStateProperty.all<Color>(textColor),
         backgroundColor: WidgetStateProperty.all<Color>(backgroundColor),
@@ -40,7 +36,6 @@ ElevatedButton customElevatedButton(String text, Color backgroundColor,
             borderRadius: BorderRadius.circular(8.0),
           ),
         )),
-
     child: Text(text),
   );
 }
@@ -72,5 +67,16 @@ InputDecoration customTfDecorationWithSuffix(
       ),
       child: suffix,
     ),
+  );
+}
+
+customAppBar(String title) {
+  return AppBar(
+    title: Text(
+      title,
+      style: const TextStyle(
+          fontFamily: 'Roboto_Regular', fontWeight: FontWeight.w500),
+    ),
+    backgroundColor: green2,
   );
 }

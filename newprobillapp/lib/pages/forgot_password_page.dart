@@ -189,6 +189,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                       color: green,
                                     )),
                                     filled: true,
+                                    
                                     fillColor: white,
                                     label: Text('Mobile Number'),
                                     border: OutlineInputBorder(
@@ -257,6 +258,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                             if (_otpFormKey.currentState!
                                                 .validate()) {
                                               setState(() {
+                                                
                                                 sendOtp(
                                                     phoneNumberController.text);
                                               });

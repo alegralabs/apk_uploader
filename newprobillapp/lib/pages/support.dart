@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:newprobillapp/components/bottom_navigation_bar.dart';
+import 'package:newprobillapp/components/custom_components.dart';
 
 class ContactSupportPage extends StatefulWidget {
   const ContactSupportPage({super.key});
@@ -35,17 +36,7 @@ class _ContactSupportPageState extends State<ContactSupportPage> {
         },
         selectedIndex: _selectedIndex,
       ),
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text(
-          'Support',
-          style: TextStyle(
-            color: Color.fromARGB(255, 0, 0, 0),
-          ),
-        ),
-        backgroundColor: const Color.fromRGBO(
-            243, 203, 71, 1), // Change this color to whatever you desire
-      ),
+      appBar: customAppBar("Support"),
       body: const Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(

@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:newprobillapp/components/api_constants.dart';
+
 import 'package:newprobillapp/components/color_constants.dart';
+import 'package:newprobillapp/components/custom_components.dart';
 import 'package:newprobillapp/pages/login_page.dart';
 import 'package:newprobillapp/services/api_services.dart';
 import 'package:newprobillapp/services/result.dart';
@@ -23,8 +25,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
   late TextEditingController quantityController;
   late TextEditingController salePriceController;
   late TextEditingController mrpController;
-  late TextEditingController rate2Controller;
-  late TextEditingController rate1Controller;
+  TextEditingController rateOneValueController = TextEditingController();
+  TextEditingController rateTwoValueController = TextEditingController();
   late TextEditingController tax1Controller;
   late TextEditingController tax2Controller;
   late String fullUnitDropdownValue;
@@ -75,7 +77,13 @@ class _ProductEditPageState extends State<ProductEditPage> {
     'SQM'
   ];
 
+  List<Widget> taxRateRows = [];
+  List<Key> taxRateRowKeys = [];
+  Map<int, String> rateControllers = {};
+  Map<int, String> taxControllers = {};
+
   String? token;
+  String? apiKey;
   bool isLoading = false;
   @override
   void initState() {
@@ -85,8 +93,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
     salePriceController = TextEditingController();
     tax1Controller = TextEditingController();
     tax2Controller = TextEditingController();
-    rate2Controller = TextEditingController();
-    rate1Controller = TextEditingController();
+    rateTwoValueController = TextEditingController();
+    rateOneValueController = TextEditingController();
     mrpController = TextEditingController();
     fullUnitDropdownValue = 'Full Unit';
     shortUnitDropdownValue = 'Short Unit';
@@ -94,6 +102,9 @@ class _ProductEditPageState extends State<ProductEditPage> {
     tax2DropdownValue = 'CESS';
     fullUnits = fullUnits.toSet().toList();
     shortUnits = shortUnits.toSet().toList();
+    var key = GlobalKey();
+    taxRateRowKeys.add(key);
+    taxRateRows.add(_buildTaxRateRow(key, 0));
     // Fetch product details when the page is initialized
     _initializeData();
   }
@@ -106,18 +117,20 @@ class _ProductEditPageState extends State<ProductEditPage> {
     salePriceController.dispose();
     tax1Controller.dispose();
     tax2Controller.dispose();
-    rate1Controller.dispose();
-    rate2Controller.dispose();
+    rateOneValueController.dispose();
+    rateTwoValueController.dispose();
     super.dispose();
   }
 
   Future<void> _initializeData() async {
     token = await APIService.getToken();
+    apiKey = await APIService.getXApiKey();
     APIService.getUserDetails(token, _showFailedDialog);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _fetchProductDetails());
+    _fetchProductDetails();
   }
 
   Future<void> _fetchProductDetails() async {
+    print("Hello World");
     setState(() {
       isLoading = true;
     });
@@ -125,20 +138,22 @@ class _ProductEditPageState extends State<ProductEditPage> {
       var response = await http
           .get(Uri.parse('$baseUrl/item/${widget.productId}'), headers: {
         'Authorization': 'Bearer $token',
+        'auth-key': '$apiKey',
       });
       setState(() {
         isLoading = false;
       });
       if (response.statusCode == 200) {
         var jsonData = jsonDecode(response.body)['data'];
+        print(jsonData);
         setState(() {
           itemNameController.text = jsonData['item_name'];
           quantityController.text = jsonData['quantity'];
           salePriceController.text = jsonData['sale_price'];
           tax1DropdownValue = jsonData['tax1'];
           tax2DropdownValue = jsonData['tax2'];
-          rate1Controller.text = jsonData['rate1'];
-          rate2Controller.text = jsonData['rate2'];
+          rateOneValueController.text = jsonData['rate1'];
+          rateTwoValueController.text = jsonData['rate2'];
           mrpController.text = jsonData['mrp'];
           fullUnitDropdownValue = jsonData['full_unit'];
           shortUnitDropdownValue = jsonData['short_unit'];
@@ -183,15 +198,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
   Widget _buildCombinedDropdown(
       String label, List<String> items, void Function(String?) onChanged) {
     return DropdownButtonFormField<String>(
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: Colors.white,
-        hintText: label,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide.none,
-        ),
-      ),
+      decoration: customTfInputDecoration(label),
       value: items[0], // Initial value
       items: items.map((item) {
         return DropdownMenuItem<String>(
@@ -219,8 +226,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
           'sale_price': salePriceController.text,
           'full_unit': fullUnitDropdownValue,
           'short_unit': shortUnitDropdownValue,
-          'rate1': rate1Controller.text,
-          'rate2': rate2Controller.text,
+          'rate1': rateOneValueController.text,
+          'rate2': rateTwoValueController.text,
           'tax1': tax1DropdownValue,
           'tax2': tax2DropdownValue,
           'hsn': hsn,
@@ -243,29 +250,95 @@ class _ProductEditPageState extends State<ProductEditPage> {
     }
   }
 
+  Widget _buildTaxRateRow(Key key, int index) {
+    bool isFirstRow = index == 0;
+    bool isMaxRowsReached = taxRateRows.length >= 2;
+    return Row(
+      key: key,
+      children: [
+        Expanded(
+          child: DropdownButtonFormField<String>(
+              value: taxControllers[index] ?? 'GST', // Provide a default value
+              onChanged: (String? value) {
+                setState(() {
+                  taxControllers[index] = value!;
+                });
+              },
+              items: const [
+                DropdownMenuItem<String>(
+                  value: 'GST',
+                  child: Text('GST'),
+                ),
+                DropdownMenuItem<String>(
+                  value: 'SASS',
+                  child: Text('SASS'),
+                ),
+              ],
+              hint: const Text('Select Tax'),
+              decoration: customTfInputDecoration("Select Tax")),
+        ),
+        const SizedBox(width: 16.0),
+        Expanded(
+          child: TextField(
+              controller:
+                  index == 0 ? rateOneValueController : rateTwoValueController,
+              keyboardType: TextInputType.number,
+              decoration: customTfInputDecoration("Rate *")),
+        ),
+        IconButton(
+          icon: Icon(isFirstRow ? Icons.add : Icons.remove),
+          onPressed: () {
+            try {
+              if (isMaxRowsReached) {
+                // Show a warning dialog when max rows are reached
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text('Warning'),
+                      content:
+                          const Text('You cannot add more than 2 tax rows.'),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text('OK'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              } else {
+                setState(() {
+                  if (isFirstRow) {
+                    var newKey = GlobalKey();
+                    taxRateRowKeys.insert(index + 1, newKey);
+                    taxRateRows.insert(
+                        index + 1, _buildTaxRateRow(newKey, index + 1));
+                    rateControllers[index + 1] = '';
+                    taxControllers[index + 1] = '';
+                  } else {
+                    taxRateRowKeys.removeAt(index);
+                    taxRateRows.removeAt(index);
+                    rateControllers.remove(index);
+                    taxControllers.remove(index);
+                  }
+                });
+              }
+            } catch (e) {
+              Result.error("Book list not available");
+            }
+          },
+        )
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(246, 247, 255, 1),
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios,
-            color: Colors.black,
-          ),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        title: const Text(
-          'Item Detail',
-          style: TextStyle(
-            color: Color.fromARGB(255, 0, 0, 0),
-          ),
-        ),
-        backgroundColor: const Color.fromRGBO(
-            243, 203, 71, 1), // Change this color to whatever you desire
-      ),
+      appBar: customAppBar('Edit Product'),
       body: isLoading
           ? const Center(
               child: CircularProgressIndicator(
@@ -332,74 +405,25 @@ class _ProductEditPageState extends State<ProductEditPage> {
                     const SizedBox(
                       height: 15,
                     ),
-                    Row(children: [
-                      Expanded(
-                        child: _buildDropdown(
-                          'GST',
-                          ['GST', 'CESS'],
-                          tax1DropdownValue, // Add your tax options here
-                          (value) {
-                            setState(() {
-                              tax1DropdownValue = value;
-                            });
-                          },
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 15,
-                      ),
-                      Expanded(child: _buildTextField(rate1Controller, "Rate")),
-                    ]),
-                    const SizedBox(
-                      height: 15,
+                    Column(
+                      children: [
+                        for (int i = 0; i < taxRateRows.length; i++)
+                          Column(
+                            children: [
+                              taxRateRows[i],
+                              const SizedBox(height: 8.0),
+                            ],
+                          ),
+                      ],
                     ),
-                    Row(children: [
-                      Expanded(
-                        child: _buildDropdown(
-                          'CESS',
-                          ['GST', 'CESS'],
-                          tax2DropdownValue, // Add your tax options here
-                          (value) {
-                            setState(() {
-                              tax2DropdownValue = value;
-                            });
-                          },
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 15,
-                      ),
-                      Expanded(child: _buildTextField(rate2Controller, "Rate")),
-                    ]),
                     const SizedBox(height: 20.0),
-                    ElevatedButton(
-                      onPressed: () {
-                        print({
-                          'id': widget.productId,
-                          'mrp': mrpController.text,
-                          'item_name': itemNameController.text,
-                          'quantity': quantityController.text,
-                          'sale_price': salePriceController.text,
-                          'full_unit': fullUnitDropdownValue,
-                          'short_unit': shortUnitDropdownValue,
-                          'rate1': rate1Controller.text,
-                          'rate2': rate2Controller.text,
-                          'tax1': tax1DropdownValue,
-                          'tax2': tax2DropdownValue,
-                        });
+                    customElevatedButton(
+                      "Save Changes",
+                      green2,
+                      white,
+                      () {
                         _updateProduct();
                       },
-                      style: ButtonStyle(
-                        backgroundColor: WidgetStateProperty.all<Color>(
-                          const Color(0xff28a745),
-                        ), // Change color here
-                      ),
-                      child: const Text(
-                        'Save Changes',
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 255, 255, 255),
-                        ),
-                      ),
                     ),
                   ],
                 ),
@@ -411,15 +435,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
   Widget _buildTextField(TextEditingController controller, String hintText) {
     return TextField(
       controller: controller,
-      decoration: InputDecoration(
-        hintText: hintText,
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide.none,
-        ),
-      ),
+      decoration: customTfInputDecoration(hintText),
     );
   }
 
@@ -437,15 +453,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
         // Call the callback function to update the dropdown value
         updateDropdownValue(value!);
       },
-      decoration: InputDecoration(
-        hintText: hintText,
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide.none,
-        ),
-      ),
+      decoration: customTfInputDecoration(hintText),
     );
   }
 }

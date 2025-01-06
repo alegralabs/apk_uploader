@@ -9,8 +9,9 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:newprobillapp/components/api_constants.dart';
+
 import 'package:newprobillapp/components/bottom_navigation_bar.dart';
-import 'package:newprobillapp/components/button_and_textfield_styles.dart';
+import 'package:newprobillapp/components/custom_components.dart';
 import 'package:newprobillapp/components/color_constants.dart';
 import 'package:newprobillapp/components/sidebar.dart';
 import 'package:newprobillapp/pages/home_page.dart';
@@ -125,16 +126,7 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
       drawer: const Drawer(
         child: Sidebar(),
       ),
-      appBar: AppBar(
-        //automaticallyImplyLeading: false,
-        title: const Text(
-          'Add Employee',
-          style: TextStyle(
-            color: black,
-          ),
-        ),
-        backgroundColor: green2,
-      ),
+      appBar: customAppBar("Add Employee"),
       bottomNavigationBar: CustomNavigationBar(
         onItemSelected: (index) {
           // Handle navigation item selection

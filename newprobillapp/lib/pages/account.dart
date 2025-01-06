@@ -10,7 +10,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 
 import 'package:newprobillapp/components/api_constants.dart';
-import 'package:newprobillapp/components/button_and_textfield_styles.dart';
+
+import 'package:newprobillapp/components/custom_components.dart';
 import 'package:newprobillapp/components/color_constants.dart';
 import 'package:newprobillapp/services/api_services.dart';
 
@@ -74,6 +75,7 @@ class _UserAccountState extends State<UserAccount> {
       logoImageFile = image;
     });
   }
+
 
   _submitData() async {
     var token = await APIService.getToken();
@@ -232,7 +234,7 @@ class _UserAccountState extends State<UserAccount> {
       controller: controller,
       obscureText: obscureText,
       readOnly: readOnly,
-      decoration: customTfInputDecoration(hintText),
+      decoration: readOnly ? null : customTfInputDecoration(hintText),
     );
   }
 
@@ -259,15 +261,7 @@ class _UserAccountState extends State<UserAccount> {
   Widget build(BuildContext context) {
     return Scaffold(
       //  backgroundColor: const Color.fromRGBO(246, 247, 255, 1),
-      appBar: AppBar(
-        title: const Text(
-          'Account Details',
-          style: TextStyle(
-            color: Color.fromARGB(255, 0, 0, 0),
-          ),
-        ),
-        backgroundColor: green2, // Change this color to whatever you desire
-      ),
+      appBar: customAppBar('Account Details'),
       body: userDetail == null
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(

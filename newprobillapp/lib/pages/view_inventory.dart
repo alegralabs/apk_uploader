@@ -1,13 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:newprobillapp/components/bottom_navigation_bar.dart';
-import 'package:newprobillapp/components/button_and_textfield_styles.dart';
+import 'package:newprobillapp/components/custom_components.dart';
 import 'package:newprobillapp/components/color_constants.dart';
 import 'package:newprobillapp/components/sidebar.dart';
 import 'package:newprobillapp/pages/add_product.dart';
 import 'package:newprobillapp/pages/edit_product.dart';
-import 'package:newprobillapp/services/internet_checker.dart';
-// import 'package:newprobillapp/services/local_database.dart';
+
 import 'package:newprobillapp/services/local_database_2.dart';
 
 class ProductListPage extends StatefulWidget {
@@ -116,15 +115,7 @@ class _ProductListPageState extends State<ProductListPage> {
         },
         selectedIndex: _selectedIndex,
       ),
-      appBar: AppBar(
-        title: const Text(
-          'View & Update Inventory',
-          style: TextStyle(
-            color: black,
-          ),
-        ),
-        backgroundColor: green2,
-      ),
+      appBar: customAppBar("Inventory"),
       body: Column(
         children: [
           Padding(

@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:newprobillapp/components/api_constants.dart';
 import 'package:newprobillapp/components/color_constants.dart';
+import 'package:newprobillapp/components/custom_components.dart';
 import 'package:newprobillapp/services/api_services.dart';
 
 class Subscriptions extends StatefulWidget {
@@ -107,10 +108,7 @@ class _SubscriptionsState extends State<Subscriptions> {
 
   @override
   Widget build(BuildContext context) {
-    AppBar appBar = AppBar(
-      title: const Text("Subscriptions"),
-      backgroundColor: green2,
-    );
+    AppBar appBar = customAppBar("Subscriptions");
 
     final screenHeight =
         MediaQuery.of(context).size.height - appBar.preferredSize.height;

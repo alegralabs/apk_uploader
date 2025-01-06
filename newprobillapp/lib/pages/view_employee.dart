@@ -6,25 +6,26 @@ import 'dart:convert';
 
 import 'package:newprobillapp/components/api_constants.dart';
 import 'package:newprobillapp/components/bottom_navigation_bar.dart';
-import 'package:newprobillapp/components/button_and_textfield_styles.dart';
+import 'package:newprobillapp/components/custom_components.dart';
 import 'package:newprobillapp/components/color_constants.dart';
 import 'package:newprobillapp/components/sidebar.dart';
 import 'package:newprobillapp/pages/employee_signup.dart';
 import 'package:newprobillapp/pages/view_employee_details.dart';
 import 'package:newprobillapp/services/api_services.dart';
-import 'package:newprobillapp/services/internet_checker.dart';
 
 class Employee {
   final int id;
   final String name;
   final String mobile;
   final String address;
+  final String photo;
 
   Employee({
     required this.id,
     required this.name,
     required this.mobile,
     required this.address,
+    required this.photo,
   });
 
   factory Employee.fromJson(Map<String, dynamic> json) {
@@ -33,6 +34,7 @@ class Employee {
       name: json['name'],
       mobile: json['mobile'],
       address: json['address'],
+      photo: json['photo'],
     );
   }
 }
@@ -55,6 +57,8 @@ class EmployeeService {
       final jsonData = json.decode(response.body);
 
       final List<dynamic> EmployeesData = jsonData['data'];
+
+      print(EmployeesData);
       //  print('employees data: $EmployeesData');
       var data = EmployeesData.map((json) => Employee.fromJson(json)).toList();
 
@@ -199,15 +203,7 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
       drawer: const Drawer(
         child: Sidebar(),
       ),
-      appBar: AppBar(
-        title: const Text(
-          'Employees',
-          style: TextStyle(
-            color: black,
-          ),
-        ),
-        backgroundColor: green2,
-      ),
+      appBar: customAppBar("Employees"),
       body: Column(
         children: [
           _SearchBar(
@@ -254,11 +250,10 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
                 thickness: 0.2,
                 height: 0,
               ),
-              controller: _scrollController, 
+              controller: _scrollController,
               itemCount: _filteredEmployees.length + 1,
               itemBuilder: (context, index) {
                 if (index == _filteredEmployees.length) {
-
                   return _isLoadingMore
                       ? const Center(child: CircularProgressIndicator())
                       : const SizedBox();

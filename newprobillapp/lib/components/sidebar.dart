@@ -8,12 +8,14 @@ import 'package:newprobillapp/components/api_constants.dart';
 import 'package:newprobillapp/components/color_constants.dart';
 import 'package:newprobillapp/pages/account.dart';
 import 'package:newprobillapp/pages/add_product.dart';
+import 'package:newprobillapp/pages/change_password_page.dart';
 import 'package:newprobillapp/pages/forgot_password_page.dart';
 import 'package:newprobillapp/pages/home_page.dart';
 import 'package:newprobillapp/pages/login_page.dart';
 import 'package:newprobillapp/pages/preferences.dart';
 import 'package:newprobillapp/pages/employee_signup.dart';
 import 'package:newprobillapp/pages/subscriptions.dart';
+import 'package:newprobillapp/pages/support.dart';
 import 'package:newprobillapp/pages/transaction_list.dart';
 import 'package:newprobillapp/pages/view_inventory.dart';
 import 'package:newprobillapp/services/api_services.dart';
@@ -60,7 +62,6 @@ class _SidebarState extends State<Sidebar> {
 
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
-      print(jsonData);
 
       if (mounted) {
         setState(() {
@@ -72,7 +73,6 @@ class _SidebarState extends State<Sidebar> {
           address = jsonData['data']['details']['address'];
           phone = jsonData['data']['mobile'];
         });
-        print('isAdmin: $isAdmin');
       }
     }
   }
@@ -190,7 +190,7 @@ class _SidebarState extends State<Sidebar> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.document_scanner),
+              leading: const Icon(Icons.document_scanner_outlined),
               title: const Text('Transactions'),
               onTap: () {
                 navigatorKey.currentState?.push(
@@ -200,7 +200,7 @@ class _SidebarState extends State<Sidebar> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.person_add_rounded),
+              leading: const Icon(Icons.person_add_outlined),
               title: const Text('Employee'),
               onTap: () {
                 navigatorKey.currentState?.push(
@@ -210,7 +210,7 @@ class _SidebarState extends State<Sidebar> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.settings),
+              leading: const Icon(Icons.settings_outlined),
               title: const Text('Preferences'),
               onTap: () {
                 navigatorKey.currentState?.push(
@@ -220,7 +220,7 @@ class _SidebarState extends State<Sidebar> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.account_circle),
+              leading: const Icon(Icons.account_circle_outlined),
               title: const Text('Account'),
               onTap: () {
                 navigatorKey.currentState?.push(
@@ -229,24 +229,35 @@ class _SidebarState extends State<Sidebar> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.password),
+              leading: const Icon(Icons.password_outlined),
               title: const Text('Change Password'),
               onTap: () {
                 navigatorKey.currentState?.push(
                   CupertinoPageRoute(
-                      builder: (context) => const ForgotPasswordPage(
+                      builder: (context) => const ChangePasswordPage(
                             smsType: 'change_password',
                           )),
                 );
               },
             ),
             ListTile(
-              leading: const Icon(Icons.account_balance_outlined),
+              leading: const Icon(Icons.account_balance_wallet_outlined),
               title: const Text('Subscription'),
               onTap: () {
                 navigatorKey.currentState?.push(
                   CupertinoPageRoute(
                     builder: (context) => const Subscriptions(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.support_agent),
+              title: const Text('Support'),
+              onTap: () {
+                navigatorKey.currentState?.push(
+                  CupertinoPageRoute(
+                    builder: (context) => const ContactSupportPage(),
                   ),
                 );
               },
@@ -277,7 +288,7 @@ class _SidebarState extends State<Sidebar> {
           'auth-key': '$apiKey',
         },
       );
-      print(response.statusCode);
+
       EasyLoading.dismiss();
       if (response.statusCode == 200) {
         // Directly navigate to login screen
