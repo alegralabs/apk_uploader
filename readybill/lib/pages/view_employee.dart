@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 
 import 'dart:convert';
@@ -12,6 +13,7 @@ import 'package:readybill/components/sidebar.dart';
 import 'package:readybill/pages/employee_signup.dart';
 import 'package:readybill/pages/view_employee_details.dart';
 import 'package:readybill/services/api_services.dart';
+import 'package:readybill/services/global_internet_connection_handler.dart';
 
 class Employee {
   final int id;
@@ -165,6 +167,25 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
     });
   }
 
+  void deleteEmployee(int id) async {
+    String? token = await APIService.getToken();
+    String? apiKey = await APIService.getXApiKey();
+    var response =
+        await http.get(Uri.parse("$baseUrl/delete-sub-user/$id"), headers: {
+      'Authorization': 'Bearer $token',
+      'auth-key': '$apiKey',
+    });
+    print("status code: ${response.statusCode}\nbody: ${response.body}");
+    if (response.statusCode == 200) {
+      setState(() {
+        _filteredEmployees.removeWhere((employee) => employee.id == id);
+        _employees.removeWhere((employee) => employee.id == id);
+        _fetchEmployees();
+      });
+      Fluttertoast.showToast(msg: "Employee removed successfully");
+    }
+  }
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -274,7 +295,7 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
                     child: Row(
                       children: [
                         Expanded(
-                          flex: 2, // Larger space for item name
+                          flex: 4, // Larger space for item name
                           child: Text(
                             employee.name,
                             style: const TextStyle(fontSize: 14),
@@ -283,7 +304,7 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
                           ),
                         ),
                         Expanded(
-                          flex: 2, // Larger space for item name
+                          flex: 4, // Larger space for item name
                           child: Text(
                             employee.mobile,
                             style: const TextStyle(fontSize: 14),
@@ -291,6 +312,40 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        Expanded(
+                            flex: 1,
+                            child: IconButton(
+                                onPressed: () {
+                                  showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return AlertDialog(
+                                          title: const Text('Remove Employee?'),
+                                          content: Text(
+                                              "Are you sure you want to remove ${employee.name} from your employees? "),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () {
+                                                navigatorKey.currentState
+                                                    ?.pop();
+                                              },
+                                              child: const Text('No'),
+                                            ),
+                                            TextButton(
+                                                onPressed: () {
+                                                  deleteEmployee(employee.id);
+                                                  navigatorKey.currentState
+                                                      ?.pop();
+                                                },
+                                                child: const Text("Yes")),
+                                          ],
+                                        );
+                                      });
+                                },
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: red,
+                                )))
                       ],
                     ),
                   ),

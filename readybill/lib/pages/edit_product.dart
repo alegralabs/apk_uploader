@@ -368,22 +368,17 @@ class _ProductEditPageState extends State<ProductEditPage> {
                       children: [
                         Expanded(
                           child: _buildCombinedDropdown('Unit', [
-                            'Full Unit (Short Unit)',
-                            ...fullUnits
-                                .map((unit) =>
-                                    '$unit (${shortUnits[fullUnits.indexOf(unit)]})')
-                                .toList()
+                            shortUnitDropdownValue,
+                            ...fullUnits.map((unit) =>
+                                '$unit (${shortUnits[fullUnits.indexOf(unit)]})')
                           ], (value) {
-                            // Split the selected value into full unit and short unit
                             List<String> units = value!.split(' (');
                             String fullUnit = units[0];
                             String shortUnit =
                                 units[1].substring(0, units[1].length - 1);
                             setState(() {
-                              fullUnitDropdownValue =
-                                  fullUnit; // Update the fullUnitDropdownValue
-                              shortUnitDropdownValue =
-                                  shortUnit; // Update the shortUnitDropdownValue
+                              fullUnitDropdownValue = fullUnit;
+                              shortUnitDropdownValue = shortUnit;
                             });
                           }),
                         )

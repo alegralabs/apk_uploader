@@ -842,6 +842,7 @@ class HomePageState extends State<HomePage> {
     //     Provider.of<HomeBillItemProvider>(context, listen: false).unit;
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
+    print("screenHeight: $screenHeight");
     quantityController.text =
         Provider.of<HomeBillItemProvider>(context, listen: false)
             .quantity
@@ -874,607 +875,566 @@ class HomePageState extends State<HomePage> {
         selectedIndex: _selectedIndex,
       ),
       appBar: customAppBar(string != "" ? string : "ReadyBill"),
-      body: SingleChildScrollView(
-        child: GestureDetector(
-          onTap: () {
-            _nameFocusNode.unfocus();
-            _quantityFocusNode.unfocus();
-            _stopListening();
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Stack(children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  TextField(
-                    onTap: () {
-                      setState(() {});
-                    },
-                    onChanged: (m) {
-                      _localDatabase.searchDatabase(_nameController.text);
-                      searching = true;
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: GestureDetector(
+              onTap: () {
+                _nameFocusNode.unfocus();
+                _quantityFocusNode.unfocus();
+                _stopListening();
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Stack(children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      TextField(
+                        onTap: () {
+                          setState(() {});
+                        },
+                        onChanged: (m) {
+                          _localDatabase.searchDatabase(_nameController.text);
+                          searching = true;
 
-                      isInputThroughText = true;
+                          isInputThroughText = true;
 
-                      Future.delayed(const Duration(milliseconds: 100), () {
-                        setState(() {});
-                      });
+                          Future.delayed(const Duration(milliseconds: 100), () {
+                            setState(() {});
+                          });
 
-                      if (_nameController.text == '') {
-                        validProductName = true;
-                        _localDatabase.clearSuggestions();
-                        if (mounted) setState(() {});
-                      }
-                    },
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                        borderSide: const BorderSide(
-                          color: Color(0xffbfbfbf),
-                          width: 3.0,
-                        ),
+                          if (_nameController.text == '') {
+                            validProductName = true;
+                            _localDatabase.clearSuggestions();
+                            if (mounted) setState(() {});
+                          }
+                        },
+                        controller: _nameController,
+                        decoration: customTfDecorationWithSuffix(
+                            "Enter Product Name",
+                            _nameController.text.isNotEmpty
+                                ? IconButton(
+                                    onPressed: () {
+                                      _nameController.clear();
+                                      quantityController.clear();
+                                      _localDatabase.clearSuggestions();
+                                      setState(() {});
+                                    },
+                                    icon: const Icon(Icons.cancel),
+                                  )
+                                : null,
+                            _nameFocusNode),
+                        focusNode: _nameFocusNode,
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                        borderSide: const BorderSide(
-                          color: green2,
-                          width: 3.0,
-                        ),
-                      ),
-                      suffixIcon: _nameController.text.isNotEmpty
-                          ? IconButton(
-                              onPressed: () {
-                                _nameController.clear();
-                                quantityController.clear();
-                                _localDatabase.clearSuggestions();
-                                setState(() {});
-                              },
-                              icon: const Icon(Icons.cancel),
-                            )
-                          : const SizedBox.shrink(),
-                      hintText: "Enter Product Name",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                    ),
-                    focusNode: _nameFocusNode,
-                  ),
-                  const SizedBox(height: 16.0),
-                  TextField(
-                    onTap: () {
-                      setState(() {});
-                    },
-                    controller: TextEditingController(
-                      text:
-                          Provider.of<HomeBillItemProvider>(context).quantity ==
+                      const SizedBox(height: 16.0),
+                      TextField(
+                        onTap: () {
+                          setState(() {});
+                        },
+                        controller: TextEditingController(
+                          text: Provider.of<HomeBillItemProvider>(context)
+                                      .quantity ==
                                   0
                               ? ''
                               : Provider.of<HomeBillItemProvider>(context)
                                   .quantity
                                   .toString(),
-                    ),
-                    keyboardType: TextInputType.number,
-                    onChanged: (value) {
-                      if (value.isEmpty) {
-                        Provider.of<HomeBillItemProvider>(context,
-                                listen: false)
-                            .assignQuantity(0);
-                        return;
-                      }
+                        ),
+                        keyboardType: TextInputType.number,
+                        onChanged: (value) {
+                          if (value.isEmpty) {
+                            Provider.of<HomeBillItemProvider>(context,
+                                    listen: false)
+                                .assignQuantity(0);
+                            return;
+                          }
 
-                      try {
-                        final quantity = int.parse(value);
-                        Provider.of<HomeBillItemProvider>(context,
-                                listen: false)
-                            .assignQuantity(quantity);
-                      } catch (e) {
-                        // Revert to last valid value or empty
-                        final sanitizedValue =
-                            value.replaceAll(RegExp(r'[^0-9]'), '');
-                        Provider.of<HomeBillItemProvider>(context,
-                                listen: false)
-                            .assignQuantity(sanitizedValue.isEmpty
-                                ? 0
-                                : int.parse(sanitizedValue));
+                          try {
+                            final quantity = int.parse(value);
+                            Provider.of<HomeBillItemProvider>(context,
+                                    listen: false)
+                                .assignQuantity(quantity);
+                          } catch (e) {
+                            // Revert to last valid value or empty
+                            final sanitizedValue =
+                                value.replaceAll(RegExp(r'[^0-9]'), '');
+                            Provider.of<HomeBillItemProvider>(context,
+                                    listen: false)
+                                .assignQuantity(sanitizedValue.isEmpty
+                                    ? 0
+                                    : int.parse(sanitizedValue));
 
-                        // Update controller text
-                        final newPosition = value.length;
-                        TextEditingController(text: sanitizedValue).selection =
-                            TextSelection.fromPosition(
-                          TextPosition(
-                              offset: min(newPosition, sanitizedValue.length)),
-                        );
-                      }
-                    },
-                    decoration: InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                        borderSide: const BorderSide(
-                          color: Color(0xffbfbfbf),
-                          width: 3.0,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                        borderSide: const BorderSide(
-                          color: green2,
-                          width: 3.0,
-                        ),
-                      ),
-                      hintText: "Enter Quantity",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      suffixIcon: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 2),
-                        decoration: BoxDecoration(
-                          borderRadius: const BorderRadius.only(
-                              topRight: Radius.circular(8.0),
-                              bottomRight: Radius.circular(8.0)),
-                          color:
-                              _quantityFocusNode.hasFocus ? green2 : darkGrey,
-                        ),
-                        child: DropdownButton<String>(
-                          elevation: 16,
-                          menuMaxHeight:
-                              MediaQuery.of(context).size.height * 0.3,
-                          value: Provider.of<HomeBillItemProvider>(context,
-                                  listen: false)
-                              .unit,
-                          onChanged: (newValue) {
-                            setState(() {
-                              Provider.of<HomeBillItemProvider>(context,
+                            // Update controller text
+                            final newPosition = value.length;
+                            TextEditingController(text: sanitizedValue)
+                                .selection = TextSelection.fromPosition(
+                              TextPosition(
+                                  offset:
+                                      min(newPosition, sanitizedValue.length)),
+                            );
+                          }
+                        },
+                        decoration: InputDecoration(
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: const BorderSide(
+                              color: Color(0xffbfbfbf),
+                              width: 3.0,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: const BorderSide(
+                              color: green2,
+                              width: 3.0,
+                            ),
+                          ),
+                          hintText: "Enter Quantity",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          suffixIcon: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 2),
+                            decoration: BoxDecoration(
+                              borderRadius: const BorderRadius.only(
+                                  topRight: Radius.circular(8.0),
+                                  bottomRight: Radius.circular(8.0)),
+                              color: _quantityFocusNode.hasFocus
+                                  ? green2
+                                  : darkGrey,
+                            ),
+                            child: DropdownButton<String>(
+                              elevation: 16,
+                              menuMaxHeight:
+                                  MediaQuery.of(context).size.height * 0.3,
+                              value: Provider.of<HomeBillItemProvider>(context,
                                       listen: false)
-                                  .assignUnit(newValue!);
-                              _selectedQuantitySecondaryUnit =
+                                  .unit,
+                              onChanged: (newValue) {
+                                setState(() {
                                   Provider.of<HomeBillItemProvider>(context,
                                           listen: false)
-                                      .unit;
-                            });
-                          },
-                          items: _dropdownItemsQuantity
-                              .map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(
-                                value,
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            );
-                          }).toList(),
+                                      .assignUnit(newValue!);
+                                  _selectedQuantitySecondaryUnit =
+                                      Provider.of<HomeBillItemProvider>(context,
+                                              listen: false)
+                                          .unit;
+                                });
+                              },
+                              items: _dropdownItemsQuantity
+                                  .map<DropdownMenuItem<String>>(
+                                      (String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(
+                                    value,
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
                         ),
+                        focusNode: _quantityFocusNode,
                       ),
-                    ),
-                    focusNode: _quantityFocusNode,
-                  ),
-                  const SizedBox(
-                    height: 15,
-                  ),
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.05,
-                    width: MediaQuery.of(context).size.width * 0.3,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        elevation: 1.0,
-                        backgroundColor: (_nameController.text.isEmpty ||
-                                quantityController.text.isEmpty)
-                            ? lightGrey
-                            : blue,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                      const SizedBox(
+                        height: 15,
                       ),
-                      onPressed: () async {
-                        _stopListening();
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.05,
+                        width: MediaQuery.of(context).size.width * 0.3,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            elevation: 1.0,
+                            backgroundColor: (_nameController.text.isEmpty ||
+                                    quantityController.text.isEmpty)
+                                ? lightGrey
+                                : blue,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: () async {
+                            _stopListening();
 
-                        if (_nameController.text.isNotEmpty &&
-                            quantityController.text.isNotEmpty) {
-                          String quantityValue = quantityController.text;
-                          double? quantityValueforConvert =
-                              double.tryParse(quantityValue);
-                          _primaryUnit = unit;
-                          double quantityValueforTable =
-                              convertQuantityBasedOnUnit(
-                                  _primaryUnit!,
+                            if (_nameController.text.isNotEmpty &&
+                                quantityController.text.isNotEmpty) {
+                              String quantityValue = quantityController.text;
+                              double? quantityValueforConvert =
+                                  double.tryParse(quantityValue);
+                              _primaryUnit = unit;
+                              double quantityValueforTable =
+                                  convertQuantityBasedOnUnit(
+                                      _primaryUnit!,
+                                      Provider.of<HomeBillItemProvider>(context,
+                                              listen: false)
+                                          .unit,
+                                      quantityValueforConvert!);
+                              //  print("quantityValueforTable:$quantityValueforTable");
+                              int? stockStatus = await checkStockStatus(
+                                  itemId,
+                                  quantityValueforTable.toString(),
                                   Provider.of<HomeBillItemProvider>(context,
                                           listen: false)
                                       .unit,
-                                  quantityValueforConvert!);
-                          //  print("quantityValueforTable:$quantityValueforTable");
-                          int? stockStatus = await checkStockStatus(
-                              itemId,
-                              quantityValueforTable.toString(),
-                              Provider.of<HomeBillItemProvider>(context,
-                                      listen: false)
-                                  .unit,
-                              token!,
-                              "$apiKey");
-                          print("stockStatus: $stockStatus");
-                          if (stockStatus == 2 && validProductName == true) {
-                            //print("tryParse");
+                                  token!,
+                                  "$apiKey");
+                              print("stockStatus: $stockStatus");
+                              if (stockStatus == 2 &&
+                                  validProductName == true) {
+                                //print("tryParse");
 
-                            double? salePriceforTable =
-                                double.tryParse(salePrice);
-                            addProductTable(
-                                itemNameforTable!,
-                                quantityValueforTable,
-                                unit,
-                                salePriceforTable!);
-                            _nameController.clear();
-                            quantityController.clear();
+                                double? salePriceforTable =
+                                    double.tryParse(salePrice);
+                                addProductTable(
+                                    itemNameforTable!,
+                                    quantityValueforTable,
+                                    unit,
+                                    salePriceforTable!);
+                                _nameController.clear();
+                                quantityController.clear();
 
-                            //  _dropdownItemsQuantity.insert(0, "Unit");
-                            // Reset to default value
+                                //  _dropdownItemsQuantity.insert(0, "Unit");
+                                // Reset to default value
 
-                            if (mounted) {
-                              setState(() {
-                                _dropdownItemsQuantity = _dropdownItems;
-                                _selectedQuantitySecondaryUnit =
-                                    _dropdownItemsQuantity[0];
-                                _localDatabase.clearSuggestions();
-                                Provider.of<HomeBillItemProvider>(context,
-                                        listen: false)
-                                    .assignQuantity(0);
-                              });
-                            }
-                          } else if (stockStatus == 0) {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text("Out of Stock"),
-                                  content: Text(
-                                      "You have only $availableStockValue left"),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(
-                                            context); // Close the dialog
-                                      },
-                                      child: const Text("OK"),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          }
-                        }
-                      },
-                      child: Center(
-                        child: Text(
-                          "ADD",
-                          style: TextStyle(
-                              fontSize: 18,
-                              color: (_nameController.text.isEmpty ||
-                                      quantityController.text.isEmpty)
-                                  ? darkGrey
-                                  : white,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  Visibility(
-                    visible: Provider.of<HomeBillItemProvider>(context)
-                        .homeItemForBillRows
-                        .isNotEmpty,
-                    child: Stack(
-                      alignment: Alignment.centerRight,
-                      children: [
-                        const SizedBox(
-                          height: 50,
-                          child: Divider(
-                            color: Colors.grey,
-                            thickness: 1,
-                          ),
-                        ),
-                        Positioned(
-                          right: 20,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: black,
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                            child: IconButton(
-                                onPressed: () {
-                                  saveData();
-                                },
-                                icon: const Icon(
-                                  Icons.print,
-                                  color: Colors.white,
-                                )),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Provider.of<HomeBillItemProvider>(context)
-                          .homeItemForBillRows
-                          .isNotEmpty
-                      ? const Padding(
-                          padding: EdgeInsets.only(left: 20),
-                          child: Row(children: [
-                            Expanded(
-                              flex: 20,
-                              child: Text(
-                                "Name",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.start,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 16,
-                              child: Text(
-                                "Quantity",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 15,
-                              child: Text(
-                                "Unit",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 15,
-                              child: Text(
-                                "Rate",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.start,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 15,
-                              child: Text(
-                                "Amount",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 10,
-                              child: SizedBox(),
-                            )
-                          ]),
-                        )
-                      : const SizedBox.shrink(),
-                  Provider.of<HomeBillItemProvider>(context)
-                          .homeItemForBillRows
-                          .isNotEmpty
-                      ? const Divider(
-                          thickness: 1,
-                        )
-                      : const SizedBox.shrink(),
-                  SingleChildScrollView(
-                    child: Container(
-                      height: MediaQuery.of(context).size.height * 0.25,
-                      padding: const EdgeInsets.only(left: 20.0),
-                      child: Provider.of<HomeBillItemProvider>(context)
-                              .homeItemForBillRows
-                              .isNotEmpty
-                          ? ListView.builder(
-                              padding: EdgeInsets.zero,
-                              itemCount:
-                                  Provider.of<HomeBillItemProvider>(context)
-                                      .homeItemForBillRows
-                                      .length,
-                              itemBuilder: (context, index) {
-                                return BillWidget(
-                                  item:
-                                      Provider.of<HomeBillItemProvider>(context)
-                                          .homeItemForBillRows[index],
+                                if (mounted) {
+                                  setState(() {
+                                    _dropdownItemsQuantity = _dropdownItems;
+                                    _selectedQuantitySecondaryUnit =
+                                        _dropdownItemsQuantity[0];
+                                    _localDatabase.clearSuggestions();
+                                    Provider.of<HomeBillItemProvider>(context,
+                                            listen: false)
+                                        .assignQuantity(0);
+                                  });
+                                }
+                              } else if (stockStatus == 0) {
+                                showDialog(
                                   context: context,
-                                  index: index,
-                                  itemForBillRows:
-                                      Provider.of<HomeBillItemProvider>(context)
-                                          .homeItemForBillRows,
-                                  deleteProductFromTable:
-                                      deleteProductFromTable,
-                                );
-                              },
-                            )
-                          : Center(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Image.asset(
-                                    'assets/light-bulb.png',
-                                    width: 50,
-                                  ),
-                                  const SizedBox(
-                                    width: 20,
-                                  ),
-                                  SizedBox(
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.7,
-                                    child: const Text(
-                                      'Tap mic and start by saying "Amul butter 2 pieces" select Product and click ADD',
-                                      overflow: TextOverflow.visible,
-                                      style: TextStyle(
-                                        color: black,
-                                        fontSize: 16,
-                                        fontFamily: 'Roboto_Regular',
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.7,
-              ),
-              Positioned(
-                bottom: 50,
-                child: Visibility(
-                  visible: Provider.of<HomeBillItemProvider>(context)
-                      .homeItemForBillRows
-                      .isNotEmpty,
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.all(10.0),
-                          child: Text(
-                            "Grand Total: ",
-                            style: TextStyle(
-                              fontSize: 18.0,
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Text(
-                            "₹${calculateOverallTotal()}",
-                            style: const TextStyle(
-                              fontSize: 18.0,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 10,
-                child: Visibility(
-                  visible: Provider.of<HomeBillItemProvider>(context)
-                      .homeItemForBillRows
-                      .isNotEmpty,
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    child: Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment.spaceAround, // Align buttons evenly
-                      children: [
-                        SizedBox(
-                          width: screenWidth * 0.25,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: green2,
-                              foregroundColor: white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              // white text color
-                            ),
-                            onPressed: () {
-                              saveData();
-                            },
-                            child: const Text("Save"),
-                          ),
-                        ),
-                        SizedBox(
-                          width: screenWidth * 0.25,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              showDialog(
-                                  context: context,
-                                  builder: (context) {
+                                  builder: (BuildContext context) {
                                     return AlertDialog(
-                                      title: const Text("Cancel Bill?"),
-                                      content: const Text(
-                                          "Are you sure you want to cancel the bill?"),
+                                      title: const Text("Out of Stock"),
+                                      content: Text(
+                                          "You have only $availableStockValue left"),
                                       actions: [
                                         TextButton(
-                                          child: const Text("No"),
                                           onPressed: () {
-                                            Navigator.of(context).pop();
+                                            Navigator.pop(
+                                                context); // Close the dialog
                                           },
-                                        ),
-                                        TextButton(
-                                          child: const Text("Yes"),
-                                          onPressed: () {
-                                            Provider.of<HomeBillItemProvider>(
-                                                    context,
-                                                    listen: false)
-                                                .clearItems();
-
-                                            Navigator.of(context).pop();
-                                          },
+                                          child: const Text("OK"),
                                         ),
                                       ],
                                     );
-                                  });
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: red,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ), // white text color
+                                  },
+                                );
+                              }
+                            }
+                          },
+                          child: Center(
+                            child: Text(
+                              "ADD",
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  color: (_nameController.text.isEmpty ||
+                                          quantityController.text.isEmpty)
+                                      ? darkGrey
+                                      : white,
+                                  fontWeight: FontWeight.bold),
                             ),
-                            child: const Text("Cancel"),
                           ),
                         ),
-                      ],
+                      ),
+                      const SizedBox(
+                        height: 8,
+                      ),
+                      Visibility(
+                          visible: Provider.of<HomeBillItemProvider>(context)
+                              .homeItemForBillRows
+                              .isNotEmpty,
+                          child: const Divider(
+                            thickness: 1,
+                            color: darkGrey,
+                          )),
+                      const SizedBox(height: 8),
+                      Provider.of<HomeBillItemProvider>(context)
+                              .homeItemForBillRows
+                              .isNotEmpty
+                          ? Padding(
+                              padding: const EdgeInsets.only(left: 20),
+                              child: Row(children: [
+                                titleWidget("Name", 18),
+                                titleWidget("Quantity", 18),
+                                titleWidget("Unit", 10),
+                                titleWidget("Rate", 15),
+                                titleWidget("Amount", 15),
+                                const Expanded(
+                                  flex: 10,
+                                  child: SizedBox(),
+                                )
+                              ]),
+                            )
+                          : const SizedBox.shrink(),
+                      Provider.of<HomeBillItemProvider>(context)
+                              .homeItemForBillRows
+                              .isNotEmpty
+                          ? const Divider(
+                              thickness: 1,
+                            )
+                          : const SizedBox.shrink(),
+                      SingleChildScrollView(
+                        child: Container(
+                          height: MediaQuery.of(context).size.height * 0.25,
+                          padding: const EdgeInsets.only(left: 20.0),
+                          child: Provider.of<HomeBillItemProvider>(context)
+                                  .homeItemForBillRows
+                                  .isNotEmpty
+                              ? ListView.builder(
+                                  padding: EdgeInsets.zero,
+                                  itemCount:
+                                      Provider.of<HomeBillItemProvider>(context)
+                                          .homeItemForBillRows
+                                          .length,
+                                  itemBuilder: (context, index) {
+                                    return BillWidget(
+                                      item: Provider.of<HomeBillItemProvider>(
+                                              context)
+                                          .homeItemForBillRows[index],
+                                      context: context,
+                                      index: index,
+                                      itemForBillRows:
+                                          Provider.of<HomeBillItemProvider>(
+                                                  context)
+                                              .homeItemForBillRows,
+                                      deleteProductFromTable:
+                                          deleteProductFromTable,
+                                    );
+                                  },
+                                )
+                              : Center(
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Image.asset(
+                                        'assets/light-bulb.png',
+                                        width: 50,
+                                      ),
+                                      const SizedBox(
+                                        width: 20,
+                                      ),
+                                      SizedBox(
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                0.7,
+                                        child: const Text(
+                                          'Tap mic and start by saying "Amul butter 2 pieces" select Product and click ADD',
+                                          overflow: TextOverflow.visible,
+                                          style: TextStyle(
+                                            color: black,
+                                            fontSize: 16,
+                                            fontFamily: 'Roboto_Regular',
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.7,
+                  ),
+                  Positioned(
+                    bottom: 50,
+                    child: Visibility(
+                      visible: Provider.of<HomeBillItemProvider>(context)
+                          .homeItemForBillRows
+                          .isNotEmpty,
+                      child: Container(
+                        color: white,
+                        width: MediaQuery.of(context).size.width,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.all(10.0),
+                              child: Text(
+                                "Grand Total: ",
+                                style: TextStyle(
+                                  fontSize: 18.0,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Text(
+                                "₹${calculateOverallTotal()}",
+                                style: const TextStyle(
+                                  fontSize: 18.0,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-              isInputThroughText
-                  ? Positioned(
-                      top: MediaQuery.of(context).size.height *
-                          0.07, // Adjust the position as needed
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        width: MediaQuery.of(context).size.width - 100,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(0),
+                  Positioned(
+                    bottom: 10,
+                    child: Visibility(
+                      visible: Provider.of<HomeBillItemProvider>(context)
+                          .homeItemForBillRows
+                          .isNotEmpty,
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment
+                              .spaceAround, // Align buttons evenly
+                          children: [
+                            SizedBox(
+                              width: screenWidth * 0.25,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: green2,
+                                  foregroundColor: white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  // white text color
+                                ),
+                                onPressed: () {
+                                  saveData();
+                                },
+                                child: const Text("Save"),
+                              ),
+                            ),
+                            SizedBox(
+                              width: screenWidth * 0.25,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return AlertDialog(
+                                          title: const Text("Cancel Bill?"),
+                                          content: const Text(
+                                              "Are you sure you want to cancel the bill?"),
+                                          actions: [
+                                            TextButton(
+                                              child: const Text("No"),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                            TextButton(
+                                              child: const Text("Yes"),
+                                              onPressed: () {
+                                                Provider.of<HomeBillItemProvider>(
+                                                        context,
+                                                        listen: false)
+                                                    .clearItems();
 
-                          color: Colors.grey.shade100, // Background color
-                        ),
-                        child: SingleChildScrollView(
-                          child: suggestionDropdown(),
-                        ),
-                      ),
-                    )
-                  : Positioned(
-                      top: MediaQuery.of(context).size.height * 0.00,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        width: MediaQuery.of(context).size.width - 100,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(0),
-
-                          color: Colors.grey.shade100, // Background color
-                        ),
-                        child: SingleChildScrollView(
-                          child: suggestionDropdown(),
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                          ],
+                                        );
+                                      });
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: red,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ), // white text color
+                                ),
+                                child: const Text("Cancel"),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-            ]),
+                  ),
+                  isInputThroughText
+                      ? Positioned(
+                          top: MediaQuery.of(context).size.height *
+                              0.07, // Adjust the position as needed
+                          left: 0,
+                          right: 0,
+                          child: Container(
+                            width: MediaQuery.of(context).size.width - 100,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(0),
+
+                              color: Colors.grey.shade100, // Background color
+                            ),
+                            child: SingleChildScrollView(
+                              child: suggestionDropdown(),
+                            ),
+                          ),
+                        )
+                      : Positioned(
+                          top: MediaQuery.of(context).size.height * 0.00,
+                          left: 0,
+                          right: 0,
+                          child: Container(
+                            width: MediaQuery.of(context).size.width - 100,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(0),
+
+                              color: Colors.grey.shade100, // Background color
+                            ),
+                            child: SingleChildScrollView(
+                              child: suggestionDropdown(),
+                            ),
+                          ),
+                        ),
+                ]),
+              ),
+            ),
           ),
+          Visibility(
+            visible: Provider.of<HomeBillItemProvider>(context)
+                .homeItemForBillRows
+                .isNotEmpty,
+            child: Positioned(
+                top: screenHeight * 0.1925,
+                right: screenWidth * 0.05,
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                      color: black,
+                      borderRadius: BorderRadius.circular(screenWidth * 0.1)),
+                  child: IconButton(
+                    onPressed: () {
+                      saveData();
+                    },
+                    icon: const Icon(Icons.print),
+                    color: white,
+                  ),
+                )),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget titleWidget(String title, int flex) {
+    return Expanded(
+      flex: flex,
+      child: Text(
+        title,
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
         ),
+        textAlign: TextAlign.center,
       ),
     );
   }

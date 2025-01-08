@@ -423,7 +423,6 @@ class _AddInventoryState extends State<AddInventory> {
             submitData();
           },
           backgroundColor: green2,
-          foregroundColor: Colors.white,
           shape: const CircleBorder(),
           child: const Icon(Icons.check),
         ),

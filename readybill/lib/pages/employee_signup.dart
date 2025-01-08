@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:readybill/components/api_constants.dart';
 
 import 'package:readybill/components/bottom_navigation_bar.dart';
@@ -36,6 +38,7 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
   int _selectedIndex = 3;
   bool isObscureConfirm = true;
   bool isObscure = true;
+  File? selectedImageFile;
 
   Future<void> submitData() async {
     EasyLoading.show(status: 'Loading...');
@@ -58,7 +61,12 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
     request.fields['password'] = passwordController.text;
     request.fields['password_confirmation'] = confirmPasswordController.text;
     request.fields['address'] = addressController.text;
-
+    if (selectedImageFile != null) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'photo',
+        selectedImageFile!.path,
+      ));
+    }
     try {
       EasyLoading.show(status: 'loading...');
       var response = await request.send();
@@ -142,27 +150,50 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
           onTap: () => FocusScope.of(context).unfocus(),
           child: Stack(
             children: <Widget>[
-              // SizedBox(
-              //   height: double.infinity,
-              //   width: double.infinity,
-              //   child: ColorFiltered(
-              //     colorFilter: ColorFilter.mode(
-              //       Colors.black.withOpacity(0.5),
-              //       BlendMode.darken,
-              //     ),
-              //   ),
-              // ),
               SizedBox(
                 height: double.infinity,
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 40.0,
-                    vertical: 60.0,
+                    vertical: 30.0,
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
+                      Stack(
+                        children: [
+                          InkWell(
+                            onTap: pickLogoImage,
+                            child: CircleAvatar(
+                              radius: 50,
+                              backgroundColor: green2,
+                              foregroundImage: selectedImageFile != null
+                                  ? FileImage(selectedImageFile!)
+                                  : (const AssetImage("assets/user.png")),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: green2,
+                                border:
+                                    Border.all(color: Colors.white, width: 2),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Icon(
+                                Icons.edit,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 30.0),
                       _buildTF(
                           "Name", nameController, TextInputType.text, false),
                       const SizedBox(height: 10.0),
@@ -203,6 +234,16 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
         obscureText: isObscure,
       ),
     );
+  }
+
+  Future<void> pickLogoImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        selectedImageFile = File(image.path);
+      });
+    }
   }
 
   callAlert(String message) {

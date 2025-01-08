@@ -27,17 +27,20 @@ class UserDetail {
   final String shopType;
   final String gstin;
   final String logo;
+  final String businessName;
+  final String entityId;
 
   UserDetail({
     required this.id,
     required this.name,
-
     required this.email,
     required this.mobile,
     required this.address,
     required this.shopType,
     required this.gstin,
     required this.logo,
+    required this.businessName,
+    required this.entityId,
   });
 }
 
@@ -50,30 +53,23 @@ class UserAccount extends StatefulWidget {
 
 class _UserAccountState extends State<UserAccount> {
   late TextEditingController nameController;
-//  late TextEditingController userNameController;
+  late TextEditingController userNameController;
   late TextEditingController addressController;
   late TextEditingController emailController;
   late TextEditingController phoneController;
   late TextEditingController shopTypeController;
   late TextEditingController gstinController;
-  late TextEditingController newPasswordController;
+  late TextEditingController businessNameController;
+  late TextEditingController entityIdController;
 
   UserDetail? userDetail;
   XFile? logoImageFile;
   String? logo;
-
+  File? selectedImageFile;
   @override
   void initState() {
     super.initState();
     getUserDetail();
-  }
-
-  Future<void> pickLogoImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    setState(() {
-      logoImageFile = image;
-    });
   }
 
   _submitData() async {
@@ -102,7 +98,6 @@ class _UserAccountState extends State<UserAccount> {
         'address': addressController.text,
         'shop_type': shopTypeController.text,
         'gstin': gstinController.text,
-        'password': newPasswordController.text,
         'isLogoDelete': '0',
       });
 
@@ -199,6 +194,7 @@ class _UserAccountState extends State<UserAccount> {
 
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
+      //print(response.body);
       final userData = jsonData['data'];
       logo = jsonData['logo'];
       setState(() {
@@ -212,16 +208,21 @@ class _UserAccountState extends State<UserAccount> {
           shopType: userData['details']['shop_type'],
           gstin: userData['details']['gstin'],
           logo: userData['logo'],
+          businessName: userData['details']['business_name'],
+
+          entityId: jsonData['entity_id'],
         );
       });
       nameController = TextEditingController(text: userDetail!.name);
-      //  userNameController = TextEditingController(text: userDetail!.username);
+
       emailController = TextEditingController(text: userDetail!.email);
       phoneController = TextEditingController(text: userDetail!.mobile);
       addressController = TextEditingController(text: userDetail!.address);
       shopTypeController = TextEditingController(text: userDetail!.shopType);
       gstinController = TextEditingController(text: userDetail!.gstin);
-      newPasswordController = TextEditingController();
+      businessNameController =
+          TextEditingController(text: userDetail!.businessName);
+      entityIdController = TextEditingController(text: userDetail!.entityId);
     } else {
       throw Exception('Failed to load user detail');
     }
@@ -237,23 +238,15 @@ class _UserAccountState extends State<UserAccount> {
     );
   }
 
-  Widget _logoPicker() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: <Widget>[
-        const SizedBox(width: 10),
-        ElevatedButton(
-          onPressed: pickLogoImage,
-          style: ElevatedButton.styleFrom(
-              backgroundColor: green2,
-              foregroundColor: white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              )),
-          child: const Text('Pick Logo'),
-        ),
-      ],
-    );
+  Future<void> pickLogoImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        selectedImageFile = File(image.path);
+        logoImageFile = image; // Add this line to store the XFile
+      });
+    }
   }
 
   @override
@@ -266,12 +259,48 @@ class _UserAccountState extends State<UserAccount> {
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  Stack(
+                    children: [
+                      InkWell(
+                        onTap: pickLogoImage,
+                        child: CircleAvatar(
+                          radius: 60,
+                          backgroundColor: green2,
+                          foregroundImage: selectedImageFile != null
+                              ? FileImage(selectedImageFile!)
+                              : (logo != ''
+                                  ? NetworkImage(logo!) as ImageProvider
+                                  : const AssetImage("assets/user.png")),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: green2,
+                            border: Border.all(color: Colors.white, width: 2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(
+                            Icons.edit,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20.0),
+                  textFieldCustom(entityIdController, false, "Entity ID", true),
+                  const SizedBox(height: 10.0),
                   textFieldCustom(nameController, false, 'Name', false),
                   const SizedBox(height: 10.0),
-                  // textFieldCustom(
-                  //     userNameController, false, 'Business Name', true),
+                  textFieldCustom(
+                      businessNameController, false, 'Business Name', true),
                   const SizedBox(height: 10.0),
                   textFieldCustom(emailController, false, 'Email', true),
                   const SizedBox(height: 10.0),
@@ -284,31 +313,12 @@ class _UserAccountState extends State<UserAccount> {
                   const SizedBox(height: 10.0),
                   textFieldCustom(
                       gstinController, false, 'GSTIN Number', false),
-                  const SizedBox(height: 10.0),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Expanded(flex: 1, child: Text('Logo:')),
-                      logoImageFile != null
-                          ? SizedBox(
-                              width: 50,
-                              height: 50,
-                              child: Image.file(File(logoImageFile!.path)),
-                            )
-                          : Container(),
-                      Expanded(
-                        flex: 2,
-                        child: _logoPicker(),
-                      ),
-                      // Display current logo and replace logo button
-                    ],
-                  ),
-                  const SizedBox(height: 10.0),
-                  textFieldCustom(
-                      newPasswordController, true, 'New Password', false),
                   const SizedBox(height: 20.0),
-                  customElevatedButton(
-                      "Update Changes", blue, white, _submitData),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: customElevatedButton(
+                        "Update Changes", blue, white, _submitData),
+                  ),
                 ],
               ),
             ),

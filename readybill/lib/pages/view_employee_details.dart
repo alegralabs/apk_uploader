@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:typed_data';
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -23,15 +23,31 @@ class ViewEmployeeDetails extends StatefulWidget {
 
 class _ViewEmployeeDetailsState extends State<ViewEmployeeDetails> {
   final TextEditingController nameController = TextEditingController();
-
   final TextEditingController mobileController = TextEditingController();
-
   final TextEditingController addressController = TextEditingController();
-  XFile? profilePhoto;
+
+  // Store the image file instead of Image widget
+  File? selectedImageFile;
+
   @override
   void initState() {
     super.initState();
-    profilePhoto = const Image(image: AssetImage("assets/user.png")) as XFile;
+    nameController.text = widget.user.name;
+    mobileController.text = widget.user.mobile;
+    addressController.text = widget.user.address;
+    nameController.text = widget.user.name;
+    mobileController.text = widget.user.mobile;
+    addressController.text = widget.user.address;
+  }
+
+  Future<void> pickLogoImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        selectedImageFile = File(image.path);
+      });
+    }
   }
 
   Future<void> updateUserDetails() async {
@@ -39,20 +55,33 @@ class _ViewEmployeeDetailsState extends State<ViewEmployeeDetails> {
       String? token = await APIService.getToken();
       String? apiKey = await APIService.getXApiKey();
       EasyLoading.show(status: 'Updating...');
-      var response = await http.post(Uri.parse('$baseUrl/update-sub-users'),
-          headers: {
-            'Authorization': 'Bearer $token',
-            'Content-Type': 'application/json',
-            'auth-key': '$apiKey',
-          },
-          body: jsonEncode({
-            //'photo': photoUrl,
-            'name': nameController.text,
-            'address': addressController.text,
-            'mobile': mobileController.text,
-            'id': widget.user.id,
-          }));
+
+      var request =
+          http.MultipartRequest('POST', Uri.parse('$baseUrl/update-sub-users'));
+
+      request.headers.addAll({
+        'Authorization': 'Bearer $token',
+        'auth-key': '$apiKey',
+      });
+
+      request.fields['name'] = nameController.text;
+      request.fields['address'] = addressController.text;
+      request.fields['mobile'] = mobileController.text;
+      request.fields['staff_id'] = widget.user.id.toString();
+
+      if (selectedImageFile != null) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'photo',
+          selectedImageFile!.path,
+        ));
+      }
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
       EasyLoading.dismiss();
+      print(response.body);
+      print("status code: ${response.statusCode}");
       if (response.statusCode == 201) {
         var jsonData = jsonDecode(response.body);
         Fluttertoast.showToast(msg: jsonData['message'].toString());
@@ -61,33 +90,18 @@ class _ViewEmployeeDetailsState extends State<ViewEmployeeDetails> {
         }));
       } else {
         print(response.body);
+        Fluttertoast.showToast(msg: 'Update failed');
       }
     } catch (e) {
       print(e);
+      EasyLoading.dismiss();
+      Fluttertoast.showToast(msg: 'Error updating details');
     }
-  }
-
-  buildTextField(String label, TextEditingController controller) {
-    return TextField(
-      decoration: customTfInputDecoration(label),
-      controller: controller,
-    );
-  }
-
-  Future<void> pickLogoImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    setState(() {
-      profilePhoto = image;
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    nameController.text = widget.user.name;
-    mobileController.text = widget.user.mobile;
-    addressController.text = widget.user.address;
-    String photoUrl = widget.user.photo;
+    print(widget.user.id);
 
     return Scaffold(
       appBar: customAppBar("Employee Details"),
@@ -96,15 +110,40 @@ class _ViewEmployeeDetailsState extends State<ViewEmployeeDetails> {
         child: Column(
           //crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            InkWell(
-              onTap: () => pickLogoImage(),
-              child: CircleAvatar(
-                radius: 50,
-                backgroundColor: green2,
-                foregroundImage: photoUrl == 'N/A'
-                    ? const AssetImage("assets/user.png")
-                    : NetworkImage(photoUrl),
-              ),
+            Stack(
+              children: [
+                InkWell(
+                  onTap: pickLogoImage,
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundColor: green2,
+                    foregroundImage: selectedImageFile != null
+                        ? FileImage(selectedImageFile!)
+                        : (widget.user.photo != 'N/A'
+                            ? NetworkImage(
+                                    "https://dev.readybill.app/storage/photo/${widget.user.photo}")
+                                as ImageProvider
+                            : const AssetImage("assets/user.png")),
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: green2,
+                      border: Border.all(color: Colors.white, width: 2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Icon(
+                      Icons.edit,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(
               height: 20,
@@ -126,6 +165,13 @@ class _ViewEmployeeDetailsState extends State<ViewEmployeeDetails> {
           ],
         ),
       ),
+    );
+  }
+
+  buildTextField(String label, TextEditingController controller) {
+    return TextField(
+      decoration: customTfInputDecoration(label),
+      controller: controller,
     );
   }
 }

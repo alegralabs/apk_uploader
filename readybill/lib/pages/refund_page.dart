@@ -1335,60 +1335,15 @@ class RefundPageState extends State<RefundPage> {
                   Provider.of<RefundBillItemProvider>(context)
                           .refundItemForBillRows
                           .isNotEmpty
-                      ? const Padding(
-                          padding: EdgeInsets.only(left: 20),
+                      ? Padding(
+                          padding: const EdgeInsets.only(left: 20),
                           child: Row(children: [
-                            Expanded(
-                              flex: 20,
-                              child: Text(
-                                "Name",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.start,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 16,
-                              child: Text(
-                                "Quantity",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 15,
-                              child: Text(
-                                "Unit",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 15,
-                              child: Text(
-                                "Rate",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.start,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 15,
-                              child: Text(
-                                "Amount",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            Expanded(
+                            titleWidget("Name", 18),
+                            titleWidget("Quantity", 18),
+                            titleWidget("Unit", 10),
+                            titleWidget("Rate", 15),
+                            titleWidget("Amount", 15),
+                            const Expanded(
                               flex: 10,
                               child: SizedBox(),
                             )
@@ -1470,7 +1425,8 @@ class RefundPageState extends State<RefundPage> {
                   visible: Provider.of<RefundBillItemProvider>(context)
                       .refundItemForBillRows
                       .isNotEmpty,
-                  child: SizedBox(
+                  child: Container(
+                    color: white,
                     width: screenWidth,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -1611,6 +1567,19 @@ class RefundPageState extends State<RefundPage> {
             ]),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget titleWidget(String title, int flex) {
+    return Expanded(
+      flex: flex,
+      child: Text(
+        title,
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+        ),
+        textAlign: TextAlign.center,
       ),
     );
   }

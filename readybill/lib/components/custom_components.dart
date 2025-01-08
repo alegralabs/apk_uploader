@@ -42,7 +42,7 @@ ElevatedButton customElevatedButton(String text, Color backgroundColor,
 }
 
 InputDecoration customTfDecorationWithSuffix(
-    String hintText, Widget suffix, FocusNode focusNode) {
+    String hintText, Widget? suffix, FocusNode focusNode) {
   return InputDecoration(
     hintText: "Search",
     enabledBorder: OutlineInputBorder(
@@ -59,15 +59,18 @@ InputDecoration customTfDecorationWithSuffix(
         width: 3.0,
       ),
     ),
-    suffixIcon: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.only(
-            topRight: Radius.circular(8.0), bottomRight: Radius.circular(8.0)),
-        color: focusNode.hasFocus ? green2 : darkGrey,
-      ),
-      child: suffix,
-    ),
+    suffixIcon: suffix != null
+        ? Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(8.0),
+                  bottomRight: Radius.circular(8.0)),
+              color: focusNode.hasFocus ? green2 : darkGrey,
+            ),
+            child: suffix,
+          )
+        : null,
   );
 }
 
