@@ -5,7 +5,6 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:readybill/components/color_constants.dart';
 
-// Global key for navigation
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class InternetConnectivityHandler extends StatefulWidget {
@@ -27,6 +26,7 @@ class _InternetConnectivityHandlerState
   StreamSubscription? _connectivitySubscription;
   bool _isNoInternetScreenShowing = false;
   Timer? _noInternetTimer;
+  bool _isInForeground = true;
 
   @override
   void initState() {
@@ -38,14 +38,27 @@ class _InternetConnectivityHandlerState
 
   @override
   void dispose() {
-    _connectivitySubscription?.cancel();
-    _noInternetTimer?.cancel();
+    _cleanupConnectivity();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
+  void _cleanupConnectivity() {
+    _connectivitySubscription?.cancel();
+    _noInternetTimer?.cancel();
+    _connectivitySubscription = null;
+    _noInternetTimer = null;
+  }
+
   Future<void> _initializeConnectivityListener() async {
     try {
+      _cleanupConnectivity();
+
+      // Only start monitoring if the app is in foreground
+      if (!_isInForeground) {
+        return;
+      }
+
       // Initial check
       bool hasInternet = await _internetConnection.hasInternetAccess;
       if (mounted) {
@@ -53,10 +66,9 @@ class _InternetConnectivityHandlerState
       }
 
       // Start listening to changes
-      _connectivitySubscription?.cancel(); // Cancel any existing subscription
       _connectivitySubscription = _internetConnection.onStatusChange.listen(
         (InternetStatus status) {
-          if (mounted) {
+          if (mounted && _isInForeground) {
             _handleConnectivityChange(status == InternetStatus.connected);
           }
         },
@@ -70,9 +82,9 @@ class _InternetConnectivityHandlerState
   }
 
   void _handleConnectivityChange(bool hasInternet) {
+    if (!_isInForeground) return; // Don't handle changes when in background
+
     debugPrint('Connectivity changed: hasInternet = $hasInternet');
-    var lastRoute = ModalRoute.of(context);
-    print("lastRoute: $lastRoute");
 
     // Cancel any existing timer
     _noInternetTimer?.cancel();
@@ -80,7 +92,10 @@ class _InternetConnectivityHandlerState
     if (!hasInternet && !_isNoInternetScreenShowing) {
       // Start a new timer when internet is lost
       _noInternetTimer = Timer(const Duration(seconds: 3), () {
-        if (!hasInternet && mounted && !_isNoInternetScreenShowing) {
+        if (!hasInternet &&
+            mounted &&
+            !_isNoInternetScreenShowing &&
+            _isInForeground) {
           _isNoInternetScreenShowing = true;
           navigatorKey.currentState?.push(
             CupertinoPageRoute(builder: (_) => const NoInternetScreen()),
@@ -96,8 +111,24 @@ class _InternetConnectivityHandlerState
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _initializeConnectivityListener();
+    switch (state) {
+      case AppLifecycleState.resumed:
+        _isInForeground = true;
+        _initializeConnectivityListener();
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        _isInForeground = false;
+        _cleanupConnectivity();
+        // Clear the "No Internet" screen if it's showing when going to background
+        if (_isNoInternetScreenShowing) {
+          _isNoInternetScreenShowing = false;
+          navigatorKey.currentState?.pop();
+        }
+        break;
+      default:
+        break;
     }
   }
 
@@ -131,8 +162,7 @@ class NoInternetScreen extends StatefulWidget {
 class _NoInternetScreenState extends State<NoInternetScreen> {
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false,
+    return PopScope(
       child: Scaffold(
         body: SafeArea(
           child: Center(

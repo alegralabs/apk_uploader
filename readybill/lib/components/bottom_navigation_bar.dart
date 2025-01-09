@@ -17,9 +17,10 @@ class CustomNavigationBar extends StatelessWidget {
     required this.onItemSelected,
     required this.selectedIndex,
   });
-
+  
   @override
   Widget build(BuildContext context) {
+    
     double screenHeight = MediaQuery.of(context).size.height;
     return BottomAppBar(
       height: screenHeight * 0.11, // Reduced the height to fit contents better
@@ -81,6 +82,7 @@ class CustomNavigationBar extends StatelessWidget {
               icon: Icons.person_outline,
               index: 3,
               onTap: () {
+                
                 navigatorKey.currentState?.pushReplacement(
                   CupertinoPageRoute(
                     builder: (_) => const EmployeeListPage(),

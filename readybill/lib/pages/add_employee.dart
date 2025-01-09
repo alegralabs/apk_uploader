@@ -112,25 +112,28 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
 
   @override
   Widget build(BuildContext context) {
+    bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: green2,
-        foregroundColor: black,
-        shape: const CircleBorder(),
-        child: const Icon(Icons.check),
-        onPressed: () {
-          if (mobileController.text == '' ||
-              nameController.text == '' ||
-              passwordController.text == '' ||
-              confirmPasswordController.text == '' ||
-              addressController.text == '') {
-            callAlert("all fields are required");
-          } else {
-            submitData();
-          }
-        },
-      ),
+      floatingActionButton: isKeyboardVisible
+          ? null
+          : FloatingActionButton(
+              backgroundColor: green2,
+              foregroundColor: black,
+              shape: const CircleBorder(),
+              child: const Icon(Icons.check),
+              onPressed: () {
+                if (mobileController.text == '' ||
+                    nameController.text == '' ||
+                    passwordController.text == '' ||
+                    confirmPasswordController.text == '' ||
+                    addressController.text == '') {
+                  callAlert("all fields are required");
+                } else {
+                  submitData();
+                }
+              },
+            ),
       drawer: const Drawer(
         child: Sidebar(),
       ),

@@ -13,7 +13,7 @@ import 'package:readybill/pages/forgot_password_page.dart';
 import 'package:readybill/pages/home_page.dart';
 import 'package:readybill/pages/login_page.dart';
 import 'package:readybill/pages/preferences.dart';
-import 'package:readybill/pages/employee_signup.dart';
+import 'package:readybill/pages/add_employee.dart';
 import 'package:readybill/pages/subscriptions.dart';
 import 'package:readybill/pages/support.dart';
 import 'package:readybill/pages/transaction_list.dart';
@@ -82,7 +82,7 @@ class _SidebarState extends State<Sidebar> {
     Widget drawerHeader = Container(
       padding: EdgeInsets.only(
           left: 20,
-          top: MediaQuery.of(context).padding.top,
+          top: MediaQuery.of(context).padding.top * 1.5,
           bottom: 10,
           right: 10),
       decoration: const BoxDecoration(
@@ -169,26 +169,30 @@ class _SidebarState extends State<Sidebar> {
           padding: EdgeInsets.zero,
           children: <Widget>[
             drawerHeader,
-            ListTile(
-              leading: const Icon(Icons.add),
-              title: const Text('Add Inventory'),
-              onTap: () {
-                navigatorKey.currentState?.push(
-                  CupertinoPageRoute(
-                      builder: (context) => const AddInventory()),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.inventory_2_outlined),
-              title: const Text('Update Inventory'),
-              onTap: () {
-                navigatorKey.currentState?.push(
-                  CupertinoPageRoute(
-                      builder: (context) => const ProductListPage()),
-                );
-              },
-            ),
+            isAdmin == 1
+                ? ListTile(
+                    leading: const Icon(Icons.add),
+                    title: const Text('Add Inventory'),
+                    onTap: () {
+                      navigatorKey.currentState?.push(
+                        CupertinoPageRoute(
+                            builder: (context) => const AddInventory()),
+                      );
+                    },
+                  )
+                : const SizedBox.shrink(),
+            isAdmin == 1
+                ? ListTile(
+                    leading: const Icon(Icons.inventory_2_outlined),
+                    title: const Text('Update Inventory'),
+                    onTap: () {
+                      navigatorKey.currentState?.push(
+                        CupertinoPageRoute(
+                            builder: (context) => const ProductListPage()),
+                      );
+                    },
+                  )
+                : const SizedBox.shrink(),
             ListTile(
               leading: const Icon(Icons.document_scanner_outlined),
               title: const Text('Transactions'),
@@ -199,26 +203,30 @@ class _SidebarState extends State<Sidebar> {
                 );
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.person_add_outlined),
-              title: const Text('Employee'),
-              onTap: () {
-                navigatorKey.currentState?.push(
-                  CupertinoPageRoute(
-                      builder: (context) => const EmployeeSignUpPage()),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings_outlined),
-              title: const Text('Preferences'),
-              onTap: () {
-                navigatorKey.currentState?.push(
-                  CupertinoPageRoute(
-                      builder: (context) => const PreferencesPage()),
-                );
-              },
-            ),
+            isAdmin == 1
+                ? ListTile(
+                    leading: const Icon(Icons.person_add_outlined),
+                    title: const Text('Add Employee'),
+                    onTap: () {
+                      navigatorKey.currentState?.push(
+                        CupertinoPageRoute(
+                            builder: (context) => const EmployeeSignUpPage()),
+                      );
+                    },
+                  )
+                : const SizedBox.shrink(),
+            isAdmin == 1
+                ? ListTile(
+                    leading: const Icon(Icons.settings_outlined),
+                    title: const Text('Preferences'),
+                    onTap: () {
+                      navigatorKey.currentState?.push(
+                        CupertinoPageRoute(
+                            builder: (context) => const PreferencesPage()),
+                      );
+                    },
+                  )
+                : const SizedBox.shrink(),
             ListTile(
               leading: const Icon(Icons.account_circle_outlined),
               title: const Text('Account'),
@@ -228,29 +236,33 @@ class _SidebarState extends State<Sidebar> {
                 );
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.password_outlined),
-              title: const Text('Change Password'),
-              onTap: () {
-                navigatorKey.currentState?.push(
-                  CupertinoPageRoute(
-                      builder: (context) => const ChangePasswordPage(
-                            smsType: 'change_password',
-                          )),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.account_balance_wallet_outlined),
-              title: const Text('Subscription'),
-              onTap: () {
-                navigatorKey.currentState?.push(
-                  CupertinoPageRoute(
-                    builder: (context) => const Subscriptions(),
-                  ),
-                );
-              },
-            ),
+            isAdmin == 1
+                ? ListTile(
+                    leading: const Icon(Icons.password_outlined),
+                    title: const Text('Change Password'),
+                    onTap: () {
+                      navigatorKey.currentState?.push(
+                        CupertinoPageRoute(
+                            builder: (context) => const ChangePasswordPage(
+                                  smsType: 'change_password',
+                                )),
+                      );
+                    },
+                  )
+                : const SizedBox.shrink(),
+            isAdmin == 1
+                ? ListTile(
+                    leading: const Icon(Icons.account_balance_wallet_outlined),
+                    title: const Text('Subscription'),
+                    onTap: () {
+                      navigatorKey.currentState?.push(
+                        CupertinoPageRoute(
+                          builder: (context) => const Subscriptions(),
+                        ),
+                      );
+                    },
+                  )
+                : const SizedBox.shrink(),
             ListTile(
               leading: const Icon(Icons.support_agent),
               title: const Text('Support'),
@@ -288,26 +300,22 @@ class _SidebarState extends State<Sidebar> {
           'auth-key': '$apiKey',
         },
       );
-
+      print(response.body);
       EasyLoading.dismiss();
       if (response.statusCode == 200) {
-        // Directly navigate to login screen
         navigatorKey.currentState?.pushReplacement(
           CupertinoPageRoute(builder: (context) => const LoginPage()),
         );
       } else {
-        // Directly navigate to login screen
-        //navigatorKey.currentState?.pushReplacement(
-        //   context,
-        //   CupertinoPageRoute(builder: (context) => const LoginPage()),
-        // );
+        print("logout error");
       }
     } catch (e) {
+      print("Logout error: $e");
       Result.error("Book list not available");
       // Directly navigate to login screen
-      navigatorKey.currentState?.pushReplacement(
-        CupertinoPageRoute(builder: (context) => const LoginPage()),
-      );
+      // navigatorKey.currentState?.pushReplacement(
+      //   CupertinoPageRoute(builder: (context) => const LoginPage()),
+      // );
     }
   }
 }

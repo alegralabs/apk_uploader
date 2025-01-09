@@ -81,6 +81,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
   List<Key> taxRateRowKeys = [];
   Map<int, String> rateControllers = {};
   Map<int, String> taxControllers = {};
+  bool isAdmin = false;
 
   String? token;
   String? apiKey;
@@ -130,7 +131,6 @@ class _ProductEditPageState extends State<ProductEditPage> {
   }
 
   Future<void> _fetchProductDetails() async {
-    print("Hello World");
     setState(() {
       isLoading = true;
     });
@@ -143,7 +143,9 @@ class _ProductEditPageState extends State<ProductEditPage> {
       setState(() {
         isLoading = false;
       });
+      print(response.body);
       if (response.statusCode == 200) {
+        isAdmin = true;
         var jsonData = jsonDecode(response.body)['data'];
         print(jsonData);
         setState(() {
@@ -347,83 +349,94 @@ class _ProductEditPageState extends State<ProductEditPage> {
                 ), // Change color here
               ), // Show loading indicator
             )
-          : SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    _buildTextField(itemNameController, 'Item Name'),
-                    const SizedBox(
-                      height: 15,
-                    ),
-                    _buildTextField(quantityController, 'Stock Quantity'),
-                    const SizedBox(
-                      height: 15,
-                    ),
-                    Row(
+          : isAdmin == true
+              ? SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Expanded(
-                          child: _buildCombinedDropdown('Unit', [
-                            shortUnitDropdownValue,
-                            ...fullUnits.map((unit) =>
-                                '$unit (${shortUnits[fullUnits.indexOf(unit)]})')
-                          ], (value) {
-                            List<String> units = value!.split(' (');
-                            String fullUnit = units[0];
-                            String shortUnit =
-                                units[1].substring(0, units[1].length - 1);
-                            setState(() {
-                              fullUnitDropdownValue = fullUnit;
-                              shortUnitDropdownValue = shortUnit;
-                            });
-                          }),
-                        )
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        _buildTextField(itemNameController, 'Item Name'),
+                        const SizedBox(
+                          height: 15,
+                        ),
+                        _buildTextField(quantityController, 'Stock Quantity'),
+                        const SizedBox(
+                          height: 15,
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildCombinedDropdown('Unit', [
+                                shortUnitDropdownValue,
+                                ...fullUnits.map((unit) =>
+                                    '$unit (${shortUnits[fullUnits.indexOf(unit)]})')
+                              ], (value) {
+                                List<String> units = value!.split(' (');
+                                String fullUnit = units[0];
+                                String shortUnit =
+                                    units[1].substring(0, units[1].length - 1);
+                                setState(() {
+                                  fullUnitDropdownValue = fullUnit;
+                                  shortUnitDropdownValue = shortUnit;
+                                });
+                              }),
+                            )
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 15,
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                                child: _buildTextField(mrpController, 'MRP')),
+                            const SizedBox(width: 15),
+                            Expanded(
+                              child: _buildTextField(
+                                  salePriceController, 'Sale Price'),
+                            )
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 15,
+                        ),
+                        Column(
+                          children: [
+                            for (int i = 0; i < taxRateRows.length; i++)
+                              Column(
+                                children: [
+                                  taxRateRows[i],
+                                  const SizedBox(height: 8.0),
+                                ],
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 20.0),
+                        customElevatedButton(
+                          "Save Changes",
+                          green2,
+                          white,
+                          () {
+                            _updateProduct();
+                          },
+                        ),
                       ],
                     ),
-                    const SizedBox(
-                      height: 15,
-                    ),
-                    Row(
-                      children: [
-                        Expanded(child: _buildTextField(mrpController, 'MRP')),
-                        const SizedBox(width: 15),
-                        Expanded(
-                          child: _buildTextField(
-                              salePriceController, 'Sale Price'),
-                        )
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 15,
-                    ),
-                    Column(
-                      children: [
-                        for (int i = 0; i < taxRateRows.length; i++)
-                          Column(
-                            children: [
-                              taxRateRows[i],
-                              const SizedBox(height: 8.0),
-                            ],
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 20.0),
-                    customElevatedButton(
-                      "Save Changes",
-                      green2,
-                      white,
-                      () {
-                        _updateProduct();
-                      },
-                    ),
-                  ],
+                  ),
+                )
+              : const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
+                    "YOU DO NOT HAVE PERMISSION TO EDIT INVENTORY DATA",
+                    style: TextStyle(
+                        fontSize: 16, color: red, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-              ),
-            ),
     );
   }
 

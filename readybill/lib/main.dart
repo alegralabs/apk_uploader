@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/pages/splash_screen.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
 import 'package:readybill/services/home_bill_item_provider.dart';
-// import 'package:readybill/services/local_database.dart';
+import 'package:flutter/services.dart';
 import 'package:readybill/services/refund_bill_item_provider.dart';
 import 'package:provider/provider.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
+ 
   runApp(
     MultiProvider(
       providers: [

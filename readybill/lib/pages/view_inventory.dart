@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:readybill/components/bottom_navigation_bar.dart';
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/color_constants.dart';
@@ -8,6 +9,7 @@ import 'package:readybill/pages/add_product.dart';
 import 'package:readybill/pages/edit_product.dart';
 
 import 'package:readybill/services/local_database_2.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProductListPage extends StatefulWidget {
   const ProductListPage({super.key});
@@ -25,12 +27,21 @@ class _ProductListPageState extends State<ProductListPage> {
   final ScrollController _scrollController =
       ScrollController(); // For scrolling
   int _selectedIndex = 2;
-  FocusNode _focusNode = FocusNode();
+  final FocusNode _focusNode = FocusNode();
+
+  int? isAdmin;
 
   @override
   void initState() {
     super.initState();
     _fetchProductsFromLocalDatabase();
+    getPrefs();
+   
+  }
+
+  getPrefs() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    isAdmin = prefs.getInt('isAdmin');
   }
 
   Future<void> _fetchProductsFromLocalDatabase() async {
@@ -88,22 +99,22 @@ class _ProductListPageState extends State<ProductListPage> {
 
   @override
   Widget build(BuildContext context) {
+    print("isAdmin: $isAdmin");
     bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
     return Scaffold(
       drawer: const Drawer(
         child: Sidebar(),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: isKeyboardVisible
+      floatingActionButton: isKeyboardVisible || isAdmin == 0
           ? null
           : FloatingActionButton(
               onPressed: () {
-                Navigator.pushReplacement(context,
-                    CupertinoPageRoute(builder: (context) {
+                Navigator.push(context, CupertinoPageRoute(builder: (context) {
                   return const AddInventory();
                 }));
               },
-              shape: CircleBorder(),
+              shape: const CircleBorder(),
               backgroundColor: green2,
               child: const Icon(Icons.add, color: black),
             ),
@@ -193,11 +204,14 @@ class _ProductListPageState extends State<ProductListPage> {
                         return _products.where(_filterProduct).isNotEmpty
                             ? InkWell(
                                 onTap: () {
-                                  Navigator.push(context,
-                                      CupertinoPageRoute(builder: (context) {
-                                    return ProductEditPage(
-                                        productId: product['itemId']);
-                                  }));
+                                  isAdmin == 1
+                                      ? Navigator.push(context,
+                                          CupertinoPageRoute(
+                                              builder: (context) {
+                                          return ProductEditPage(
+                                              productId: product['itemId']);
+                                        }))
+                                      : null;
                                 },
                                 child: itemWidget(product),
                               )

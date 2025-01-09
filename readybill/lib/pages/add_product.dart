@@ -67,7 +67,7 @@ class AddInventory extends StatefulWidget {
 }
 
 class _AddInventoryState extends State<AddInventory> {
-  // Dummy data for the unit dropdown
+
   List<String> fullUnits = [
     'Full Unit',
     'Bags',
@@ -327,7 +327,7 @@ class _AddInventoryState extends State<AddInventory> {
       isLoading = true;
     });
     var token = await APIService.getToken();
-    // Make API call to fetch user preferences
+ 
     const String apiUrl = '$baseUrl/user-preferences';
     var apiKey = await APIService.getXApiKey();
     final response = await http.get(Uri.parse(apiUrl), headers: {

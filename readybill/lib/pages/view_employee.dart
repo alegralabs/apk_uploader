@@ -10,7 +10,7 @@ import 'package:readybill/components/bottom_navigation_bar.dart';
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/components/sidebar.dart';
-import 'package:readybill/pages/employee_signup.dart';
+import 'package:readybill/pages/add_employee.dart';
 import 'package:readybill/pages/view_employee_details.dart';
 import 'package:readybill/services/api_services.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
@@ -41,36 +41,6 @@ class Employee {
   }
 }
 
-class EmployeeService {
-  static const String apiUrl = '$baseUrl/all-sub-users-without-pagination';
-
-  static Future<List<Employee>> fetchEmployees() async {
-    var token = await APIService.getToken();
-    var apiKey = await APIService.getXApiKey();
-    final response = await http.get(
-      Uri.parse(apiUrl),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'auth-key': '$apiKey',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final jsonData = json.decode(response.body);
-
-      final List<dynamic> EmployeesData = jsonData['data'];
-
-      print(EmployeesData);
-      //  print('employees data: $EmployeesData');
-      var data = EmployeesData.map((json) => Employee.fromJson(json)).toList();
-
-      return data;
-    } else {
-      throw Exception(response.body);
-    }
-  }
-}
-
 class EmployeeListPage extends StatefulWidget {
   const EmployeeListPage({super.key});
 
@@ -93,12 +63,41 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
 
   List<Employee> _filteredEmployees = [];
 
+  bool isAdmin = false;
+
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
     _fetchEmployees();
+  }
+
+  Future<List<Employee>> fetchEmployees() async {
+    const String apiUrl = '$baseUrl/all-sub-users-without-pagination';
+    var token = await APIService.getToken();
+    var apiKey = await APIService.getXApiKey();
+    final response = await http.get(
+      Uri.parse(apiUrl),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'auth-key': '$apiKey',
+      },
+    );
+    print(response.statusCode);
+    if (response.statusCode == 200) {
+      final jsonData = json.decode(response.body);
+      isAdmin = true;
+      final List<dynamic> EmployeesData = jsonData['data'];
+
+      print(EmployeesData);
+      //  print('employees data: $EmployeesData');
+      var data = EmployeesData.map((json) => Employee.fromJson(json)).toList();
+
+      return data;
+    } else {
+      throw Exception(response.body);
+    }
   }
 
   Future<void> _fetchEmployees() async {
@@ -108,7 +107,7 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
     });
 
     try {
-      List<Employee> fetchedEmployees = await EmployeeService.fetchEmployees();
+      List<Employee> fetchedEmployees = await fetchEmployees();
       _noOfEmployees = fetchedEmployees.length;
       setState(() {
         _filteredEmployees.addAll(fetchedEmployees);
@@ -197,7 +196,7 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
     bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: isKeyboardVisible
+      floatingActionButton: isKeyboardVisible || isAdmin == false
           ? null
           : FloatingActionButton(
               backgroundColor: green2,
@@ -225,136 +224,151 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
         child: Sidebar(),
       ),
       appBar: customAppBar("Employees"),
-      body: Column(
-        children: [
-          _SearchBar(
-              onSearch: _handleSearch,
-              selectedColumn: _selectedColumn,
-              onColumnSelect: _handleColumnSelect),
-          _employees.isNotEmpty
-              ? Text(_noOfEmployees > 0
-                  ? 'Total Employees: $_noOfEmployees'
-                  : 'No Employees Found')
-              : const SizedBox.shrink(),
-          const Divider(
-            thickness: 1,
-            height: 5,
-          ),
-          const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Row(
+      body: isAdmin == true
+          ? Column(
               children: [
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'Name',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                _SearchBar(
+                    onSearch: _handleSearch,
+                    selectedColumn: _selectedColumn,
+                    onColumnSelect: _handleColumnSelect),
+                _employees.isNotEmpty
+                    ? Text(_noOfEmployees > 0
+                        ? 'Total Employees: $_noOfEmployees'
+                        : 'No Employees Found')
+                    : const SizedBox.shrink(),
+                const Divider(
+                  thickness: 1,
+                  height: 5,
+                ),
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          'Name',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          'Mobile',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+                const Divider(
+                  thickness: 1,
+                  height: 5,
+                ),
                 Expanded(
-                  flex: 2,
-                  child: Text(
-                    'Mobile',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  child: ListView.separated(
+                    separatorBuilder: (context, index) => const Divider(
+                      thickness: 0.2,
+                      height: 0,
+                    ),
+                    controller: _scrollController,
+                    itemCount: _filteredEmployees.length + 1,
+                    itemBuilder: (context, index) {
+                      if (index == _filteredEmployees.length) {
+                        return _isLoadingMore
+                            ? const Center(child: CircularProgressIndicator())
+                            : const SizedBox();
+                      }
+                      final employee = _filteredEmployees[index];
+                      return InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            CupertinoPageRoute(
+                              builder: (context) =>
+                                  ViewEmployeeDetails(user: employee),
+                            ),
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 4, // Larger space for item name
+                                child: Text(
+                                  employee.name,
+                                  style: const TextStyle(fontSize: 14),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Expanded(
+                                flex: 4, // Larger space for item name
+                                child: Text(
+                                  employee.mobile,
+                                  style: const TextStyle(fontSize: 14),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Expanded(
+                                  flex: 1,
+                                  child: IconButton(
+                                      onPressed: () {
+                                        showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              return AlertDialog(
+                                                title: const Text(
+                                                    'Remove Employee?'),
+                                                content: Text(
+                                                    "Are you sure you want to remove ${employee.name} from your employees? "),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      navigatorKey.currentState
+                                                          ?.pop();
+                                                    },
+                                                    child: const Text('No'),
+                                                  ),
+                                                  TextButton(
+                                                      onPressed: () {
+                                                        deleteEmployee(
+                                                            employee.id);
+                                                        navigatorKey
+                                                            .currentState
+                                                            ?.pop();
+                                                      },
+                                                      child: const Text("Yes")),
+                                                ],
+                                              );
+                                            });
+                                      },
+                                      icon: const Icon(
+                                        Icons.delete,
+                                        color: red,
+                                      )))
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
-            ),
-          ),
-          const Divider(
-            thickness: 1,
-            height: 5,
-          ),
-          Expanded(
-            child: ListView.separated(
-              separatorBuilder: (context, index) => const Divider(
-                thickness: 0.2,
-                height: 0,
+            )
+          : const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                "YOU DO NOT HAVE PERMISSION TO ACCESS EMPLOYEE DATA",
+                style: TextStyle(
+                    fontSize: 16, color: red, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
               ),
-              controller: _scrollController,
-              itemCount: _filteredEmployees.length + 1,
-              itemBuilder: (context, index) {
-                if (index == _filteredEmployees.length) {
-                  return _isLoadingMore
-                      ? const Center(child: CircularProgressIndicator())
-                      : const SizedBox();
-                }
-                final employee = _filteredEmployees[index];
-                return InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      CupertinoPageRoute(
-                        builder: (context) =>
-                            ViewEmployeeDetails(user: employee),
-                      ),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 4, // Larger space for item name
-                          child: Text(
-                            employee.name,
-                            style: const TextStyle(fontSize: 14),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 4, // Larger space for item name
-                          child: Text(
-                            employee.mobile,
-                            style: const TextStyle(fontSize: 14),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Expanded(
-                            flex: 1,
-                            child: IconButton(
-                                onPressed: () {
-                                  showDialog(
-                                      context: context,
-                                      builder: (context) {
-                                        return AlertDialog(
-                                          title: const Text('Remove Employee?'),
-                                          content: Text(
-                                              "Are you sure you want to remove ${employee.name} from your employees? "),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () {
-                                                navigatorKey.currentState
-                                                    ?.pop();
-                                              },
-                                              child: const Text('No'),
-                                            ),
-                                            TextButton(
-                                                onPressed: () {
-                                                  deleteEmployee(employee.id);
-                                                  navigatorKey.currentState
-                                                      ?.pop();
-                                                },
-                                                child: const Text("Yes")),
-                                          ],
-                                        );
-                                      });
-                                },
-                                icon: const Icon(
-                                  Icons.delete,
-                                  color: red,
-                                )))
-                      ],
-                    ),
-                  ),
-                );
-              },
             ),
-          ),
-        ],
-      ),
     );
   }
 }
