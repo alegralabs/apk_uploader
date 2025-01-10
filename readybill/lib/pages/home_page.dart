@@ -891,6 +891,7 @@ class HomePageState extends State<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       TextField(
+                        textCapitalization: TextCapitalization.sentences,
                         onTap: () {
                           setState(() {});
                         },

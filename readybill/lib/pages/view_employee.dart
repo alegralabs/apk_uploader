@@ -401,6 +401,7 @@ class _SearchBarState extends State<_SearchBar> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: TextField(
+          textCapitalization: TextCapitalization.sentences,
           focusNode: focusNode,
           onTap: () {
             setState(() {});

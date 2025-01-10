@@ -99,70 +99,87 @@ class _ViewEmployeeDetailsState extends State<ViewEmployeeDetails> {
     }
   }
 
+  Widget labeltext(String label) {
+    return Text(
+      label,
+      style: const TextStyle(
+          color: black,
+          fontFamily: 'Roboto_Regular',
+          fontWeight: FontWeight.bold,
+          fontSize: 16),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    print(widget.user.id);
-
     return Scaffold(
       appBar: customAppBar("Employee Details"),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: Column(
-          //crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Stack(
-              children: [
-                InkWell(
-                  onTap: pickLogoImage,
-                  child: CircleAvatar(
-                    radius: 50,
-                    backgroundColor: green2,
-                    foregroundImage: selectedImageFile != null
-                        ? FileImage(selectedImageFile!)
-                        : (widget.user.photo != 'N/A'
-                            ? NetworkImage(
-                                    "https://dev.readybill.app/storage/photo/${widget.user.photo}")
-                                as ImageProvider
-                            : const AssetImage("assets/user.png")),
-                  ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: green2,
-                      border: Border.all(color: Colors.white, width: 2),
-                      borderRadius: BorderRadius.circular(20),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Align(
+                alignment: Alignment.center,
+                child: Stack(
+                  children: [
+                    InkWell(
+                      onTap: pickLogoImage,
+                      child: CircleAvatar(
+                        radius: 60,
+                        backgroundColor: green2,
+                        foregroundImage: selectedImageFile != null
+                            ? FileImage(selectedImageFile!)
+                            : (widget.user.photo != 'N/A'
+                                ? NetworkImage(
+                                        "https://dev.readybill.app/storage/photo/${widget.user.photo}")
+                                    as ImageProvider
+                                : const AssetImage("assets/user.png")),
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.edit,
-                      color: Colors.white,
-                      size: 20,
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: green2,
+                          border: Border.all(color: Colors.white, width: 2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Icon(
+                          Icons.edit,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            buildTextField("Enter Name", nameController),
-            const SizedBox(
-              height: 20,
-            ),
-            buildTextField("Enter Mobile Number", mobileController),
-            const SizedBox(
-              height: 20,
-            ),
-            buildTextField("Enter Address", addressController),
-            const SizedBox(height: 20),
-            SizedBox(
-                width: double.infinity,
-                child: customElevatedButton(
-                    "Update", green2, white, updateUserDetails)),
-          ],
+              ),
+              const SizedBox(
+                height: 40,
+              ),
+              labeltext("Enter Name:"),
+              buildTextField("Enter Name", nameController),
+              const SizedBox(
+                height: 20,
+              ),
+              labeltext("Enter Mobile Number:"),
+              buildTextField("Enter Mobile Number", mobileController),
+              const SizedBox(
+                height: 20,
+              ),
+              labeltext("Label Text:"),
+              buildTextField("Enter Address", addressController),
+              const SizedBox(height: 20),
+              SizedBox(
+                  width: double.infinity,
+                  child: customElevatedButton(
+                      "Update", green2, white, updateUserDetails)),
+            ],
+          ),
         ),
       ),
     );
@@ -170,6 +187,7 @@ class _ViewEmployeeDetailsState extends State<ViewEmployeeDetails> {
 
   buildTextField(String label, TextEditingController controller) {
     return TextField(
+      textCapitalization: TextCapitalization.sentences,
       decoration: customTfInputDecoration(label),
       controller: controller,
     );

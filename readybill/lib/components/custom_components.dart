@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:readybill/components/color_constants.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 InputDecoration customTfInputDecoration(String hintText) {
   return InputDecoration(
@@ -26,7 +25,41 @@ InputDecoration customTfInputDecoration(String hintText) {
   );
 }
 
-
+InputDecoration phoneNumberInputDecoration(String hintText) {
+  return InputDecoration(
+    prefixIcon: const Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          "  +91  ",
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+          //  textAlign: TextAlign.,
+        ),
+      ],
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8.0),
+      borderSide: const BorderSide(
+        color: Color(0xffbfbfbf),
+        width: 3.0,
+      ),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8.0),
+      borderSide: const BorderSide(
+        color: green2,
+        width: 3.0,
+      ),
+    ),
+    hintText: hintText,
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8.0),
+    ),
+  );
+}
 
 ElevatedButton customElevatedButton(String text, Color backgroundColor,
     Color textColor, VoidCallback onPressed) {
@@ -47,7 +80,7 @@ ElevatedButton customElevatedButton(String text, Color backgroundColor,
 InputDecoration customTfDecorationWithSuffix(
     String hintText, Widget? suffix, FocusNode focusNode) {
   return InputDecoration(
-    hintText: "Search",
+    hintText: hintText,
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(8.0),
       borderSide: const BorderSide(

@@ -252,6 +252,17 @@ class _ProductEditPageState extends State<ProductEditPage> {
     }
   }
 
+  Widget labeltext(String label) {
+    return Text(
+      label,
+      style: const TextStyle(
+          color: black,
+          fontFamily: 'Roboto_Regular',
+          fontWeight: FontWeight.bold,
+          fontSize: 16),
+    );
+  }
+
   Widget _buildTaxRateRow(Key key, int index) {
     bool isFirstRow = index == 0;
     bool isMaxRowsReached = taxRateRows.length >= 2;
@@ -269,11 +280,11 @@ class _ProductEditPageState extends State<ProductEditPage> {
               items: const [
                 DropdownMenuItem<String>(
                   value: 'GST',
-                  child: Text('GST'),
+                  child: Text('GST (%)'),
                 ),
                 DropdownMenuItem<String>(
                   value: 'SASS',
-                  child: Text('SASS'),
+                  child: Text('SASS (%)'),
                 ),
               ],
               hint: const Text('Select Tax'),
@@ -359,51 +370,62 @@ class _ProductEditPageState extends State<ProductEditPage> {
                         const SizedBox(
                           height: 10,
                         ),
+                        labeltext("Item Name:"),
                         _buildTextField(itemNameController, 'Item Name'),
                         const SizedBox(
                           height: 15,
                         ),
+                        labeltext("Stock Quantity:"),
                         _buildTextField(quantityController, 'Stock Quantity'),
                         const SizedBox(
                           height: 15,
                         ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildCombinedDropdown('Unit', [
-                                shortUnitDropdownValue,
-                                ...fullUnits.map((unit) =>
-                                    '$unit (${shortUnits[fullUnits.indexOf(unit)]})')
-                              ], (value) {
-                                List<String> units = value!.split(' (');
-                                String fullUnit = units[0];
-                                String shortUnit =
-                                    units[1].substring(0, units[1].length - 1);
-                                setState(() {
-                                  fullUnitDropdownValue = fullUnit;
-                                  shortUnitDropdownValue = shortUnit;
-                                });
-                              }),
-                            )
-                          ],
-                        ),
+                        labeltext("Unit:"),
+                        _buildCombinedDropdown('Unit', [
+                          shortUnitDropdownValue,
+                          ...fullUnits.map((unit) =>
+                              '$unit (${shortUnits[fullUnits.indexOf(unit)]})')
+                        ], (value) {
+                          List<String> units = value!.split(' (');
+                          String fullUnit = units[0];
+                          String shortUnit =
+                              units[1].substring(0, units[1].length - 1);
+                          setState(() {
+                            fullUnitDropdownValue = fullUnit;
+                            shortUnitDropdownValue = shortUnit;
+                          });
+                        }),
                         const SizedBox(
                           height: 15,
                         ),
                         Row(
                           children: [
-                            Expanded(
-                                child: _buildTextField(mrpController, 'MRP')),
+                            SizedBox(
+                                width: MediaQuery.of(context).size.width * 0.4,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    labeltext("MRP:"),
+                                    _buildTextField(mrpController, 'MRP'),
+                                  ],
+                                )),
                             const SizedBox(width: 15),
-                            Expanded(
-                              child: _buildTextField(
-                                  salePriceController, 'Sale Price'),
-                            )
+                            SizedBox(
+                                width: MediaQuery.of(context).size.width * 0.4,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    labeltext("Sale Price:"),
+                                    _buildTextField(
+                                        salePriceController, 'Sale Price'),
+                                  ],
+                                )),
                           ],
                         ),
                         const SizedBox(
                           height: 15,
                         ),
+                        labeltext("Taxes:"),
                         Column(
                           children: [
                             for (int i = 0; i < taxRateRows.length; i++)

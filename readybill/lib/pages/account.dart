@@ -231,10 +231,22 @@ class _UserAccountState extends State<UserAccount> {
   Widget textFieldCustom(TextEditingController controller, bool obscureText,
       String hintText, bool readOnly) {
     return TextFormField(
+      textCapitalization: TextCapitalization.sentences,
       controller: controller,
       obscureText: obscureText,
       readOnly: readOnly,
       decoration: readOnly ? null : customTfInputDecoration(hintText),
+    );
+  }
+
+  Widget labeltext(String label) {
+    return Text(
+      label,
+      style: const TextStyle(
+          color: black,
+          fontFamily: 'Roboto_Regular',
+          fontWeight: FontWeight.bold,
+          fontSize: 16),
     );
   }
 
@@ -259,61 +271,71 @@ class _UserAccountState extends State<UserAccount> {
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Stack(
-                    children: [
-                      InkWell(
-                        onTap: pickLogoImage,
-                        child: CircleAvatar(
-                          radius: 60,
-                          backgroundColor: green2,
-                          foregroundImage: selectedImageFile != null
-                              ? FileImage(selectedImageFile!)
-                              : (logo != ''
-                                  ? NetworkImage(logo!) as ImageProvider
-                                  : const AssetImage("assets/user.png")),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: green2,
-                            border: Border.all(color: Colors.white, width: 2),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Icon(
-                            Icons.edit,
-                            color: Colors.white,
-                            size: 20,
+                  Align(
+                    alignment: Alignment.center,
+                    child: Stack(
+                      children: [
+                        InkWell(
+                          onTap: pickLogoImage,
+                          child: CircleAvatar(
+                            radius: 60,
+                            backgroundColor: green2,
+                            foregroundImage: selectedImageFile != null
+                                ? FileImage(selectedImageFile!)
+                                : (logo != ''
+                                    ? NetworkImage(logo!) as ImageProvider
+                                    : const AssetImage("assets/user.png")),
                           ),
                         ),
-                      ),
-                    ],
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: green2,
+                              border: Border.all(color: Colors.white, width: 2),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Icon(
+                              Icons.edit,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 20.0),
+                  labeltext("Entity ID:"),
                   textFieldCustom(entityIdController, false, "Entity ID", true),
-                  const SizedBox(height: 10.0),
+                  const SizedBox(height: 20),
+                  labeltext('Name:'),
                   textFieldCustom(nameController, false, 'Name', false),
-                  const SizedBox(height: 10.0),
+                  const SizedBox(height: 20),
+                  labeltext("Business Name:"),
                   textFieldCustom(
                       businessNameController, false, 'Business Name', true),
-                  const SizedBox(height: 10.0),
+                  const SizedBox(height: 20),
+                  labeltext("Email:"),
                   textFieldCustom(emailController, false, 'Email', true),
-                  const SizedBox(height: 10.0),
+                  const SizedBox(height: 20),
+                  labeltext("Mobile:"),
                   textFieldCustom(phoneController, false, 'Mobile', true),
-                  const SizedBox(height: 10.0),
+                  const SizedBox(height: 20),
+                  labeltext("Address:"),
                   textFieldCustom(addressController, false, 'Address', false),
-                  const SizedBox(height: 10.0),
-                  textFieldCustom(
-                      shopTypeController, false, 'Shop Type', false),
-                  const SizedBox(height: 10.0),
+                  const SizedBox(height: 20),
+                  labeltext("Shop Type:"),
+                  textFieldCustom(shopTypeController, false, 'Shop Type', true),
+                  const SizedBox(height: 20),
+                  labeltext("GSTIN Number:"),
                   textFieldCustom(
                       gstinController, false, 'GSTIN Number', false),
-                  const SizedBox(height: 20.0),
+                  const SizedBox(height: 40.0),
                   SizedBox(
                     width: MediaQuery.of(context).size.width,
                     child: customElevatedButton(

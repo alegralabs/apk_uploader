@@ -44,6 +44,7 @@ class _LoginPageState extends State<LoginPage> {
     _passwordFocusNode.addListener(() {
       setState(() {});
     });
+    _phoneNumberFocusNode.requestFocus();
   }
 
   @override
@@ -209,9 +210,25 @@ class _LoginPageState extends State<LoginPage> {
                                     }
                                     return null;
                                   },
+                                  textAlignVertical: TextAlignVertical.center,
                                   controller: phoneNumberController,
                                   keyboardType: TextInputType.number,
                                   decoration: const InputDecoration(
+                                    errorStyle: TextStyle(color: red),
+                                    prefixIcon: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          "  +91  ",
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          //  textAlign: TextAlign.,
+                                        ),
+                                      ],
+                                    ),
                                     focusedBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
                                       color: green,
@@ -227,17 +244,6 @@ class _LoginPageState extends State<LoginPage> {
                                     ),
                                   ),
                                 ),
-                                if (_isPhoneNumberErrorVisible())
-                                  const Padding(
-                                    padding: EdgeInsets.only(left: 8.0),
-                                    child: Text(
-                                      'Must be a 10-digit number',
-                                      style: TextStyle(
-                                        color: red,
-                                        fontSize: 12.0,
-                                      ),
-                                    ),
-                                  ),
                                 const SizedBox(height: 15),
                                 TextFormField(
                                   validator: (value) {
@@ -250,6 +256,7 @@ class _LoginPageState extends State<LoginPage> {
                                   focusNode: _passwordFocusNode,
                                   obscureText: true,
                                   decoration: const InputDecoration(
+                                    errorStyle: TextStyle(color: red),
                                     filled: true,
                                     fillColor: white,
                                     hintText: 'Password',

@@ -6,7 +6,7 @@ import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/pages/login_page.dart';
-import 'package:readybill/pages/reset_password.dart';
+
 import 'package:readybill/services/api_services.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
 import 'package:readybill/services/result.dart';
@@ -29,6 +29,9 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   final _otpFormKey = GlobalKey<FormState>();
   final _passwordFormKey = GlobalKey<FormState>();
   bool otpSent = false;
+  FocusNode phoneNumberFocusNode = FocusNode();
+  FocusNode otpFocusNode = FocusNode();
+  FocusNode newPasswordFocusNode = FocusNode();
 
   bool _isPhoneNumberErrorVisible() {
     return phoneNumberController.text.isNotEmpty &&
@@ -53,12 +56,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     if (response.statusCode == 200) {
       Fluttertoast.showToast(msg: 'OTP verified successfully');
       resetPasswordModalBottomSheet();
-      // Navigator.push(
-      //     context,
-      //     CupertinoPageRoute(
-      //         builder: (context) => ResetPasswordPage(
-      //               phoneNumber: phoneNumber,
-      //             )));
+      newPasswordFocusNode.requestFocus();
     } else if (response.statusCode == 410) {
       Fluttertoast.showToast(
           msg: 'OTP Expired. Please press resend to get a new OTP.');
@@ -104,50 +102,53 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       ),
       builder: (context) => Container(
         padding: const EdgeInsets.all(8),
-        height: MediaQuery.of(context).size.height * 0.5,
+        height: MediaQuery.of(context).size.height * 0.65,
         child: Form(
           key: _passwordFormKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 30),
-              TextFormField(
-                cursorColor: green,
-                validator: (value) {
-                  if (value == null || value.isEmpty || value.length < 8) {
-                    return 'Length must be atleast 8 characters';
-                  }
-                  return null;
-                },
-                obscureText: true,
-                controller: newPasswordController,
-                decoration: customTfInputDecoration("Enter New Password"),
-              ),
-              const SizedBox(
-                height: 15,
-              ),
-              TextFormField(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 30),
+                TextFormField(
+                  focusNode: newPasswordFocusNode,
                   cursorColor: green,
                   validator: (value) {
-                    if (newPasswordController.text != value) {
-                      return 'Passwords do not match';
+                    if (value == null || value.isEmpty || value.length < 8) {
+                      return 'Length must be atleast 8 characters';
                     }
                     return null;
                   },
-                  controller: confirmPasswordController,
-                  keyboardType: TextInputType.number,
-                  decoration: customTfInputDecoration("Confirm Password")),
-              const SizedBox(height: 20),
-              SizedBox(
-                  width: double.infinity,
-                  child: customElevatedButton("Confirm", green2, white, () {
-                    if (_passwordFormKey.currentState!.validate()) {
-                      resetPassword();
-                    }
-                  })),
-            ],
+                  obscureText: true,
+                  controller: newPasswordController,
+                  decoration: customTfInputDecoration("Enter New Password"),
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                TextFormField(
+                    cursorColor: green,
+                    validator: (value) {
+                      if (newPasswordController.text != value) {
+                        return 'Passwords do not match';
+                      }
+                      return null;
+                    },
+                    controller: confirmPasswordController,
+                    keyboardType: TextInputType.number,
+                    decoration: customTfInputDecoration("Confirm Password")),
+                const SizedBox(height: 20),
+                SizedBox(
+                    width: double.infinity,
+                    child: customElevatedButton("Confirm", green2, white, () {
+                      if (_passwordFormKey.currentState!.validate()) {
+                        resetPassword();
+                      }
+                    })),
+              ],
+            ),
           ),
         ),
       ),
@@ -157,6 +158,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   @override
   void initState() {
     super.initState();
+    phoneNumberFocusNode.requestFocus();
   }
 
   @override
@@ -183,6 +185,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     if (response.statusCode == 200) {
       setState(() {
         otpSent = true;
+        otpFocusNode.requestFocus();
       });
       Fluttertoast.showToast(msg: 'OTP sent successfully');
     } else if (response.statusCode == 400) {
@@ -207,6 +210,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                 const Text(
                     "To change your password, we will need to send you an OTP in your registered mobile.\n\nClick Send OTP to confirm.\n\n"),
                 TextFormField(
+                    focusNode: phoneNumberFocusNode,
                     cursorColor: green2,
                     validator: (value) {
                       if (value == null ||
@@ -220,23 +224,13 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                     },
                     controller: phoneNumberController,
                     keyboardType: TextInputType.number,
-                    decoration: customTfInputDecoration("Mobile Number")),
-                if (_isPhoneNumberErrorVisible())
-                  const Padding(
-                    padding: EdgeInsets.only(left: 8.0),
-                    child: Text(
-                      'Must be a 10-digit number',
-                      style: TextStyle(
-                        color: red,
-                        fontSize: 12.0,
-                      ),
-                    ),
-                  ),
+                    decoration: phoneNumberInputDecoration("Mobile Number")),
                 const SizedBox(height: 15),
                 Visibility(
                   visible: otpSent,
                   child: Center(
                     child: Pinput(
+                      focusNode: otpFocusNode,
                       showCursor: true,
                       onChanged: (value) => setState(() {}),
                       controller: otpController,

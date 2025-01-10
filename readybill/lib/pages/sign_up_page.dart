@@ -15,11 +15,14 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/color_constants.dart';
+import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/pages/login_page.dart';
+import 'package:readybill/pages/terms_and_conditions.dart';
 
 import 'package:readybill/services/global_internet_connection_handler.dart';
 import 'package:readybill/services/result.dart';
 import 'package:pinput/pinput.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -29,9 +32,10 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-  String? _selectedShopType;
+  String? _selectedShopType = "grocery";
   XFile? logoImageFile;
-  bool isObscure = true;
+  bool isPasswordObscure = true;
+  bool isConfirmPasswordObscure = true;
   bool acceptTermsAndConditions = false;
 
   TextEditingController mobileNumberController = TextEditingController();
@@ -42,8 +46,10 @@ class _SignUpPageState extends State<SignUpPage> {
   TextEditingController buisnessNameController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
   TextEditingController gstinController = TextEditingController();
+  FocusNode phoneNumberFocusNode = FocusNode();
 
   final _formKey = GlobalKey<FormState>();
+  bool tncError = false;
 
   @override
   void dispose() {
@@ -53,6 +59,12 @@ class _SignUpPageState extends State<SignUpPage> {
     emailController.dispose();
     addressController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    phoneNumberFocusNode.requestFocus();
   }
 
   Future<void> pickLogoImage() async {
@@ -65,12 +77,40 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Widget _buildMobileNumberTF() {
     return TextFormField(
+      cursorColor: green,
+      focusNode: phoneNumberFocusNode,
+      validator: (value) {
+        if (value == null ||
+            value.isEmpty ||
+            value.length < 10 ||
+            value.length > 10 ||
+            int.tryParse(value) == null) {
+          return 'Must be 10-digit Number';
+        }
+        return null;
+      },
       controller: mobileNumberController,
-      keyboardType: TextInputType.phone,
+      keyboardType: TextInputType.number,
       decoration: const InputDecoration(
+        errorStyle: TextStyle(color: red),
+        prefixIcon: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "  +91  ",
+              style: TextStyle(
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+        focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+          color: green,
+        )),
         filled: true,
         fillColor: white,
-        hintText: 'Mobile Number',
+        hintText: 'Mobile Number *',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.all(
             Radius.circular(7.0),
@@ -78,24 +118,24 @@ class _SignUpPageState extends State<SignUpPage> {
           borderSide: BorderSide.none,
         ),
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Mobile number is required';
-        }
-        return null;
-      },
     );
   }
 
   Widget _buildPasswordTF() {
     // Flag to toggle password visibility
     return TextFormField(
+      textCapitalization: TextCapitalization.sentences,
       controller: passwordController,
-      obscureText: isObscure,
+      obscureText: isPasswordObscure,
       decoration: InputDecoration(
+        errorStyle: TextStyle(color: red),
         filled: true,
         fillColor: white,
-        hintText: 'Password',
+        hintText: 'Password *',
+        focusedBorder: const OutlineInputBorder(
+            borderSide: BorderSide(
+          color: green,
+        )),
         border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(
             Radius.circular(7.0),
@@ -104,12 +144,12 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
         suffixIcon: IconButton(
           icon: Icon(
-            isObscure ? Icons.visibility_off : Icons.visibility,
+            isPasswordObscure ? Icons.visibility_off : Icons.visibility,
             color: const Color.fromARGB(255, 0, 0, 0),
           ),
           onPressed: () {
             setState(() {
-              isObscure = !isObscure;
+              isPasswordObscure = !isPasswordObscure;
             });
           },
         ),
@@ -117,20 +157,41 @@ class _SignUpPageState extends State<SignUpPage> {
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Password is required';
+        } else if (value.length < 8) {
+          return 'Password must be of atleast 8 characters';
+        } else {
+          return null;
         }
-        return null;
       },
     );
   }
 
   Widget _buildConfirmPasswordTF() {
     return TextFormField(
+      obscureText: isConfirmPasswordObscure,
+      textCapitalization: TextCapitalization.sentences,
       controller: confirmPasswordController,
-      decoration: const InputDecoration(
+      decoration: InputDecoration(
+        errorStyle: const TextStyle(color: red),
+        suffixIcon: IconButton(
+          icon: Icon(
+            isConfirmPasswordObscure ? Icons.visibility_off : Icons.visibility,
+            color: const Color.fromARGB(255, 0, 0, 0),
+          ),
+          onPressed: () {
+            setState(() {
+              isConfirmPasswordObscure = !isConfirmPasswordObscure;
+            });
+          },
+        ),
+        focusedBorder: const OutlineInputBorder(
+            borderSide: BorderSide(
+          color: green,
+        )),
         filled: true,
         fillColor: white,
-        hintText: 'Confirm Password',
-        border: OutlineInputBorder(
+        hintText: 'Confirm Password *',
+        border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(
             Radius.circular(7.0),
           ),
@@ -140,20 +201,29 @@ class _SignUpPageState extends State<SignUpPage> {
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Password is required';
+        } else if (value.length < 8) {
+          return 'Password must be of atleast 8 characters';
+        } else {
+          return null;
         }
-        return null;
       },
     );
   }
 
   Widget _buildFullNameTF() {
     return TextFormField(
+      textCapitalization: TextCapitalization.sentences,
       controller: fullNameController,
       keyboardType: TextInputType.text,
       decoration: const InputDecoration(
+        errorStyle: TextStyle(color: red),
+        focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+          color: green,
+        )),
         filled: true,
         fillColor: white,
-        hintText: 'Your Name',
+        hintText: 'Your Name *',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.all(
             Radius.circular(7.0),
@@ -172,12 +242,18 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Widget _buildBuisnessNameTF() {
     return TextFormField(
+      textCapitalization: TextCapitalization.sentences,
       controller: buisnessNameController,
       keyboardType: TextInputType.text,
       decoration: const InputDecoration(
+        errorStyle: TextStyle(color: red),
+        focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+          color: green,
+        )),
         filled: true,
         fillColor: white,
-        hintText: 'Business Name',
+        hintText: 'Business Name *',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.all(
             Radius.circular(7.0),
@@ -196,12 +272,18 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Widget _buildEmailTF() {
     return TextFormField(
+      textCapitalization: TextCapitalization.sentences,
       controller: emailController,
       keyboardType: TextInputType.emailAddress,
       decoration: const InputDecoration(
+        errorStyle: TextStyle(color: red),
+        focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+          color: green,
+        )),
         filled: true,
         fillColor: white,
-        hintText: 'Email',
+        hintText: 'Email *',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.all(
             Radius.circular(7.0),
@@ -220,15 +302,21 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Widget _buildAddressTF() {
     return TextFormField(
+      textCapitalization: TextCapitalization.sentences,
       controller: addressController,
       keyboardType: TextInputType.text,
       style: const TextStyle(
-        fontFamily: 'OpenSans',
+        fontFamily: 'Roboto_Regular',
       ),
       decoration: const InputDecoration(
+        errorStyle: TextStyle(color: red),
+        focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+          color: green,
+        )),
         filled: true,
         fillColor: white,
-        hintText: 'Address',
+        hintText: 'Address *',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.all(
             Radius.circular(7.0),
@@ -260,6 +348,10 @@ class _SignUpPageState extends State<SignUpPage> {
         });
       },
       decoration: const InputDecoration(
+        focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+          color: green,
+        )),
         filled: true,
         fillColor: white,
         //  hintText: 'Password',
@@ -276,8 +368,7 @@ class _SignUpPageState extends State<SignUpPage> {
         }
         return null;
       },
-      items: <String>['grocery', 'pharmacy']
-          .map<DropdownMenuItem<String>>((String value) {
+      items: <String>['grocery'].map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
           value: value,
           child: Text(value),
@@ -293,9 +384,15 @@ class _SignUpPageState extends State<SignUpPage> {
       child: ElevatedButton(
         onPressed: () {
           print('pressed');
-          print(_formKey.currentState);
+
           if (_formKey.currentState!.validate()) {
-            submitData();
+            if (acceptTermsAndConditions == false) {
+              setState(() {
+                tncError = true;
+              });
+            } else {
+              submitData();
+            }
           }
         },
         style: ElevatedButton.styleFrom(
@@ -313,7 +410,7 @@ class _SignUpPageState extends State<SignUpPage> {
             letterSpacing: 1.5,
             fontSize: 18.0,
             fontWeight: FontWeight.bold,
-            fontFamily: 'OpenSans',
+            fontFamily: 'Roboto_Regular',
           ),
         ),
       ),
@@ -358,6 +455,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Widget _buildGSTINTF() {
     return TextFormField(
+      textCapitalization: TextCapitalization.sentences,
       controller: gstinController,
       keyboardType: TextInputType.text,
       decoration: const InputDecoration(
@@ -371,12 +469,6 @@ class _SignUpPageState extends State<SignUpPage> {
           borderSide: BorderSide.none,
         ),
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'GSTIN is required';
-        }
-        return null;
-      },
     );
   }
 
@@ -402,6 +494,11 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   Future<void> submitData() async {
+    if (acceptTermsAndConditions == false) {
+      setState(() {
+        tncError = true;
+      });
+    }
     String sendOtpApiUrl = '$baseUrl/register/send-otp';
 
     var request = http.MultipartRequest('POST', Uri.parse(sendOtpApiUrl));
@@ -444,6 +541,14 @@ class _SignUpPageState extends State<SignUpPage> {
             builder: (context) => OtpModalBottomSheet(
                   phoneNumber: mobileNumberController.text,
                 ));
+      } else if (response.statusCode == 400) {
+        Fluttertoast.showToast(
+            msg:
+                "The mobile number has already been taken. Please use a different number.");
+      } else {
+        Fluttertoast.showToast(
+            msg:
+                "There seems to be an issue at our end. Please try after some time.");
       }
       // Call the function to show the response dialog
     } catch (error) {
@@ -631,22 +736,15 @@ class _SignUpPageState extends State<SignUpPage> {
                                   _buildShopTypeDropdown(),
                                   // Added GSTIN field
                                   const SizedBox(height: 15),
-                                  _buildLogoPicker(),
+                                  SizedBox(
+                                    width: MediaQuery.of(context).size.width,
+                                    child: customElevatedButton("Pick Logo",
+                                        blue, white, pickLogoImage),
+                                  ),
                                   const SizedBox(height: 10),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      const Text(
-                                        'I agree to all the',
-                                        style: TextStyle(color: white),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {},
-                                        child: const Text(
-                                          'Terms & Conditions',
-                                          style: TextStyle(color: green),
-                                        ),
-                                      ),
                                       Checkbox(
                                         side: WidgetStateBorderSide.resolveWith(
                                           (states) => const BorderSide(
@@ -656,10 +754,31 @@ class _SignUpPageState extends State<SignUpPage> {
                                         onChanged: (value) => setState(() {
                                           acceptTermsAndConditions = value!;
                                         }),
-                                      )
+                                      ),
+                                      const Text(
+                                        'I agree to all the',
+                                        style: TextStyle(color: white),
+                                      ),
+                                      TextButton(
+                                        onPressed: () async {
+                                          navigatorKey.currentState?.push(
+                                              CupertinoPageRoute(
+                                                  builder: (context) =>
+                                                      const TermsAndConditionsPage()));
+                                        },
+                                        child: const Text(
+                                          'Terms & Conditions',
+                                          style: TextStyle(color: green),
+                                        ),
+                                      ),
                                     ],
                                   ),
-
+                                  Visibility(
+                                      visible: tncError,
+                                      child: const Text(
+                                        "Accept Terms and Conditions to proceed",
+                                        style: TextStyle(color: red),
+                                      )),
                                   // Added Logo Upload field
                                   _buildSignUpBtn(),
                                 ],
@@ -694,6 +813,7 @@ class OtpModalBottomSheet extends StatefulWidget {
 
 class _OtpModalBottomSheetState extends State<OtpModalBottomSheet> {
   TextEditingController otpController = TextEditingController();
+  FocusNode otpFocusNode = FocusNode();
 
   void _verifyOtp() async {
     String url = "$baseUrl/register/verify-otp";
@@ -715,6 +835,12 @@ class _OtpModalBottomSheetState extends State<OtpModalBottomSheet> {
       );
     }
     EasyLoading.dismiss();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    otpFocusNode.requestFocus();
   }
 
   @override
@@ -755,6 +881,7 @@ class _OtpModalBottomSheetState extends State<OtpModalBottomSheet> {
                   height: 20,
                 ),
                 Pinput(
+                  focusNode: otpFocusNode,
                   onChanged: (value) => setState(() {}),
                   controller: otpController,
                   focusedPinTheme: PinTheme(

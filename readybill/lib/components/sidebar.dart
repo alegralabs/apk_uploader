@@ -9,7 +9,7 @@ import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/pages/account.dart';
 import 'package:readybill/pages/add_product.dart';
 import 'package:readybill/pages/change_password_page.dart';
-import 'package:readybill/pages/forgot_password_page.dart';
+
 import 'package:readybill/pages/home_page.dart';
 import 'package:readybill/pages/login_page.dart';
 import 'package:readybill/pages/preferences.dart';
@@ -22,7 +22,7 @@ import 'package:readybill/services/api_services.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
 
 import 'package:readybill/services/result.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:http/http.dart' as http;
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 
