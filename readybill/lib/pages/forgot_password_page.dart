@@ -1,4 +1,3 @@
-
 import 'dart:math';
 import 'dart:ui';
 
@@ -29,6 +28,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final TextEditingController otpController = TextEditingController();
   final _otpFormKey = GlobalKey<FormState>();
   bool otpSent = false;
+  final FocusNode _phoneNumberFocusNode = FocusNode();
+  final FocusNode _otpFocusNode = FocusNode();
 
   bool _isPhoneNumberErrorVisible() {
     return phoneNumberController.text.isNotEmpty &&
@@ -69,6 +70,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   @override
   void initState() {
     super.initState();
+    _phoneNumberFocusNode.requestFocus();
   }
 
   @override
@@ -96,6 +98,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       setState(() {
         otpSent = true;
       });
+      _otpFocusNode.requestFocus();
       Fluttertoast.showToast(msg: 'OTP sent successfully');
     } else if (response.statusCode == 400) {
       Fluttertoast.showToast(
@@ -171,6 +174,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                 const SizedBox(height: 30),
                                 TextFormField(
                                   cursorColor: green,
+                                  focusNode: _phoneNumberFocusNode,
                                   validator: (value) {
                                     if (value == null ||
                                         value.isEmpty ||
@@ -181,16 +185,32 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                     }
                                     return null;
                                   },
+                                  textAlignVertical: TextAlignVertical.center,
                                   controller: phoneNumberController,
                                   keyboardType: TextInputType.number,
                                   decoration: const InputDecoration(
+                                    errorStyle: TextStyle(color: red),
+                                    prefixIcon: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          "  +91  ",
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          //  textAlign: TextAlign.,
+                                        ),
+                                      ],
+                                    ),
                                     focusedBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
                                       color: green,
                                     )),
                                     filled: true,
                                     fillColor: white,
-                                    label: Text('Mobile Number'),
+                                    hintText: 'Mobile Number',
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.all(
                                         Radius.circular(7.0),
@@ -199,22 +219,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                     ),
                                   ),
                                 ),
-                                if (_isPhoneNumberErrorVisible())
-                                  const Padding(
-                                    padding: EdgeInsets.only(left: 8.0),
-                                    child: Text(
-                                      'Must be a 10-digit number',
-                                      style: TextStyle(
-                                        color: red,
-                                        fontSize: 12.0,
-                                      ),
-                                    ),
-                                  ),
                                 const SizedBox(height: 15),
                                 Visibility(
                                   visible: otpSent,
                                   child: Center(
                                     child: Pinput(
+                                      focusNode: _otpFocusNode,
                                       onChanged: (value) => setState(() {}),
                                       controller: otpController,
                                       focusedPinTheme: PinTheme(

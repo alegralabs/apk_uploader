@@ -34,13 +34,17 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       'auth-key': '$authKey',
     }, body: {
       'mobile': widget.phoneNumber,
-      'password': _newPasswordController.text
+      'password': _newPasswordController.text,
+      'password_confirmation': _confirmPasswordController.text,
     });
-
+    print(response.body);
     if (response.statusCode == 200) {
       Fluttertoast.showToast(msg: 'Password reset successfully');
       Navigator.pushReplacement(
           context, CupertinoPageRoute(builder: (context) => const LoginPage()));
+    } else {
+      Fluttertoast.showToast(
+          msg: 'Password reset failed. Please try again later');
     }
   }
 
@@ -150,7 +154,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                                     return null;
                                   },
                                   controller: _confirmPasswordController,
-                                  keyboardType: TextInputType.number,
+                                  keyboardType: TextInputType.text,
                                   decoration: const InputDecoration(
                                     focusedBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
@@ -176,7 +180,6 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                                           .validate()) {
                                         resetPassword();
                                       }
-                                      ;
                                     },
                                     style: ElevatedButton.styleFrom(
                                       padding: const EdgeInsets.all(15.0),

@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
@@ -33,10 +34,11 @@ class SignUpPage extends StatefulWidget {
 
 class _SignUpPageState extends State<SignUpPage> {
   String? _selectedShopType = "grocery";
-  XFile? logoImageFile;
+  //XFile? logoImageFile;
   bool isPasswordObscure = true;
   bool isConfirmPasswordObscure = true;
   bool acceptTermsAndConditions = false;
+  File? logoImageFile;
 
   TextEditingController mobileNumberController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
@@ -70,9 +72,45 @@ class _SignUpPageState extends State<SignUpPage> {
   Future<void> pickLogoImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    setState(() {
-      logoImageFile = image;
-    });
+    if (image != null) {
+      setState(() {
+        logoImageFile = File(image.path);
+      });
+    }
+  }
+
+  Widget _buildLogoPicker() {
+    return Stack(
+      children: [
+        InkWell(
+          onTap: pickLogoImage,
+          child: CircleAvatar(
+            radius: 50,
+            backgroundColor: green2,
+            foregroundImage: logoImageFile != null
+                ? FileImage(logoImageFile!)
+                : (const AssetImage("assets/user.png")),
+          ),
+        ),
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: green2,
+              border: Border.all(color: Colors.white, width: 2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Icon(
+              Icons.edit,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildMobileNumberTF() {
@@ -472,27 +510,6 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  Widget _buildLogoPicker() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        ElevatedButton(
-          onPressed: pickLogoImage,
-          child: const Text('Pick Logo Image'),
-        ),
-        const SizedBox(
-            width: 10), // Add some space between the button and the thumbnail
-        logoImageFile != null
-            ? SizedBox(
-                width: 50, // Set the width of the thumbnail
-                height: 50, // Set the height of the thumbnail
-                child: Image.file(File(logoImageFile!.path)),
-              )
-            : Container(), // If no image is selected, display an empty container
-      ],
-    );
-  }
-
   Future<void> submitData() async {
     if (acceptTermsAndConditions == false) {
       setState(() {
@@ -534,6 +551,7 @@ class _SignUpPageState extends State<SignUpPage> {
       var response = await request.send();
       var responseBody = await response.stream.bytesToString();
       print(responseBody);
+      var jsonData = jsonDecode(responseBody);
       EasyLoading.dismiss();
       if (response.statusCode == 200) {
         showModalBottomSheet(
@@ -541,14 +559,8 @@ class _SignUpPageState extends State<SignUpPage> {
             builder: (context) => OtpModalBottomSheet(
                   phoneNumber: mobileNumberController.text,
                 ));
-      } else if (response.statusCode == 400) {
-        Fluttertoast.showToast(
-            msg:
-                "The mobile number has already been taken. Please use a different number.");
       } else {
-        Fluttertoast.showToast(
-            msg:
-                "There seems to be an issue at our end. Please try after some time.");
+        Fluttertoast.showToast(msg: jsonData['data']['errors'].toString());
       }
       // Call the function to show the response dialog
     } catch (error) {
@@ -717,6 +729,8 @@ class _SignUpPageState extends State<SignUpPage> {
                                     ],
                                   ),
                                   const SizedBox(height: 15),
+                                  _buildLogoPicker(),
+                                  const SizedBox(height: 30),
                                   _buildMobileNumberTF(),
                                   const SizedBox(height: 15),
                                   _buildPasswordTF(),
@@ -736,12 +750,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                   _buildShopTypeDropdown(),
                                   // Added GSTIN field
                                   const SizedBox(height: 15),
-                                  SizedBox(
-                                    width: MediaQuery.of(context).size.width,
-                                    child: customElevatedButton("Pick Logo",
-                                        blue, white, pickLogoImage),
-                                  ),
-                                  const SizedBox(height: 10),
+
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
@@ -833,6 +842,9 @@ class _OtpModalBottomSheetState extends State<OtpModalBottomSheet> {
           builder: (context) => const LoginPage(),
         ),
       );
+    }
+    {
+      Fluttertoast.showToast(msg: jsonDecode(response.body)['message']);
     }
     EasyLoading.dismiss();
   }

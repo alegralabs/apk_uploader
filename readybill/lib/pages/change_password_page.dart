@@ -137,7 +137,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                       return null;
                     },
                     controller: confirmPasswordController,
-                    keyboardType: TextInputType.number,
+                    keyboardType: TextInputType.text,
                     decoration: customTfInputDecoration("Confirm Password")),
                 const SizedBox(height: 20),
                 SizedBox(

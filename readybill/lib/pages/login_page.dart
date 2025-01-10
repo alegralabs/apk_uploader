@@ -33,7 +33,7 @@ class _LoginPageState extends State<LoginPage> {
   final FocusNode _phoneNumberFocusNode = FocusNode();
   final FocusNode _passwordFocusNode = FocusNode();
   final LocalDatabase2 _localDatabase = LocalDatabase2.instance;
-
+  bool isObscure = true;
   final _loginFormKey = GlobalKey<FormState>();
   @override
   void initState() {
@@ -90,8 +90,8 @@ class _LoginPageState extends State<LoginPage> {
       title = "User Not Found";
       content = "Please check your mobile number and try again.";
     } else {
-      title = "Unexpected Response";
-      content = "An unexpected response was received. Please try again.";
+      title = "ERROR";
+      content = response['message'];
     }
 
     showDialog(
@@ -254,8 +254,22 @@ class _LoginPageState extends State<LoginPage> {
                                   },
                                   controller: passwordController,
                                   focusNode: _passwordFocusNode,
-                                  obscureText: true,
-                                  decoration: const InputDecoration(
+                                  obscureText: isObscure,
+                                  decoration: InputDecoration(
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        isObscure
+                                            ? Icons.visibility_off
+                                            : Icons.visibility,
+                                        color:
+                                            const Color.fromARGB(255, 0, 0, 0),
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          isObscure = !isObscure;
+                                        });
+                                      },
+                                    ),
                                     errorStyle: TextStyle(color: red),
                                     filled: true,
                                     fillColor: white,
