@@ -321,28 +321,27 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
                                         showDialog(
                                             context: context,
                                             builder: (context) {
-                                              return AlertDialog(
-                                                title: const Text(
-                                                    'Remove Employee?'),
-                                                content: Text(
-                                                    "Are you sure you want to remove ${employee.name} from your employees? "),
+                                              return customAlertBox(
+                                                title: 'Remove Employee?',
+                                                content:
+                                                    "Are you sure you want to remove ${employee.name} from your employees? ",
                                                 actions: [
-                                                  TextButton(
-                                                    onPressed: () {
+                                                  customElevatedButton(
+                                                      'NO', green2, white, () {
+                                                    navigatorKey.currentState
+                                                        ?.pop();
+                                                  }),
+                                                  customElevatedButton(
+                                                    "YES",
+                                                    red,
+                                                    white,
+                                                    () {
+                                                      deleteEmployee(
+                                                          employee.id);
                                                       navigatorKey.currentState
                                                           ?.pop();
                                                     },
-                                                    child: const Text('No'),
-                                                  ),
-                                                  TextButton(
-                                                      onPressed: () {
-                                                        deleteEmployee(
-                                                            employee.id);
-                                                        navigatorKey
-                                                            .currentState
-                                                            ?.pop();
-                                                      },
-                                                      child: const Text("Yes")),
+                                                  )
                                                 ],
                                               );
                                             });

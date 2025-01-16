@@ -14,6 +14,7 @@ import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/services/api_services.dart';
+import 'package:readybill/services/global_internet_connection_handler.dart';
 
 String userDetailsAPI = "$baseUrl/user-detail";
 
@@ -120,16 +121,13 @@ class _UserAccountState extends State<UserAccount> {
         showDialog(
           context: context,
           builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text("Success"),
-              content: const Text("Profile updated successfully."),
+            return customAlertBox(
+              title: "Success",
+              content: "Profile updated successfully.",
               actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text("OK"),
-                ),
+                customElevatedButton("OK", green2, white, () {
+                  navigatorKey.currentState?.pop();
+                }),
               ],
             );
           },
@@ -143,17 +141,13 @@ class _UserAccountState extends State<UserAccount> {
           context: context,
           builder: (BuildContext context) {
             print(response.body);
-            return AlertDialog(
-              title: const Text("Error"),
-              content:
-                  Text("Failed to update profile. ${response.reasonPhrase}"),
+            return customAlertBox(
+              title: "Error",
+              content: "Failed to update profile. ${response.reasonPhrase}",
               actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text("OK"),
-                ),
+                 customElevatedButton("OK", green2, white, () {
+                  navigatorKey.currentState?.pop();
+                }),
               ],
             );
           },
@@ -164,16 +158,13 @@ class _UserAccountState extends State<UserAccount> {
       showDialog(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text("Error"),
-            content: Text("An error occurred while updating profile. $e"),
+          return customAlertBox(
+            title: "Error",
+            content: "An error occurred while updating profile. $e",
             actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text("OK"),
-              ),
+               customElevatedButton("OK", green2, white, () {
+                  navigatorKey.currentState?.pop();
+                }),
             ],
           );
         },

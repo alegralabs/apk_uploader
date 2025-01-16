@@ -9,6 +9,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/color_constants.dart';
+import 'package:readybill/components/resend_button.dart';
 import 'package:readybill/pages/reset_password.dart';
 import 'package:readybill/services/api_services.dart';
 
@@ -304,12 +305,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                             style:
                                                 TextStyle(color: Colors.grey),
                                           ),
-                                          TextButton(
-                                              onPressed: () {
-                                                sendOtp(
-                                                    phoneNumberController.text);
-                                              },
-                                              child: const Text('Resend'))
+                                          ResendButton(onPressed: () {
+                                            sendOtp(phoneNumberController.text);
+                                          })
                                         ],
                                       )
                                     : const SizedBox.shrink(),

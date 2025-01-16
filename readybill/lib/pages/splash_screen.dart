@@ -4,6 +4,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:readybill/components/color_constants.dart';
+import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/pages/home_page.dart';
 import 'package:readybill/pages/login_page.dart';
 import 'package:readybill/services/api_services.dart';
@@ -73,18 +75,14 @@ class _SplashScreenState extends State<SplashScreen>
     showDialog(
         barrierDismissible: false,
         context: context,
-        builder: (context) => AlertDialog(
-              title: const Text('No Internet Connection'),
-              content: const Text(
-                  'Please check your internet connection and try again.'),
+        builder: (context) => customAlertBox(
+              title: 'No Internet Connection',
+              content: 'Please check your internet connection and try again.',
               actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _checkInternet();
-                  },
-                  child: const Text('Retry'),
-                ),
+                customElevatedButton('Retry', green2, white, () {
+                  navigatorKey.currentState?.pop();
+                  _checkInternet();
+                }),
                 TextButton(
                     onPressed: () {
                       if (Platform.isAndroid) {

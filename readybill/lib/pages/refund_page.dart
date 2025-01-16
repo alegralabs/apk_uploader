@@ -15,6 +15,7 @@ import 'package:readybill/components/quantity_modal_bottom_sheet.dart';
 import 'package:readybill/components/sidebar.dart';
 import 'package:readybill/components/microphone_button.dart';
 import 'package:readybill/services/api_services.dart';
+import 'package:readybill/services/global_internet_connection_handler.dart';
 import 'package:readybill/services/home_bill_item_provider.dart';
 
 //import 'package:readybill/services/local_database.dart';
@@ -765,15 +766,13 @@ class RefundPageState extends State<RefundPage> {
         showDialog(
           context: context,
           builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text("Billing is done"),
+            return customAlertBox(
+              title: "Billing is done",
+              content: '',
               actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text("OK"),
-                ),
+                customElevatedButton('OK', green2, white, () {
+                  navigatorKey.currentState?.pop();
+                })
               ],
             );
           },
@@ -1150,18 +1149,15 @@ class RefundPageState extends State<RefundPage> {
                                 showDialog(
                                   context: context,
                                   builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text("Out of Stock"),
-                                      content: Text(
-                                          "You have only $availableStockValue left"),
+                                    return customAlertBox(
+                                      title: "Out of Stock",
+                                      content:
+                                          "You have only $availableStockValue left",
                                       actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(
-                                                context); // Close the dialog
-                                          },
-                                          child: const Text("OK"),
-                                        ),
+                                        customElevatedButton(
+                                            'OK', green2, white, () {
+                                          navigatorKey.currentState?.pop();
+                                        })
                                       ],
                                     );
                                   },
@@ -1259,18 +1255,15 @@ class RefundPageState extends State<RefundPage> {
                                 showDialog(
                                   context: context,
                                   builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text("Out of Stock"),
-                                      content: Text(
-                                          "You have only $availableStockValue left"),
+                                    return customAlertBox(
+                                      title: "Out of Stock",
+                                      content:
+                                          "You have only $availableStockValue left",
                                       actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(
-                                                context); // Close the dialog
-                                          },
-                                          child: const Text("OK"),
-                                        ),
+                                        customElevatedButton(
+                                            'OK', green2, white, () {
+                                          navigatorKey.currentState?.pop();
+                                        })
                                       ],
                                     );
                                   },
@@ -1490,28 +1483,28 @@ class RefundPageState extends State<RefundPage> {
                               showDialog(
                                   context: context,
                                   builder: (context) {
-                                    return AlertDialog(
-                                      title: const Text("Cancel Bill?"),
-                                      content: const Text(
-                                          "Are you sure you want to cancel the bill?"),
+                                    return customAlertBox(
+                                      title: "Cancel Bill?",
+                                      content:
+                                          "Are you sure you want to cancel the bill?",
                                       actions: [
-                                        TextButton(
-                                          child: const Text("No"),
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                        ),
-                                        TextButton(
-                                          child: const Text("Yes"),
-                                          onPressed: () {
+                                        customElevatedButton(
+                                            'NO', green2, white, () {
+                                          navigatorKey.currentState?.pop();
+                                        }),
+                                        customElevatedButton(
+                                          "YES",
+                                          red,
+                                          white,
+                                          () {
                                             Provider.of<HomeBillItemProvider>(
                                                     context,
                                                     listen: false)
                                                 .clearItems();
 
-                                            Navigator.of(context).pop();
+                                            navigatorKey.currentState?.pop();
                                           },
-                                        ),
+                                        )
                                       ],
                                     );
                                   });

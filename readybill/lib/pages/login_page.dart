@@ -8,11 +8,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/color_constants.dart';
+import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/pages/forgot_password_page.dart';
 import 'package:readybill/pages/home_page.dart';
 import 'package:readybill/pages/sign_up_page.dart';
 
 import 'package:readybill/services/api_services.dart';
+import 'package:readybill/services/global_internet_connection_handler.dart';
 //import 'package:readybill/services/local_database.dart';
 import 'package:readybill/services/local_database_2.dart';
 import 'package:readybill/services/result.dart';
@@ -98,37 +100,16 @@ class _LoginPageState extends State<LoginPage> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Text(content),
+        return customAlertBox(
+          title: title,
+          content: content,
           actions: [
-            ElevatedButton(
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all<Color>(
-                  green,
-                ),
-                // Change color here
-              ),
-              child: const Text(
-                "OK",
-                style: TextStyle(
-                  color: Color.fromARGB(255, 0, 0, 0),
-                ),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
+            customElevatedButton(
+                "OK", green, white,  (){navigatorKey.currentState?.pop();})
           ],
         );
       },
     );
-  }
-
-  bool _isPhoneNumberErrorVisible() {
-    return phoneNumberController.text.isNotEmpty &&
-        (phoneNumberController.text.length < 10 ||
-            phoneNumberController.text.length > 10);
   }
 
   @override
@@ -270,11 +251,11 @@ class _LoginPageState extends State<LoginPage> {
                                         });
                                       },
                                     ),
-                                    errorStyle: TextStyle(color: red),
+                                    errorStyle: const TextStyle(color: red),
                                     filled: true,
                                     fillColor: white,
                                     hintText: 'Password',
-                                    border: OutlineInputBorder(
+                                    border: const OutlineInputBorder(
                                       borderRadius: BorderRadius.all(
                                         Radius.circular(7.0),
                                       ),
@@ -386,7 +367,7 @@ class _LoginPageState extends State<LoginPage> {
                                     ),
                                     TextButton(
                                         onPressed: () {
-                                          Navigator.pushReplacement(
+                                          Navigator.push(
                                               context,
                                               CupertinoPageRoute(
                                                   builder: (context) =>

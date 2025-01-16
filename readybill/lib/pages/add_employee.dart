@@ -253,14 +253,13 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
     return showDialog<bool>(
         context: context,
         builder: (context) {
-          return AlertDialog(
-            title: const Text('Alert'),
-            content: Text(message),
+          return customAlertBox(
+            title: "Alert",
+            content: message,
             actions: [
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Ok'),
-              ),
+              customElevatedButton("OK", green2, white, () {
+                  navigatorKey.currentState?.pop();
+                }),
             ],
           );
         });

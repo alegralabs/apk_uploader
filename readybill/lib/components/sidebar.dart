@@ -243,8 +243,9 @@ class _SidebarState extends State<Sidebar> {
                     onTap: () {
                       navigatorKey.currentState?.push(
                         CupertinoPageRoute(
-                            builder: (context) => const ChangePasswordPage(
+                            builder: (context) =>  ChangePasswordPage(
                                   smsType: 'change_password',
+                                  phoneNumber: phone,
                                 )),
                       );
                     },

@@ -17,6 +17,7 @@ import 'package:http/http.dart' as http;
 import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/components/custom_components.dart';
+import 'package:readybill/components/resend_button.dart';
 import 'package:readybill/pages/login_page.dart';
 import 'package:readybill/pages/terms_and_conditions.dart';
 
@@ -371,50 +372,6 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  Widget _buildShopTypeDropdown() {
-    return DropdownButtonFormField<String>(
-      hint: const Text(
-        'Select Shop Type',
-      ),
-      value: _selectedShopType,
-      icon: const Icon(Icons.arrow_downward),
-      iconSize: 24,
-      elevation: 16,
-      onChanged: (String? newValue) {
-        setState(() {
-          _selectedShopType = newValue;
-        });
-      },
-      decoration: const InputDecoration(
-        focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-          color: green,
-        )),
-        filled: true,
-        fillColor: white,
-        //  hintText: 'Password',
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.all(
-            Radius.circular(7.0),
-          ),
-          borderSide: BorderSide.none,
-        ),
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Shop Type is required';
-        }
-        return null;
-      },
-      items: <String>['grocery'].map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
-    );
-  }
-
   Widget _buildSignUpBtn() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 25.0),
@@ -510,7 +467,7 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  Future<void> submitData() async {
+  sendOtp() async {
     if (acceptTermsAndConditions == false) {
       setState(() {
         tncError = true;
@@ -549,23 +506,31 @@ class _SignUpPageState extends State<SignUpPage> {
     try {
       EasyLoading.show(status: 'Loading...');
       var response = await request.send();
-      var responseBody = await response.stream.bytesToString();
-      print(responseBody);
-      var jsonData = jsonDecode(responseBody);
+
       EasyLoading.dismiss();
-      if (response.statusCode == 200) {
-        showModalBottomSheet(
-            context: context,
-            builder: (context) => OtpModalBottomSheet(
-                  phoneNumber: mobileNumberController.text,
-                ));
-      } else {
-        Fluttertoast.showToast(msg: jsonData['data']['errors'].toString());
-      }
+      return response;
       // Call the function to show the response dialog
     } catch (error) {
       Result.error("Book list not available");
     }
+  }
+
+  Future<void> submitData() async {
+    var response = await sendOtp();
+    var responseBody = await response.stream.bytesToString();
+    print(responseBody);
+    var jsonData = jsonDecode(responseBody);
+    if (response.statusCode == 200) {
+      showModalBottomSheet(
+          context: context,
+          builder: (context) => OtpModalBottomSheet(
+                sendOtp: sendOtp,
+                phoneNumber: mobileNumberController.text,
+              ));
+    } else {
+      Fluttertoast.showToast(msg: jsonData['data']['errors'].toString());
+    }
+    // Call the function to show the response dialog
   }
 
   void showApiResponseDialog(
@@ -597,16 +562,14 @@ class _SignUpPageState extends State<SignUpPage> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Text(content),
+        return customAlertBox(
+          title: title,
+          content: content,
           actions: <Widget>[
-            ElevatedButton(
-              child: const Text("Close"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
+             customElevatedButton(
+                                            'Close', green2, white, () {
+                                          navigatorKey.currentState?.pop();
+                                        })
           ],
         );
       },
@@ -617,181 +580,149 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget build(BuildContext context) {
     var screenHeight = MediaQuery.of(context).size.height;
     var screenWidth = MediaQuery.of(context).size.width;
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) async {
-        final value = await showDialog<bool>(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: const Text('Alert'),
-                content: const Text('Do You Want to Exit'),
-                actions: [
-                  ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text('No'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: const Text('Exit'),
-                  ),
-                ],
-              );
-            });
-        if (value != null) {
-          return Future.value();
-        } else {
-          return Future.value();
-        }
-      },
-      child: Scaffold(
-        backgroundColor: black,
-        body: SizedBox(
-          height: screenHeight,
-          child: Stack(
-            children: [
-              Positioned(
-                top: screenHeight * 0.05,
-                left: screenWidth * 0.25,
-                child: Transform(
-                  alignment: Alignment.center,
-                  transform: Matrix4.rotationY(pi),
-                  child: Image.asset(
-                    'assets/man-phone-green.png',
-                    width: screenWidth * 0.8,
-                  ),
+    return Scaffold(
+      backgroundColor: black,
+      body: SizedBox(
+        height: screenHeight,
+        child: Stack(
+          children: [
+            Positioned(
+              top: screenHeight * 0.05,
+              left: screenWidth * 0.25,
+              child: Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.rotationY(pi),
+                child: Image.asset(
+                  'assets/man-phone-green.png',
+                  width: screenWidth * 0.8,
                 ),
               ),
-              Positioned(
-                top: screenHeight * 0.30,
-                left: screenWidth * 0.1,
-                child: const Text(
-                  'Register',
-                  style: TextStyle(
-                    fontSize: 35,
-                    fontFamily: 'Roboto-Bold',
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                  ),
-                  textAlign: TextAlign.left,
+            ),
+            Positioned(
+              top: screenHeight * 0.30,
+              left: screenWidth * 0.1,
+              child: const Text(
+                'Register',
+                style: TextStyle(
+                  fontSize: 35,
+                  fontFamily: 'Roboto-Bold',
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
                 ),
+                textAlign: TextAlign.left,
               ),
-              Positioned(
-                bottom: screenHeight * 0.05,
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: ClipRRect(
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                      child: Container(
-                        height: screenHeight * 0.55,
-                        width: screenWidth * 0.9,
-                        decoration: BoxDecoration(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(10)),
-                          color: Colors.grey.withOpacity(0.2),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 20),
-                          child: SingleChildScrollView(
-                            child: Form(
-                              key: _formKey,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        "Already have an account?",
-                                        style: TextStyle(
-                                            fontFamily: 'Roboto-Regular',
-                                            color: white),
-                                      ),
-                                      const SizedBox(width: 5),
-                                      InkWell(
-                                        child: const Text(
-                                          'Sign In',
-                                          style: TextStyle(
-                                              fontFamily: 'Roboto',
-                                              fontWeight: FontWeight.bold,
-                                              color: green),
-                                        ),
-                                        onTap: () => navigatorKey.currentState!
-                                            .push(CupertinoPageRoute(
-                                                builder: (context) =>
-                                                    const LoginPage())),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 15),
-                                  _buildLogoPicker(),
-                                  const SizedBox(height: 30),
-                                  _buildMobileNumberTF(),
-                                  const SizedBox(height: 15),
-                                  _buildPasswordTF(),
-                                  const SizedBox(height: 15),
-                                  _buildConfirmPasswordTF(),
-                                  const SizedBox(height: 15),
-                                  _buildFullNameTF(),
-                                  const SizedBox(height: 15),
-                                  _buildBuisnessNameTF(),
-                                  const SizedBox(height: 15),
-                                  _buildEmailTF(),
-                                  const SizedBox(height: 15),
-                                  _buildAddressTF(),
-                                  const SizedBox(height: 15),
-                                  _buildGSTINTF(),
-                                  const SizedBox(height: 15),
-                                  _buildShopTypeDropdown(),
-                                  // Added GSTIN field
-                                  const SizedBox(height: 15),
-
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Checkbox(
-                                        side: WidgetStateBorderSide.resolveWith(
-                                          (states) => const BorderSide(
-                                              width: 2, color: white),
-                                        ),
-                                        value: acceptTermsAndConditions,
-                                        onChanged: (value) => setState(() {
-                                          acceptTermsAndConditions = value!;
-                                        }),
-                                      ),
-                                      const Text(
-                                        'I agree to all the',
-                                        style: TextStyle(color: white),
-                                      ),
-                                      TextButton(
-                                        onPressed: () async {
-                                          navigatorKey.currentState?.push(
-                                              CupertinoPageRoute(
-                                                  builder: (context) =>
-                                                      const TermsAndConditionsPage()));
-                                        },
-                                        child: const Text(
-                                          'Terms & Conditions',
-                                          style: TextStyle(color: green),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Visibility(
-                                      visible: tncError,
+            ),
+            Positioned(
+              bottom: screenHeight * 0.05,
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: ClipRRect(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                    child: Container(
+                      height: screenHeight * 0.55,
+                      width: screenWidth * 0.9,
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(10)),
+                        color: Colors.grey.withOpacity(0.2),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 20),
+                        child: SingleChildScrollView(
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      "Already have an account?",
+                                      style: TextStyle(
+                                          fontFamily: 'Roboto-Regular',
+                                          color: white),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    InkWell(
                                       child: const Text(
-                                        "Accept Terms and Conditions to proceed",
-                                        style: TextStyle(color: red),
-                                      )),
-                                  // Added Logo Upload field
-                                  _buildSignUpBtn(),
-                                ],
-                              ),
+                                        'Sign In',
+                                        style: TextStyle(
+                                            fontFamily: 'Roboto',
+                                            fontWeight: FontWeight.bold,
+                                            color: green),
+                                      ),
+                                      onTap: () => navigatorKey.currentState!
+                                          .push(CupertinoPageRoute(
+                                              builder: (context) =>
+                                                  const LoginPage())),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 15),
+                                _buildLogoPicker(),
+                                const SizedBox(height: 30),
+                                _buildMobileNumberTF(),
+                                const SizedBox(height: 15),
+                                _buildPasswordTF(),
+                                const SizedBox(height: 15),
+                                _buildConfirmPasswordTF(),
+                                const SizedBox(height: 15),
+                                _buildFullNameTF(),
+                                const SizedBox(height: 15),
+                                _buildBuisnessNameTF(),
+                                const SizedBox(height: 15),
+                                _buildEmailTF(),
+                                const SizedBox(height: 15),
+                                _buildAddressTF(),
+                                const SizedBox(height: 15),
+                                _buildGSTINTF(),
+                                const SizedBox(height: 15),
+
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Checkbox(
+                                      side: WidgetStateBorderSide.resolveWith(
+                                        (states) => const BorderSide(
+                                            width: 2, color: white),
+                                      ),
+                                      value: acceptTermsAndConditions,
+                                      onChanged: (value) => setState(() {
+                                        acceptTermsAndConditions = value!;
+                                      }),
+                                    ),
+                                    const Text(
+                                      'I agree to all the',
+                                      style: TextStyle(color: white),
+                                    ),
+                                    TextButton(
+                                      onPressed: () async {
+                                        navigatorKey.currentState?.push(
+                                            CupertinoPageRoute(
+                                                builder: (context) =>
+                                                    const TermsAndConditionsPage()));
+                                      },
+                                      child: const Text(
+                                        'Terms & Conditions',
+                                        style: TextStyle(color: green),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Visibility(
+                                    visible: tncError,
+                                    child: const Text(
+                                      "Accept Terms and Conditions to proceed",
+                                      style: TextStyle(color: red),
+                                    )),
+                                // Added Logo Upload field
+                                _buildSignUpBtn(),
+                              ],
                             ),
                           ),
                         ),
@@ -800,8 +731,8 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -809,11 +740,13 @@ class _SignUpPageState extends State<SignUpPage> {
 }
 
 class OtpModalBottomSheet extends StatefulWidget {
+  final Function sendOtp;
   final String phoneNumber;
 
   const OtpModalBottomSheet({
     super.key,
     required this.phoneNumber,
+    required this.sendOtp,
   });
 
   @override
@@ -909,12 +842,24 @@ class _OtpModalBottomSheetState extends State<OtpModalBottomSheet> {
                 const SizedBox(
                   height: 20,
                 ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "OTP not recieved?",
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                    ResendButton(onPressed: () {
+                      widget.sendOtp();
+                    })
+                  ],
+                ),
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 25.0),
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      print('pressed');
+                      print('pressed2');
                       _verifyOtp();
                     },
                     style: ElevatedButton.styleFrom(

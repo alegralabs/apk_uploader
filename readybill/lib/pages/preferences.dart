@@ -7,9 +7,9 @@ import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/color_constants.dart';
 
-
 import 'package:readybill/pages/login_page.dart';
 import 'package:readybill/services/api_services.dart';
+import 'package:readybill/services/global_internet_connection_handler.dart';
 
 class PreferencesPage extends StatefulWidget {
   const PreferencesPage({super.key});
@@ -60,22 +60,20 @@ class _PreferencesPageState extends State<PreferencesPage> {
         barrierDismissible: false,
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content:
-                const Text('An error occurred. Please login and try again.'),
+          return customAlertBox(
+            title: 'Error',
+            content: 'An error occurred. Please login and try again.',
             actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  // Redirect to login page
-                  Navigator.pushReplacement(
-                    context,
+              customElevatedButton(
+                'Login',
+                green2,
+                white,
+                () {
+                  navigatorKey.currentState?.pushReplacement(
                     CupertinoPageRoute(builder: (context) => const LoginPage()),
                   );
                 },
-                child: const Text('OK'),
-              ),
+              )
             ],
           );
         },
@@ -115,16 +113,13 @@ class _PreferencesPageState extends State<PreferencesPage> {
       showDialog(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Success'),
-            content: const Text('User preferences updated successfully.'),
+          return customAlertBox(
+            title: 'Success',
+            content: 'User preferences updated successfully.',
             actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('OK'),
-              ),
+              customElevatedButton('OK', green2, white, () {
+                navigatorKey.currentState?.pop();
+              }),
             ],
           );
         },
@@ -133,16 +128,13 @@ class _PreferencesPageState extends State<PreferencesPage> {
       showDialog(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: const Text('Failed to update user preferences.'),
+          return customAlertBox(
+            title: 'Error',
+            content: 'Failed to update user preferences.',
             actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('OK'),
-              ),
+              customElevatedButton('OK', green2, white, () {
+                navigatorKey.currentState?.pop();
+              }),
             ],
           );
         },

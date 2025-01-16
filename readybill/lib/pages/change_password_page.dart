@@ -5,6 +5,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/components/custom_components.dart';
+import 'package:readybill/components/resend_button.dart';
 import 'package:readybill/pages/login_page.dart';
 
 import 'package:readybill/services/api_services.dart';
@@ -14,32 +15,27 @@ import 'package:pinput/pinput.dart';
 import 'package:http/http.dart' as http;
 
 class ChangePasswordPage extends StatefulWidget {
+  final String phoneNumber;
   final String smsType;
-  const ChangePasswordPage({super.key, required this.smsType});
+  const ChangePasswordPage(
+      {super.key, required this.smsType, required this.phoneNumber});
 
   @override
   State<ChangePasswordPage> createState() => _ChangePasswordPageState();
 }
 
 class _ChangePasswordPageState extends State<ChangePasswordPage> {
-  TextEditingController phoneNumberController = TextEditingController();
   TextEditingController otpController = TextEditingController();
   TextEditingController newPasswordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
-  final _otpFormKey = GlobalKey<FormState>();
+
   final _passwordFormKey = GlobalKey<FormState>();
   bool otpSent = false;
-  FocusNode phoneNumberFocusNode = FocusNode();
+
   FocusNode otpFocusNode = FocusNode();
   FocusNode newPasswordFocusNode = FocusNode();
 
-  bool _isPhoneNumberErrorVisible() {
-    return phoneNumberController.text.isNotEmpty &&
-        (phoneNumberController.text.length < 10 ||
-            phoneNumberController.text.length > 10);
-  }
-
-  Future _verifyOtp(String otp, String phoneNumber) async {
+  Future _verifyOtp(String otp) async {
     var token = await APIService.getToken();
     var authKey = await APIService.getXApiKey();
     EasyLoading.show(status: 'Verifying OTP');
@@ -49,7 +45,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       'auth-key': '$authKey',
     }, body: {
       'type': 'verify-otp',
-      'mobile': phoneNumber,
+      'mobile': widget.phoneNumber,
       'otp': otp
     });
     EasyLoading.dismiss();
@@ -73,14 +69,11 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       'Authorization': 'Bearer $token',
       'auth-key': '$authKey',
     }, body: {
-      'mobile': phoneNumberController.text,
+      'mobile': widget.phoneNumber,
       'password': newPasswordController.text,
       'password_confirmation': confirmPasswordController.text
     });
     print(response.body);
-    print(phoneNumberController.text);
-    print(newPasswordController.text);
-
     if (response.statusCode == 200) {
       Fluttertoast.showToast(
           msg:
@@ -158,17 +151,14 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   @override
   void initState() {
     super.initState();
-    phoneNumberFocusNode.requestFocus();
   }
 
   @override
   void dispose() {
-    phoneNumberController.dispose();
-
     super.dispose();
   }
 
-  sendOtp(String phoneNumber) async {
+  sendOtp() async {
     var token = await APIService.getToken();
     var authKey = await APIService.getXApiKey();
     print('button tapped');
@@ -177,7 +167,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       'Authorization': 'Bearer $token',
       'auth-key': '$authKey',
     }, body: {
-      'mobile': phoneNumber,
+      'mobile': widget.phoneNumber,
       'type': 'send-otp',
       'sms_type': widget.smsType,
     });
@@ -201,126 +191,116 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: SingleChildScrollView(
-          child: Form(
-            key: _otpFormKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Text(
-                    "To change your password, we will need to send you an OTP in your registered mobile.\n\nClick Send OTP to confirm.\n\n"),
-                TextFormField(
-                    focusNode: phoneNumberFocusNode,
-                    cursorColor: green2,
-                    validator: (value) {
-                      if (value == null ||
-                          value.isEmpty ||
-                          value.length < 10 ||
-                          value.length > 10 ||
-                          int.tryParse(value) == null) {
-                        return 'Must be 10-digit Number';
-                      }
-                      return null;
-                    },
-                    controller: phoneNumberController,
-                    keyboardType: TextInputType.number,
-                    decoration: phoneNumberInputDecoration("Mobile Number")),
-                const SizedBox(height: 15),
-                Visibility(
-                  visible: otpSent,
-                  child: Center(
-                    child: Pinput(
-                      focusNode: otpFocusNode,
-                      showCursor: true,
-                      onChanged: (value) => setState(() {}),
-                      controller: otpController,
-                      focusedPinTheme: PinTheme(
-                        width: 50,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: green2,
-                        ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Text(
+                "Change Password",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Roboto_Regular',
+                ),
+              ),
+              const SizedBox(height: 15),
+              const Text(
+                "To change your password, we will need to send you an OTP in your registered mobile.\n\nClick Send OTP to confirm.\n",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 15),
+              Visibility(
+                visible: otpSent,
+                child: Center(
+                  child: Pinput(
+                    focusNode: otpFocusNode,
+                    showCursor: true,
+                    onChanged: (value) => setState(() {}),
+                    controller: otpController,
+                    focusedPinTheme: PinTheme(
+                      width: 50,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: green2,
                       ),
-                      defaultPinTheme: PinTheme(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: darkGrey,
-                        ),
-                      ),
-                      length: 6,
                     ),
+                    defaultPinTheme: PinTheme(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: darkGrey,
+                      ),
+                    ),
+                    length: 6,
                   ),
                 ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: otpSent
-                        ? () async {
-                            if (otpController.text.length == 6) {
-                              EasyLoading.show();
-                              try {
-                                _verifyOtp(otpController.text,
-                                    phoneNumberController.text);
-                                EasyLoading.dismiss();
-                              } catch (e) {
-                                Result.error("Book list not available");
-                              }
-                            } else {
-                              Fluttertoast.showToast(
-                                  msg: 'OTP has to be of 6 digits.');
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: otpSent
+                      ? () async {
+                          if (otpController.text.length == 6) {
+                            EasyLoading.show();
+                            try {
+                              _verifyOtp(otpController.text);
+                              EasyLoading.dismiss();
+                            } catch (e) {
+                              Result.error("Book list not available");
                             }
+                          } else {
+                            Fluttertoast.showToast(
+                                msg: 'OTP has to be of 6 digits.');
                           }
-                        : () {
-                            if (_otpFormKey.currentState!.validate()) {
-                              setState(() {
-                                sendOtp(phoneNumberController.text);
-                              });
-                            }
-                          },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.all(15.0),
-                      backgroundColor: otpSent
-                          ? otpController.text.length == 6
-                              ? green2
-                              : Colors.grey
-                          : green2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
+                        }
+                      : () {
+                          setState(() {
+                            sendOtp();
+                          });
+                        },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.all(15.0),
+                    backgroundColor: otpSent
+                        ? otpController.text.length == 6
+                            ? green2
+                            : Colors.grey
+                        : green2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
                     ),
-                    child: Text(
-                      otpSent ? 'Confirm' : 'Send OTP',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: white,
-                        fontFamily: 'Roboto-Regular',
-                      ),
+                  ),
+                  child: Text(
+                    otpSent ? 'Confirm' : 'Send OTP',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: white,
+                      fontFamily: 'Roboto-Regular',
                     ),
                   ),
                 ),
-                otpSent
-                    ? Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            "OTP not recieved?",
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                          TextButton(
-                              onPressed: () {
-                                sendOtp(phoneNumberController.text);
-                              },
-                              child: const Text('Resend'))
-                        ],
-                      )
-                    : const SizedBox.shrink(),
-                SizedBox(height: MediaQuery.of(context).size.height * 0.2),
-              ],
-            ),
+              ),
+              otpSent
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "OTP not recieved?",
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                        ResendButton(
+                          onPressed: () {
+                            sendOtp();
+                          },
+                        ),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+              SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+            ],
           ),
         ),
       ),

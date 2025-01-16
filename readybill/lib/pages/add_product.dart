@@ -67,7 +67,6 @@ class AddInventory extends StatefulWidget {
 }
 
 class _AddInventoryState extends State<AddInventory> {
-
   List<String> fullUnits = [
     'Full Unit',
     'Bags',
@@ -164,16 +163,13 @@ class _AddInventoryState extends State<AddInventory> {
         showDialog(
           context: context,
           builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Upload Succesful'),
-              content: const Text("File Uploaded Successfully"),
+            return customAlertBox(
+              title: "Upload Succesful",
+              content: "File Uploaded Successfully",
               actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('OK'),
-                ),
+                customElevatedButton("OK", green2, white, () {
+                  navigatorKey.currentState?.pop();
+                }),
               ],
             );
           },
@@ -183,17 +179,13 @@ class _AddInventoryState extends State<AddInventory> {
         showDialog(
           context: context,
           builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Upload Error'),
-              content:
-                  const Text('Duplicate entry found, please check the file'),
+            return customAlertBox(
+              title: 'Upload Error',
+              content: 'Duplicate entry found, please check the file',
               actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('OK'),
-                ),
+                customElevatedButton("OK", green2, white, () {
+                  navigatorKey.currentState?.pop();
+                }),
               ],
             );
           },
@@ -240,12 +232,12 @@ class _AddInventoryState extends State<AddInventory> {
   //           showDialog(
   //             context: context,
   //             builder: (BuildContext context) {
-  //               return AlertDialog(
+  //               return customAlertBox(
   //                 title: const Text('Download Success'),
   //                 content: Text('File downloaded successfully to $filePath'),
   //                 actions: [
   //                   TextButton(
-  //                     onPressed: () => Navigator.of(context).pop(),
+  //                     onPressed: () => navigatorKey.currentState?.pop(),
   //                     child: const Text('OK'),
   //                   ),
   //                 ],
@@ -264,12 +256,12 @@ class _AddInventoryState extends State<AddInventory> {
   //     showDialog(
   //       context: context,
   //       builder: (BuildContext context) {
-  //         return AlertDialog(
+  //         return customAlertBox(
   //           title: const Text('Download Error'),
   //           content: Text('Error: ${e.toString()}'),
   //           actions: [
   //             TextButton(
-  //               onPressed: () => Navigator.of(context).pop(),
+  //               onPressed: () => navigatorKey.currentState?.pop(),
   //               child: const Text('OK'),
   //             ),
   //           ],
@@ -327,7 +319,7 @@ class _AddInventoryState extends State<AddInventory> {
       isLoading = true;
     });
     var token = await APIService.getToken();
- 
+
     const String apiUrl = '$baseUrl/user-preferences';
     var apiKey = await APIService.getXApiKey();
     final response = await http.get(Uri.parse(apiUrl), headers: {
@@ -353,22 +345,16 @@ class _AddInventoryState extends State<AddInventory> {
         barrierDismissible: false,
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content:
-                const Text('An error occurred. Please login and try again.'),
+          return customAlertBox(
+            title: 'Error',
+            content: 'An error occurred. Please login and try again.',
             actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  // Redirect to login page
-                  Navigator.pushReplacement(
-                    context,
-                    CupertinoPageRoute(builder: (context) => const LoginPage()),
-                  );
-                },
-                child: const Text('OK'),
-              ),
+              customElevatedButton("OK", green2, white, () {
+                navigatorKey.currentState?.pop();
+                // Redirect to login page
+                navigatorKey.currentState?.pushReplacement(CupertinoPageRoute(
+                    builder: (context) => const LoginPage()));
+              }),
             ],
           );
         },
@@ -653,9 +639,9 @@ class _AddInventoryState extends State<AddInventory> {
         showDialog(
           context: context,
           builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text("Success"),
-              content: const Text("Item added successfully."),
+            return customAlertBox(
+              title: "Success",
+              content: "Item added successfully.",
               actions: [
                 TextButton(
                   onPressed: () {
@@ -680,7 +666,7 @@ class _AddInventoryState extends State<AddInventory> {
                       LocalDatabase2.instance.clearTable();
                       LocalDatabase2.instance.fetchDataAndStoreLocally();
                     });
-                    Navigator.of(context).pop(); // Close dialog
+                    navigatorKey.currentState?.pop(); // Close dialog
                   },
                   child: const Text("OK"),
                 ),
@@ -693,16 +679,13 @@ class _AddInventoryState extends State<AddInventory> {
         showDialog(
           context: context,
           builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text("Unauthorized"),
-              content: const Text("Token missing or unauthorized."),
+            return customAlertBox(
+              title: "Unauthorized",
+              content: "Token missing or unauthorized.",
               actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text("OK"),
-                ),
+                customElevatedButton("OK", green2, white, () {
+                  navigatorKey.currentState?.pop();
+                }),
               ],
             );
           },
@@ -713,16 +696,13 @@ class _AddInventoryState extends State<AddInventory> {
         showDialog(
           context: context,
           builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text("Error"),
-              content: Text("Error: ${errorData['message']}"),
+            return customAlertBox(
+              title: "Error",
+              content: "Error: ${errorData['message']}",
               actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text("OK"),
-                ),
+                customElevatedButton("OK", green2, white, () {
+                  navigatorKey.currentState?.pop();
+                }),
               ],
             );
           },
@@ -733,16 +713,13 @@ class _AddInventoryState extends State<AddInventory> {
       showDialog(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text("Error"),
-            content: Text("Error: $error"),
+          return customAlertBox(
+            title: "Error",
+            content: "Error: $error",
             actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text("OK"),
-              ),
+              customElevatedButton("OK", green2, white, () {
+                navigatorKey.currentState?.pop();
+              }),
             ],
           );
         },
@@ -755,23 +732,20 @@ class _AddInventoryState extends State<AddInventory> {
       barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Failed to Fetch User Details"),
-          content:
-              const Text("Unable to fetch user details. Please login again."),
+        return customAlertBox(
+          title: "Failed to Fetch User Details",
+          content: "Unable to fetch user details. Please login again.",
           actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                // Navigate to the login page
-                Navigator.pushReplacement(
-                  context,
-                  CupertinoPageRoute(
-                      builder: (context) =>
-                          const LoginPage()), // Change to AddItemScreen()
+            customElevatedButton(
+              'Login',
+              green2,
+              white,
+              () {
+                navigatorKey.currentState?.pushReplacement(
+                  CupertinoPageRoute(builder: (context) => const LoginPage()),
                 );
               },
-              child: const Text("Login"),
-            ),
+            )
           ],
         );
       },
@@ -822,17 +796,13 @@ class _AddInventoryState extends State<AddInventory> {
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Warning'),
-                      content:
-                          const Text('You cannot add more than 2 tax rows.'),
+                    return customAlertBox(
+                      title: 'Warning',
+                      content: 'You cannot add more than 2 tax rows.',
                       actions: <Widget>[
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text('OK'),
-                        ),
+                        customElevatedButton("OK", green2, white, () {
+                          navigatorKey.currentState?.pop();
+                        }),
                       ],
                     );
                   },

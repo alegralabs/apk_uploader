@@ -9,6 +9,7 @@ import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/pages/login_page.dart';
 import 'package:readybill/services/api_services.dart';
+import 'package:readybill/services/global_internet_connection_handler.dart';
 import 'package:readybill/services/result.dart';
 
 class ProductEditPage extends StatefulWidget {
@@ -174,23 +175,20 @@ class _ProductEditPageState extends State<ProductEditPage> {
       barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Failed to Fetch User Details"),
-          content:
-              const Text("Unable to fetch user details. Please login again."),
+        return customAlertBox(
+          title: "Failed to Fetch User Details",
+          content: "Unable to fetch user details. Please login again.",
           actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                // Navigate to the login page
-                Navigator.pushReplacement(
-                  context,
-                  CupertinoPageRoute(
-                      builder: (context) =>
-                          const LoginPage()), // Change to AddItemScreen()
+            customElevatedButton(
+              'Login',
+              green2,
+              white,
+              () {
+                navigatorKey.currentState?.pushReplacement(
+                  CupertinoPageRoute(builder: (context) => const LoginPage()),
                 );
               },
-              child: const Text("Login"),
-            ),
+            )
           ],
         );
       },
@@ -239,7 +237,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
       if (response.statusCode == 200) {
         var jsonResponse = jsonDecode(response.body);
         Fluttertoast.showToast(msg: jsonResponse['message']);
-        Navigator.of(context).pop();
+        navigatorKey.currentState?.pop();
       } else {
         var jsonResponse = jsonDecode(response.body);
         Fluttertoast.showToast(msg: jsonResponse['data'].toString());
@@ -307,17 +305,13 @@ class _ProductEditPageState extends State<ProductEditPage> {
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Warning'),
-                      content:
-                          const Text('You cannot add more than 2 tax rows.'),
+                    return customAlertBox(
+                      title: 'Warning',
+                      content: 'You cannot add more than 2 tax rows.',
                       actions: <Widget>[
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text('OK'),
-                        ),
+                        customElevatedButton("OK", green2, white, () {
+                          navigatorKey.currentState?.pop();
+                        }),
                       ],
                     );
                   },

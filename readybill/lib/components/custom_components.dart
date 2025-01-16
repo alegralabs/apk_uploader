@@ -131,3 +131,29 @@ customToast(String message) {
       textColor: black,
       fontSize: 16.0);
 }
+
+customAlertBox(
+    {required String title,
+    required String content,
+    required List<Widget> actions}) {
+  return AlertDialog(
+    title: Text(
+      title,
+      style: const TextStyle(
+        fontWeight: FontWeight.bold,
+        fontFamily: 'Roboto_Regular',
+      ),
+      textAlign: TextAlign.center,
+    ),
+    content: Text(
+      content,
+      style: const TextStyle(
+        fontWeight: FontWeight.bold,
+        fontFamily: 'Roboto_Regular',
+      ),
+      textAlign: TextAlign.center,
+    ),
+    actions: actions,
+    actionsAlignment: MainAxisAlignment.spaceEvenly,
+  );
+}

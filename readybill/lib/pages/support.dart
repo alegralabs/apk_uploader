@@ -10,56 +10,46 @@ class ContactSupportPage extends StatefulWidget {
 }
 
 class _ContactSupportPageState extends State<ContactSupportPage> {
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _messageController = TextEditingController();
-
-  int _selectedIndex = 2;
-
+  final List<Item> _items = List<Item>.generate(6, (index) {
+    return Item(
+        title: "Support Title $index", subTitle: "Support SubTitle $index");
+  });
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xff28a745),
-        foregroundColor: Colors.white,
-        onPressed: () {},
-        shape: const CircleBorder(),
-        child: const Icon(Icons.phone),
-      ),
-      bottomNavigationBar: CustomNavigationBar(
-        onItemSelected: (index) {
-          // Handle navigation item selection
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        selectedIndex: _selectedIndex,
-      ),
       appBar: customAppBar("Support"),
-      body: const Padding(
-        padding: EdgeInsets.all(16.0),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
+            const Text(
               'Contact Support',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
+              textAlign: TextAlign.center,
             ),
-            SizedBox(height: 16.0),
-            Text(
-              'Lorem ipsum dolor sit amet, consectetur adipiscing elit. '
-              'Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. '
-              'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris '
-              'nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in '
-              'reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla '
-              'pariatur. Excepteur sint occaecat cupidatat non proident, sunt in '
-              'culpa qui officia deserunt mollit anim id est laborum.',
-              style: TextStyle(
-                fontSize: 16,
+            const SizedBox(height: 16.0),
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.8,
+              child: SingleChildScrollView(
+                child: ExpansionPanelList(
+                  expansionCallback: (int index, bool isExpanded) {
+                    setState(() {
+                      _items[index].isExpanded = isExpanded;
+                    });
+                  },
+                  children: _items.map<ExpansionPanel>((Item item) {
+                    return ExpansionPanel(
+                        headerBuilder: (BuildContext context, bool isExpanded) {
+                          return ListTile(title: Text(item.title));
+                        },
+                        body: ListTile(title: Text(item.subTitle)),
+                        isExpanded: item.isExpanded);
+                  }).toList(),
+                ),
               ),
             ),
           ],
@@ -70,9 +60,17 @@ class _ContactSupportPageState extends State<ContactSupportPage> {
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _messageController.dispose();
     super.dispose();
   }
+}
+
+class Item {
+  String title;
+  String subTitle;
+  bool isExpanded;
+  Item({
+    required this.title,
+    required this.subTitle,
+    this.isExpanded = false,
+  });
 }
