@@ -8,6 +8,7 @@ import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/color_constants.dart';
 
 import 'package:readybill/pages/login_page.dart';
+import 'package:readybill/pages/subscriptions.dart';
 import 'package:readybill/services/api_services.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
 
@@ -40,6 +41,7 @@ class _PreferencesPageState extends State<PreferencesPage> {
       'Authorization': 'Bearer $token',
       'auth-key': '$apiKey',
     });
+    var jsonData = jsonDecode(response.body);
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
       final preferencesData = jsonData['data'];
@@ -53,16 +55,35 @@ class _PreferencesPageState extends State<PreferencesPage> {
         showHSNSACCodeInInvoice =
             preferencesData['preference_hsn_invoice'] == 1 ? true : false;
       });
+    } else if (response.statusCode == 403 &&
+        jsonData['message'] == 'No subscription found for the shop.') {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return customAlertBox(
+                title: "No Subscription Found",
+                content:
+                    "No valid subscription found for the shop.\nPress 'OK' to get a new subscription.",
+                actions: [
+                  customElevatedButton("OK", green2, white, () {
+                    navigatorKey.currentState!.pop();
+                    navigatorKey.currentState!.push(CupertinoPageRoute(
+                        builder: (context) => const Subscriptions()));
+                  }),
+                  customElevatedButton("Cancel", red, white, () {
+                    navigatorKey.currentState!.pop();
+                  })
+                ]);
+          });
     } else {
-      // Handle exceptions
-
       showDialog(
         barrierDismissible: false,
         context: context,
         builder: (BuildContext context) {
           return customAlertBox(
             title: 'Error',
-            content: 'An error occurred. Please login and try again.',
+            content:
+                'Error while fetching saved preferences. Please login and try again.',
             actions: <Widget>[
               customElevatedButton(
                 'Login',
@@ -73,7 +94,15 @@ class _PreferencesPageState extends State<PreferencesPage> {
                     CupertinoPageRoute(builder: (context) => const LoginPage()),
                   );
                 },
-              )
+              ),
+              customElevatedButton(
+                'Cancel',
+                red,
+                white,
+                () {
+                  navigatorKey.currentState?.pop();
+                },
+              ),
             ],
           );
         },

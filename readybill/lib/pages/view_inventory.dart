@@ -1,12 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+
 import 'package:readybill/components/bottom_navigation_bar.dart';
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/components/sidebar.dart';
 import 'package:readybill/pages/add_product.dart';
 import 'package:readybill/pages/edit_product.dart';
+import 'package:readybill/pages/subscriptions.dart';
+import 'package:readybill/services/global_internet_connection_handler.dart';
 
 import 'package:readybill/services/local_database_2.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,18 +32,39 @@ class _ProductListPageState extends State<ProductListPage> {
   final FocusNode _focusNode = FocusNode();
 
   int? isAdmin;
+  int? subscriptionExpired;
 
   @override
   void initState() {
     super.initState();
     _fetchProductsFromLocalDatabase();
     getPrefs();
-   
   }
 
   getPrefs() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     isAdmin = prefs.getInt('isAdmin');
+    if (prefs.getInt('subscriptionExpired') != 0) {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return customAlertBox(
+                title: "No Subscription Found",
+                content:
+                    "No valid subscription found for the shop.\nPress 'OK' to get a new subscription.",
+                actions: [
+                  customElevatedButton("OK", green2, white, () {
+                    navigatorKey.currentState!.pop();
+                    navigatorKey.currentState!.push(CupertinoPageRoute(
+                        builder: (context) => const Subscriptions()));
+                  }),
+                  customElevatedButton("Cancel", red, white, () {
+                    navigatorKey.currentState!.pop();
+                  })
+                ]);
+          });
+    }
+    
   }
 
   Future<void> _fetchProductsFromLocalDatabase() async {

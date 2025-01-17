@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/color_constants.dart';
+import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/pages/account.dart';
 import 'package:readybill/pages/add_product.dart';
 import 'package:readybill/pages/change_password_page.dart';
@@ -42,6 +43,7 @@ class _SidebarState extends State<Sidebar> {
   String shopName = '';
   String address = '';
   String phone = '';
+  int? subscriptionExpired;
 
   final Uri _userDataUrl = Uri.parse('$baseUrl/user-detail');
 
@@ -52,9 +54,31 @@ class _SidebarState extends State<Sidebar> {
     _getData();
   }
 
+  noSubscriptionDialog() {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return customAlertBox(
+              title: "No Subscription Found",
+              content:
+                  "No valid subscription found for the shop.\nPress 'OK' to get a new subscription.",
+              actions: [
+                customElevatedButton("OK", green2, white, () {
+                  navigatorKey.currentState!.pop();
+                  navigatorKey.currentState!.push(CupertinoPageRoute(
+                      builder: (context) => const Subscriptions()));
+                }),
+                customElevatedButton("Cancel", red, white, () {
+                  navigatorKey.currentState!.pop();
+                })
+              ]);
+        });
+  }
+
   Future<void> _getData() async {
     String? token = await APIService.getToken();
     var apiKey = await APIService.getXApiKey();
+
     final response = await http.get(
       _userDataUrl,
       headers: {'Authorization': 'Bearer $token', 'auth-key': '$apiKey'},
@@ -72,6 +96,7 @@ class _SidebarState extends State<Sidebar> {
           shopName = jsonData['data']['details']['business_name'];
           address = jsonData['data']['details']['address'];
           phone = jsonData['data']['mobile'];
+          subscriptionExpired = jsonData['isSubscriptionExpired'];
         });
       }
     }
@@ -174,10 +199,12 @@ class _SidebarState extends State<Sidebar> {
                     leading: const Icon(Icons.add),
                     title: const Text('Add Inventory'),
                     onTap: () {
-                      navigatorKey.currentState?.push(
-                        CupertinoPageRoute(
-                            builder: (context) => const AddInventory()),
-                      );
+                      subscriptionExpired == 0
+                          ? navigatorKey.currentState?.push(
+                              CupertinoPageRoute(
+                                  builder: (context) => const AddInventory()),
+                            )
+                          : noSubscriptionDialog();
                     },
                   )
                 : const SizedBox.shrink(),
@@ -186,10 +213,13 @@ class _SidebarState extends State<Sidebar> {
                     leading: const Icon(Icons.inventory_2_outlined),
                     title: const Text('Update Inventory'),
                     onTap: () {
-                      navigatorKey.currentState?.push(
-                        CupertinoPageRoute(
-                            builder: (context) => const ProductListPage()),
-                      );
+                      subscriptionExpired == 0
+                          ? navigatorKey.currentState?.push(
+                              CupertinoPageRoute(
+                                  builder: (context) =>
+                                      const ProductListPage()),
+                            )
+                          : noSubscriptionDialog();
                     },
                   )
                 : const SizedBox.shrink(),
@@ -197,10 +227,12 @@ class _SidebarState extends State<Sidebar> {
               leading: const Icon(Icons.document_scanner_outlined),
               title: const Text('Transactions'),
               onTap: () {
-                navigatorKey.currentState?.push(
-                  CupertinoPageRoute(
-                      builder: (context) => const TransactionListPage()),
-                );
+                subscriptionExpired == 0
+                    ? navigatorKey.currentState?.push(
+                        CupertinoPageRoute(
+                            builder: (context) => const TransactionListPage()),
+                      )
+                    : noSubscriptionDialog();
               },
             ),
             isAdmin == 1
@@ -208,10 +240,13 @@ class _SidebarState extends State<Sidebar> {
                     leading: const Icon(Icons.person_add_outlined),
                     title: const Text('Add Employee'),
                     onTap: () {
-                      navigatorKey.currentState?.push(
-                        CupertinoPageRoute(
-                            builder: (context) => const EmployeeSignUpPage()),
-                      );
+                      subscriptionExpired == 0
+                          ? navigatorKey.currentState?.push(
+                              CupertinoPageRoute(
+                                  builder: (context) =>
+                                      const EmployeeSignUpPage()),
+                            )
+                          : noSubscriptionDialog();
                     },
                   )
                 : const SizedBox.shrink(),
@@ -220,10 +255,13 @@ class _SidebarState extends State<Sidebar> {
                     leading: const Icon(Icons.settings_outlined),
                     title: const Text('Preferences'),
                     onTap: () {
-                      navigatorKey.currentState?.push(
-                        CupertinoPageRoute(
-                            builder: (context) => const PreferencesPage()),
-                      );
+                      subscriptionExpired == 0
+                          ? navigatorKey.currentState?.push(
+                              CupertinoPageRoute(
+                                  builder: (context) =>
+                                      const PreferencesPage()),
+                            )
+                          : noSubscriptionDialog();
                     },
                   )
                 : const SizedBox.shrink(),
@@ -231,9 +269,12 @@ class _SidebarState extends State<Sidebar> {
               leading: const Icon(Icons.account_circle_outlined),
               title: const Text('Account'),
               onTap: () {
-                navigatorKey.currentState?.push(
-                  CupertinoPageRoute(builder: (context) => const UserAccount()),
-                );
+                subscriptionExpired == 0
+                    ? navigatorKey.currentState?.push(
+                        CupertinoPageRoute(
+                            builder: (context) => const UserAccount()),
+                      )
+                    : noSubscriptionDialog();
               },
             ),
             isAdmin == 1
@@ -241,13 +282,15 @@ class _SidebarState extends State<Sidebar> {
                     leading: const Icon(Icons.password_outlined),
                     title: const Text('Change Password'),
                     onTap: () {
-                      navigatorKey.currentState?.push(
-                        CupertinoPageRoute(
-                            builder: (context) =>  ChangePasswordPage(
-                                  smsType: 'change_password',
-                                  phoneNumber: phone,
-                                )),
-                      );
+                      subscriptionExpired == 0
+                          ? navigatorKey.currentState?.push(
+                              CupertinoPageRoute(
+                                  builder: (context) => ChangePasswordPage(
+                                        smsType: 'change_password',
+                                        phoneNumber: phone,
+                                      )),
+                            )
+                          : noSubscriptionDialog();
                     },
                   )
                 : const SizedBox.shrink(),

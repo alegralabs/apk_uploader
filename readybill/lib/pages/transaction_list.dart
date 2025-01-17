@@ -7,8 +7,9 @@ import 'dart:convert';
 
 import 'package:intl/intl.dart';
 import 'package:readybill/components/api_constants.dart';
-import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/color_constants.dart';
+import 'package:readybill/components/custom_components.dart';
+
 import 'package:readybill/models/transaction.dart';
 import 'package:readybill/pages/transaction_details.dart';
 import 'package:readybill/services/api_services.dart';
@@ -143,7 +144,7 @@ class _SearchBar extends StatefulWidget {
   final String selectedColumn;
   final Function(String?) onColumnSelect;
 
-  _SearchBar({
+  const _SearchBar({
     required this.onSearch,
     required this.selectedColumn,
     required this.onColumnSelect,
@@ -239,6 +240,7 @@ class _TransactionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var screenWidth = MediaQuery.of(context).size.width;
     var groupedTransactions = _groupTransactionsByMonth(filteredTransactions);
     var sortedMonths = groupedTransactions.keys.toList()
       ..sort((a, b) =>
@@ -255,7 +257,7 @@ class _TransactionList extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
-              color: Colors.grey[300],
+              color: green2.withOpacity(0.4),
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Center(
                 child: Row(
@@ -289,6 +291,7 @@ class _TransactionList extends StatelessWidget {
             ),
             DataTable(
               showCheckboxColumn: false,
+              columnSpacing: screenWidth * 0.05,
               columns: const [
                 DataColumn(label: Text('Invoice')),
                 DataColumn(label: Text('Transactions')),
@@ -299,19 +302,35 @@ class _TransactionList extends StatelessWidget {
                 int totalPrice = int.parse(transaction.totalPrice);
                 return DataRow(
                   cells: [
-                    DataCell(Text(transaction.invoiceNumber)),
-                    DataCell(SizedBox(
-                      width: 100,
-                      child: Text(
-                        getProductNames(transaction.itemList),
-                        overflow: TextOverflow.ellipsis,
+                    DataCell(
+                      SizedBox(
+                        width: screenWidth * 0.15,
+                        child: Text(transaction.invoiceNumber),
                       ),
-                    )),
-                    DataCell(Text(totalPrice > 0
-                        ? "₹$totalPrice"
-                        : "-₹${totalPrice.abs()}")),
-                    DataCell(SizedBox(
-                        width: 70, child: Text(transaction.createdAt))),
+                    ),
+                    DataCell(
+                      SizedBox(
+                        width: screenWidth * 0.33,
+                        child: Text(
+                          getProductNames(transaction.itemList),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      SizedBox(
+                        width: screenWidth * 0.08,
+                        child: Text(totalPrice > 0
+                            ? "₹$totalPrice"
+                            : "-₹${totalPrice.abs()}"),
+                      ),
+                    ),
+                    DataCell(
+                      SizedBox(
+                        width: screenWidth * 0.2,
+                        child: Text(transaction.createdAt),
+                      ),
+                    ),
                   ],
                   onSelectChanged: (isSelected) {
                     if (isSelected != null && isSelected) {

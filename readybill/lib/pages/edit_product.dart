@@ -11,6 +11,7 @@ import 'package:readybill/pages/login_page.dart';
 import 'package:readybill/services/api_services.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
 import 'package:readybill/services/result.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProductEditPage extends StatefulWidget {
   final int productId;
@@ -82,7 +83,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
   List<Key> taxRateRowKeys = [];
   Map<int, String> rateControllers = {};
   Map<int, String> taxControllers = {};
-  bool isAdmin = false;
+  int? isAdmin;
 
   String? token;
   String? apiKey;
@@ -127,6 +128,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
   Future<void> _initializeData() async {
     token = await APIService.getToken();
     apiKey = await APIService.getXApiKey();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    isAdmin = prefs.getInt('isAdmin');
     APIService.getUserDetails(token, _showFailedDialog);
     _fetchProductDetails();
   }
@@ -146,7 +149,6 @@ class _ProductEditPageState extends State<ProductEditPage> {
       });
       print(response.body);
       if (response.statusCode == 200) {
-        isAdmin = true;
         var jsonData = jsonDecode(response.body)['data'];
         print(jsonData);
         setState(() {
@@ -354,7 +356,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
                 ), // Change color here
               ), // Show loading indicator
             )
-          : isAdmin == true
+          : isAdmin == 1
               ? SingleChildScrollView(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),

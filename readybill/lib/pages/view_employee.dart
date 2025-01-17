@@ -11,9 +11,11 @@ import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/components/sidebar.dart';
 import 'package:readybill/pages/add_employee.dart';
+import 'package:readybill/pages/subscriptions.dart';
 import 'package:readybill/pages/view_employee_details.dart';
 import 'package:readybill/services/api_services.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Employee {
   final int id;
@@ -62,8 +64,7 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
   String _searchQuery = '';
 
   List<Employee> _filteredEmployees = [];
-
-  bool isAdmin = false;
+  int? isAdmin;
 
   @override
   void initState() {
@@ -74,6 +75,8 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
   }
 
   Future<List<Employee>> fetchEmployees() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    isAdmin = prefs.getInt('isAdmin');
     const String apiUrl = '$baseUrl/all-sub-users-without-pagination';
     var token = await APIService.getToken();
     var apiKey = await APIService.getXApiKey();
@@ -84,10 +87,10 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
         'auth-key': '$apiKey',
       },
     );
-    print(response.statusCode);
+    var jsonData = jsonDecode(response.body);
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
-      isAdmin = true;
+
       final List<dynamic> EmployeesData = jsonData['data'];
 
       print(EmployeesData);
@@ -95,6 +98,27 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
       var data = EmployeesData.map((json) => Employee.fromJson(json)).toList();
 
       return data;
+    } else if (response.statusCode == 403 &&
+        jsonData['message'] == 'No subscription found for the shop.') {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return customAlertBox(
+                title: "No Subscription Found",
+                content:
+                    "No valid subscription found for the shop.\nPress 'OK' to get a new subscription.",
+                actions: [
+                  customElevatedButton("OK", green2, white, () {
+                    navigatorKey.currentState!.pop();
+                    navigatorKey.currentState!.push(CupertinoPageRoute(
+                        builder: (context) => const Subscriptions()));
+                  }),
+                  customElevatedButton("Cancel", red, white, () {
+                    navigatorKey.currentState!.pop();
+                  })
+                ]);
+          });
+      return [];
     } else {
       throw Exception(response.body);
     }
@@ -196,7 +220,7 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
     bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: isKeyboardVisible || isAdmin == false
+      floatingActionButton: isKeyboardVisible || isAdmin == 0
           ? null
           : FloatingActionButton(
               backgroundColor: green2,
@@ -224,7 +248,7 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
         child: Sidebar(),
       ),
       appBar: customAppBar("Employees"),
-      body: isAdmin == true
+      body: isAdmin == 1
           ? Column(
               children: [
                 _SearchBar(

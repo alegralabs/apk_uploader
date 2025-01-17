@@ -76,8 +76,8 @@ class _SubscriptionsState extends State<Subscriptions> {
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
         setState(() {
-          currentPlan = jsonData["subscription_current_plan"];
-          expiryDate = jsonData["subscription_expiry_date"];
+          currentPlan = jsonData["subscription_current_plan"] ?? 'N/A';
+          expiryDate = jsonData["subscription_expiry_date"] ?? 'N/A';
         });
       }
     } catch (e) {

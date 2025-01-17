@@ -104,8 +104,9 @@ class _LoginPageState extends State<LoginPage> {
           title: title,
           content: content,
           actions: [
-            customElevatedButton(
-                "OK", green, white,  (){navigatorKey.currentState?.pop();})
+            customElevatedButton("OK", green, white, () {
+              navigatorKey.currentState?.pop();
+            })
           ],
         );
       },
@@ -302,7 +303,9 @@ class _LoginPageState extends State<LoginPage> {
                                                   phoneNumInt!, password);
                                           EasyLoading.dismiss();
 
-                                          if (response['status'] == 'success') {
+                                          if (response['status'] == 'success' ||
+                                              response['status'] ==
+                                                  'subscription-failed') {
                                             APIService
                                                 .getUserDetailsWithoutDialog(
                                                     response['data']['token']);
@@ -310,7 +313,9 @@ class _LoginPageState extends State<LoginPage> {
                                             await storeTokenAndUser(
                                                 response['data']['token'],
                                                 response['data']['user'],
-                                                response['data']['api_key']);
+                                                response['data']['api_key'],
+                                                response[
+                                                    'isSubscriptionExpired']);
                                           } else if (response['status'] ==
                                                   'failed' &&
                                               response['message'] ==
@@ -402,8 +407,8 @@ class _LoginPageState extends State<LoginPage> {
       },
       body: jsonEncode({"mobile": phoneNumber, "password": password}),
     );
-    if (response.statusCode == 200) {
-      //print("login succesful, response: ${response.body}");
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
       Navigator.pushReplacement(
         context,
         CupertinoPageRoute(builder: (context) => const HomePage()),
@@ -471,9 +476,10 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Future<void> storeTokenAndUser(
-      String token, Map<String, dynamic> userData, String apiKey) async {
+  Future<void> storeTokenAndUser(String token, Map<String, dynamic> userData,
+      String apiKey, int subscriptionExpired) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('subscriptionExpired', subscriptionExpired);
     await prefs.setString('token', token);
     await prefs.setString('user', userData.toString());
     await prefs.setString('auth-key', apiKey);

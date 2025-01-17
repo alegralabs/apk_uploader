@@ -114,6 +114,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                     }
                     return null;
                   },
+                  
                   obscureText: true,
                   controller: newPasswordController,
                   decoration: customTfInputDecoration("Enter New Password"),
@@ -129,6 +130,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                       }
                       return null;
                     },
+                    obscureText: true,
                     controller: confirmPasswordController,
                     keyboardType: TextInputType.text,
                     decoration: customTfInputDecoration("Confirm Password")),
