@@ -302,20 +302,28 @@ class _LoginPageState extends State<LoginPage> {
                                               await loginUser(
                                                   phoneNumInt!, password);
                                           EasyLoading.dismiss();
-
+                                          print(
+                                              "response status: ${response['status']}");
                                           if (response['status'] == 'success' ||
                                               response['status'] ==
                                                   'subscription-failed') {
                                             APIService
                                                 .getUserDetailsWithoutDialog(
                                                     response['data']['token']);
-                                            // Successful login
+                                            print("here 1");
+                                            print(
+                                                "store token and user data:  \n api_key: ${response['data']['api_key']},\n isSubscriptionExpired: ${response['isSubscriptionExpired']}");
                                             await storeTokenAndUser(
                                                 response['data']['token'],
                                                 response['data']['user'],
-                                                response['data']['api_key'],
-                                                response[
-                                                    'isSubscriptionExpired']);
+                                                response['data']['api_key']);
+                                            Navigator.pushReplacement(
+                                              context,
+                                              CupertinoPageRoute(
+                                                  builder: (context) =>
+                                                      const HomePage()),
+                                            );
+                                            print("here 2");
                                           } else if (response['status'] ==
                                                   'failed' &&
                                               response['message'] ==
@@ -378,7 +386,10 @@ class _LoginPageState extends State<LoginPage> {
                                                   builder: (context) =>
                                                       const SignUpPage()));
                                         },
-                                        child: const Text('Register Now'))
+                                        child: const Text(
+                                          'Register Now',
+                                          style: TextStyle(color: green),
+                                        ))
                                   ],
                                 ),
                               ],
@@ -409,10 +420,6 @@ class _LoginPageState extends State<LoginPage> {
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      Navigator.pushReplacement(
-        context,
-        CupertinoPageRoute(builder: (context) => const HomePage()),
-      );
       Timer.periodic(const Duration(seconds: 1), (timer) {
         _localDatabase.clearTable();
         _localDatabase.fetchDataAndStoreLocally();
@@ -423,9 +430,8 @@ class _LoginPageState extends State<LoginPage> {
         }
       });
 
-      // Successful login
       final Map<String, dynamic> responseData = json.decode(response.body);
-      // No need to show any dialog, just return the response data
+
       return responseData;
     } else {
       // Handle non-200 status codes
@@ -476,10 +482,11 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Future<void> storeTokenAndUser(String token, Map<String, dynamic> userData,
-      String apiKey, int subscriptionExpired) async {
+  Future<void> storeTokenAndUser(
+      String token, Map<String, dynamic> userData, String apiKey) async {
+    print("Store token and user");
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('subscriptionExpired', subscriptionExpired);
+
     await prefs.setString('token', token);
     await prefs.setString('user', userData.toString());
     await prefs.setString('auth-key', apiKey);

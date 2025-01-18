@@ -44,7 +44,8 @@ class _ProductListPageState extends State<ProductListPage> {
   getPrefs() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     isAdmin = prefs.getInt('isAdmin');
-    if (prefs.getInt('subscriptionExpired') != 0) {
+    print(" sub exp: ${prefs.getInt('isSubscriptionExpired')}");
+    if (prefs.getInt('isSubscriptionExpired') != 0) {
       showDialog(
           context: context,
           builder: (context) {
@@ -64,7 +65,6 @@ class _ProductListPageState extends State<ProductListPage> {
                 ]);
           });
     }
-    
   }
 
   Future<void> _fetchProductsFromLocalDatabase() async {

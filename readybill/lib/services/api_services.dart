@@ -80,10 +80,13 @@ class APIService {
 
       String name = userData['data']['name'];
       int isAdmin = userData['data']['isAdmin'];
+      int isSubscriptionExpired = userData['isSubscriptionExpired'];
+      //print("isSubscriptionExpired: $isSubscriptionExpired");
       // String username = userData['data']['username'];
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('name', name);
       await prefs.setInt('isAdmin', isAdmin);
+      await prefs.setInt('isSubscriptionExpired', isSubscriptionExpired);
       // await prefs.setString('username', username);
 
       return response.statusCode; // Return the response status code directly
