@@ -81,6 +81,7 @@ class APIService {
       String name = userData['data']['name'];
       int isAdmin = userData['data']['isAdmin'];
       int isSubscriptionExpired = userData['isSubscriptionExpired'];
+      print("isAdmin: $isAdmin");
       //print("isSubscriptionExpired: $isSubscriptionExpired");
       // String username = userData['data']['username'];
       SharedPreferences prefs = await SharedPreferences.getInstance();

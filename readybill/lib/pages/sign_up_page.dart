@@ -51,6 +51,10 @@ class _SignUpPageState extends State<SignUpPage> {
   TextEditingController gstinController = TextEditingController();
   FocusNode phoneNumberFocusNode = FocusNode();
 
+  String phoneNumberErrorMessage = "";
+
+  String emailErrorMessage = "";
+
   final _formKey = GlobalKey<FormState>();
   bool tncError = false;
 
@@ -163,11 +167,12 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget _buildPasswordTF() {
     // Flag to toggle password visibility
     return TextFormField(
-      textCapitalization: TextCapitalization.sentences,
+      // textCapitalization: TextCapitalization.sentences,
       controller: passwordController,
       obscureText: isPasswordObscure,
+      keyboardType: TextInputType.visiblePassword,
       decoration: InputDecoration(
-        errorStyle: TextStyle(color: red),
+        errorStyle: const TextStyle(color: red),
         filled: true,
         fillColor: white,
         hintText: 'Password *',
@@ -208,7 +213,8 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget _buildConfirmPasswordTF() {
     return TextFormField(
       obscureText: isConfirmPasswordObscure,
-      textCapitalization: TextCapitalization.sentences,
+      // textCapitalization: TextCapitalization.sentences,
+      keyboardType: TextInputType.visiblePassword,
       controller: confirmPasswordController,
       decoration: InputDecoration(
         errorStyle: const TextStyle(color: red),
@@ -251,7 +257,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Widget _buildFullNameTF() {
     return TextFormField(
-      textCapitalization: TextCapitalization.sentences,
+      textCapitalization: TextCapitalization.words,
       controller: fullNameController,
       keyboardType: TextInputType.text,
       decoration: const InputDecoration(
@@ -281,7 +287,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Widget _buildBuisnessNameTF() {
     return TextFormField(
-      textCapitalization: TextCapitalization.sentences,
+      textCapitalization: TextCapitalization.words,
       controller: buisnessNameController,
       keyboardType: TextInputType.text,
       decoration: const InputDecoration(
@@ -311,7 +317,6 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Widget _buildEmailTF() {
     return TextFormField(
-      textCapitalization: TextCapitalization.sentences,
       controller: emailController,
       keyboardType: TextInputType.emailAddress,
       decoration: const InputDecoration(
@@ -516,6 +521,8 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   Future<void> submitData() async {
+    phoneNumberErrorMessage = "";
+    emailErrorMessage = "";
     var response = await sendOtp();
     var responseBody = await response.stream.bytesToString();
     print(responseBody);
@@ -528,9 +535,75 @@ class _SignUpPageState extends State<SignUpPage> {
                 phoneNumber: mobileNumberController.text,
               ));
     } else {
-      Fluttertoast.showToast(msg: jsonData['data']['errors'].toString());
+      if (jsonData['data']['errors']['mobile'] != null) {
+        setState(() {
+          phoneNumberErrorMessage = jsonData['data']['errors']['mobile'][0];
+        });
+      } else {
+        setState(() {
+          phoneNumberErrorMessage = "";
+        });
+      }
+
+      if (jsonData['data']['errors']['email'] != null) {
+        setState(() {
+          emailErrorMessage = jsonData['data']['errors']['email'][0];
+        });
+      } else {
+        setState(() {
+          emailErrorMessage = "";
+        });
+      }
+      // Future.delayed(const Duration(seconds: 1), () {
+      //   setState(() {});
+      // });
+      // showDialog(
+      //     context: context,
+      //     builder: (context) {
+      //       return customAlertBox(
+      //           title: "Error",
+      //           content:
+      //               "Email Exists: $emailExists\nMobile Number Exists: $phoneNumberError",
+      //           actions: [
+      //             customElevatedButton("OK", green, white, () {
+      //               navigatorKey.currentState?.pop();
+      //             })
+      //           ]);
+      //     });
+      // Fluttertoast.showToast(msg: jsonData['data']['errors'].toString());
     }
     // Call the function to show the response dialog
+  }
+
+  showEmailErrorMessage() {
+    if (emailErrorMessage != '') {
+      return Row(
+        children: [
+          Text(
+            emailErrorMessage,
+            textAlign: TextAlign.start,
+            style: const TextStyle(color: red),
+          ),
+        ],
+      );
+    } else {
+      return const SizedBox.shrink();
+    }
+  }
+
+  showPhoneNumberErrorMessage() {
+    if (phoneNumberErrorMessage != '') {
+      return Row(
+        children: [
+          Text(
+            phoneNumberErrorMessage,
+            style: const TextStyle(color: red),
+          ),
+        ],
+      );
+    } else {
+      return const SizedBox.shrink();
+    }
   }
 
   void showApiResponseDialog(
@@ -566,10 +639,9 @@ class _SignUpPageState extends State<SignUpPage> {
           title: title,
           content: content,
           actions: <Widget>[
-             customElevatedButton(
-                                            'Close', green2, white, () {
-                                          navigatorKey.currentState?.pop();
-                                        })
+            customElevatedButton('Close', green2, white, () {
+              navigatorKey.currentState?.pop();
+            })
           ],
         );
       },
@@ -667,6 +739,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 _buildLogoPicker(),
                                 const SizedBox(height: 30),
                                 _buildMobileNumberTF(),
+                                showPhoneNumberErrorMessage(),
                                 const SizedBox(height: 15),
                                 _buildPasswordTF(),
                                 const SizedBox(height: 15),
@@ -677,6 +750,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 _buildBuisnessNameTF(),
                                 const SizedBox(height: 15),
                                 _buildEmailTF(),
+                                showEmailErrorMessage(),
                                 const SizedBox(height: 15),
                                 _buildAddressTF(),
                                 const SizedBox(height: 15),
@@ -829,8 +903,19 @@ class _OtpModalBottomSheetState extends State<OtpModalBottomSheet> {
                   focusNode: otpFocusNode,
                   onChanged: (value) => setState(() {}),
                   controller: otpController,
-                  focusedPinTheme: PinTheme(
+                  defaultPinTheme: PinTheme(
+                    textStyle: const TextStyle(
+                        fontSize: 22, fontWeight: FontWeight.bold),
                     width: 50,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: darkGrey,
+                    ),
+                  ),
+                  focusedPinTheme: PinTheme(
+                    textStyle: const TextStyle(fontSize: 22),
+                    width: 60,
                     height: 60,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),

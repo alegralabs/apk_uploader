@@ -225,18 +225,29 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                   visible: otpSent,
                                   child: Center(
                                     child: Pinput(
+                                      
                                       focusNode: _otpFocusNode,
                                       onChanged: (value) => setState(() {}),
                                       controller: otpController,
-                                      focusedPinTheme: PinTheme(
-                                        width: 50,
-                                        height: 60,
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          color: green,
-                                        ),
-                                      ),
+                                      defaultPinTheme: PinTheme(
+                    textStyle: const TextStyle(
+                        fontSize: 22, fontWeight: FontWeight.bold),
+                    width: 50,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: darkGrey,
+                    ),
+                  ),
+                  focusedPinTheme: PinTheme(
+                    textStyle: const TextStyle(fontSize: 22),
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: green,
+                    ),
+                  ),
                                       length: 6,
                                     ),
                                   ),

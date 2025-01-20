@@ -15,6 +15,7 @@ import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/services/api_services.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 String userDetailsAPI = "$baseUrl/user-detail";
 
@@ -67,6 +68,7 @@ class _UserAccountState extends State<UserAccount> {
   XFile? logoImageFile;
   String? logo;
   File? selectedImageFile;
+  int isAdmin = 0;
   @override
   void initState() {
     super.initState();
@@ -74,56 +76,94 @@ class _UserAccountState extends State<UserAccount> {
   }
 
   _submitData() async {
-    var token = await APIService.getToken();
-    var apiKey = await APIService.getXApiKey();
+    if (isAdmin == 1) {
+      var token = await APIService.getToken();
+      var apiKey = await APIService.getXApiKey();
 
-    try {
-      // Create multipart request
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse('$baseUrl/update-profile'),
-      );
-
-      // Add headers
-      request.headers.addAll({
-        'Authorization': 'Bearer $token',
-        'auth-key': '$apiKey',
-      });
-
-      // Add text fields
-      request.fields.addAll({
-        'user_id': userDetail!.id.toString(),
-        'name': nameController.text,
-        'email': emailController.text,
-        'mobile': phoneController.text,
-        'address': addressController.text,
-        'shop_type': shopTypeController.text,
-        'gstin': gstinController.text,
-        'isLogoDelete': '0',
-      });
-
-      // Add logo file if exists
-      if (logoImageFile != null) {
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'logo',
-            logoImageFile!.path,
-          ),
+      try {
+        // Create multipart request
+        var request = http.MultipartRequest(
+          'POST',
+          Uri.parse('$baseUrl/update-profile'),
         );
-      }
-      EasyLoading.show(status: 'Updating...');
 
-      var streamedResponse = await request.send();
-      var response = await http.Response.fromStream(streamedResponse);
+        // Add headers
+        request.headers.addAll({
+          'Authorization': 'Bearer $token',
+          'auth-key': '$apiKey',
+        });
 
-      EasyLoading.dismiss();
-      if (response.statusCode == 201) {
+        // Add text fields
+        request.fields.addAll({
+          'user_id': userDetail!.id.toString(),
+          'name': nameController.text,
+          'email': emailController.text,
+          'mobile': phoneController.text,
+          'address': addressController.text,
+          'shop_type': shopTypeController.text,
+          'gstin': gstinController.text,
+          'isLogoDelete': '0',
+        });
+
+        // Add logo file if exists
+        if (logoImageFile != null) {
+          request.files.add(
+            await http.MultipartFile.fromPath(
+              'logo',
+              logoImageFile!.path,
+            ),
+          );
+        }
+        EasyLoading.show(status: 'Updating...');
+
+        var streamedResponse = await request.send();
+        var response = await http.Response.fromStream(streamedResponse);
+
+        EasyLoading.dismiss();
+        if (response.statusCode == 201) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return customAlertBox(
+                title: "Success",
+                content: "Profile updated successfully.",
+                actions: [
+                  customElevatedButton("OK", green2, white, () {
+                    navigatorKey.currentState?.pop();
+                  }),
+                ],
+              );
+            },
+          );
+        } else if (response.statusCode == 413) {
+          Fluttertoast.showToast(
+              msg: 'Image too large. Please select a smaller image.');
+        } else {
+          // Handle error response
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              print(response.body);
+              return customAlertBox(
+                title: "Error",
+                content: "Failed to update profile. ${response.reasonPhrase}",
+                actions: [
+                  customElevatedButton("OK", green2, white, () {
+                    navigatorKey.currentState?.pop();
+                  }),
+                ],
+              );
+            },
+          );
+        }
+      } catch (e) {
+        // Handle exception
         showDialog(
           context: context,
           builder: (BuildContext context) {
             return customAlertBox(
-              title: "Success",
-              content: "Profile updated successfully.",
+              title: "Error",
+              content: "An error occurred while updating profile. $e",
               actions: [
                 customElevatedButton("OK", green2, white, () {
                   navigatorKey.currentState?.pop();
@@ -132,47 +172,27 @@ class _UserAccountState extends State<UserAccount> {
             );
           },
         );
-      } else if (response.statusCode == 413) {
-        Fluttertoast.showToast(
-            msg: 'Image too large. Please select a smaller image.');
-      } else {
-        // Handle error response
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            print(response.body);
-            return customAlertBox(
-              title: "Error",
-              content: "Failed to update profile. ${response.reasonPhrase}",
-              actions: [
-                 customElevatedButton("OK", green2, white, () {
-                  navigatorKey.currentState?.pop();
-                }),
-              ],
-            );
-          },
-        );
       }
-    } catch (e) {
-      // Handle exception
+    } else {
       showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return customAlertBox(
-            title: "Error",
-            content: "An error occurred while updating profile. $e",
-            actions: [
-               customElevatedButton("OK", green2, white, () {
-                  navigatorKey.currentState?.pop();
-                }),
-            ],
-          );
-        },
-      );
+          context: context,
+          builder: (context) {
+            return customAlertBox(
+                title: "Unauthorized",
+                content:
+                    "You do not have permission to update data. Please contact shop owner to update yur details.",
+                actions: [
+                  customElevatedButton("OK", green2, white, () {
+                    navigatorKey.currentState?.pop();
+                  })
+                ]);
+          });
     }
   }
 
   Future<void> getUserDetail() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    isAdmin = prefs.getInt('isAdmin') ?? 0;
     String? token = await APIService.getToken();
     var apiKey = await APIService.getXApiKey();
     final response = await http.get(
@@ -305,7 +325,8 @@ class _UserAccountState extends State<UserAccount> {
                   textFieldCustom(entityIdController, false, "Entity ID", true),
                   const SizedBox(height: 20),
                   labeltext('Name:'),
-                  textFieldCustom(nameController, false, 'Name', false),
+                  textFieldCustom(nameController, false, 'Name',
+                      isAdmin == 0 ? true : false),
                   const SizedBox(height: 20),
                   labeltext("Business Name:"),
                   textFieldCustom(
@@ -318,14 +339,15 @@ class _UserAccountState extends State<UserAccount> {
                   textFieldCustom(phoneController, false, 'Mobile', true),
                   const SizedBox(height: 20),
                   labeltext("Address:"),
-                  textFieldCustom(addressController, false, 'Address', false),
+                  textFieldCustom(addressController, false, 'Address',
+                      isAdmin == 0 ? true : false),
                   const SizedBox(height: 20),
                   labeltext("Shop Type:"),
                   textFieldCustom(shopTypeController, false, 'Shop Type', true),
                   const SizedBox(height: 20),
                   labeltext("GSTIN Number:"),
-                  textFieldCustom(
-                      gstinController, false, 'GSTIN Number', false),
+                  textFieldCustom(gstinController, false, 'GSTIN Number',
+                      isAdmin == 0 ? true : false),
                   const SizedBox(height: 40.0),
                   SizedBox(
                     width: MediaQuery.of(context).size.width,

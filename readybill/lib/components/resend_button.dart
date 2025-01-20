@@ -58,7 +58,7 @@ class _ResendButtonState extends State<ResendButton> {
 
   String get _buttonText {
     if (!_isEnabled) {
-      return 'Resend in $_currentSeconds secs';
+      return 'Resend in $_currentSeconds';
     }
     return widget.text;
   }

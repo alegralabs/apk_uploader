@@ -114,7 +114,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                     }
                     return null;
                   },
-                  
                   obscureText: true,
                   controller: newPasswordController,
                   decoration: customTfInputDecoration("Enter New Password"),
@@ -220,20 +219,23 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                     showCursor: true,
                     onChanged: (value) => setState(() {}),
                     controller: otpController,
-                    focusedPinTheme: PinTheme(
+                    defaultPinTheme: PinTheme(
+                      textStyle: const TextStyle(
+                          fontSize: 22, fontWeight: FontWeight.bold),
                       width: 50,
                       height: 60,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
-                        color: green2,
+                        color: darkGrey,
                       ),
                     ),
-                    defaultPinTheme: PinTheme(
+                    focusedPinTheme: PinTheme(
+                      textStyle: const TextStyle(fontSize: 22),
                       width: 60,
                       height: 60,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
-                        color: darkGrey,
+                        color: green,
                       ),
                     ),
                     length: 6,

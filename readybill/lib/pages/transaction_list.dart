@@ -102,7 +102,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
         switch (_selectedColumn) {
           case 'Invoice':
             return transaction.invoiceNumber.toLowerCase().contains(query);
-          case 'Transactions':
+          case 'Items':
             return getProductNames(transaction.itemList)
                 .toLowerCase()
                 .contains(query);
@@ -155,12 +155,7 @@ class _SearchBar extends StatefulWidget {
 }
 
 class _SearchBarState extends State<_SearchBar> {
-  final List<String> _columnNames = [
-    'Invoice',
-    'Transactions',
-    'Total',
-    'Date-time'
-  ];
+  final List<String> _columnNames = ['Invoice', 'Items', 'Total', 'Date-time'];
 
   FocusNode focusNode = FocusNode();
 
@@ -294,7 +289,7 @@ class _TransactionList extends StatelessWidget {
               columnSpacing: screenWidth * 0.05,
               columns: const [
                 DataColumn(label: Text('Invoice')),
-                DataColumn(label: Text('Transactions')),
+                DataColumn(label: Text('Items')),
                 DataColumn(label: Text('Total')),
                 DataColumn(label: Text('Date-time')),
               ],
@@ -328,7 +323,8 @@ class _TransactionList extends StatelessWidget {
                     DataCell(
                       SizedBox(
                         width: screenWidth * 0.2,
-                        child: Text(transaction.createdAt),
+                        child: Text(DateFormat('dd-MM-yyyy hh:mm a')
+                            .format(DateTime.parse(transaction.createdAt))),
                       ),
                     ),
                   ],

@@ -93,7 +93,7 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
 
       final List<dynamic> EmployeesData = jsonData['data'];
 
-      print(EmployeesData);
+      // print(EmployeesData);
       //  print('employees data: $EmployeesData');
       var data = EmployeesData.map((json) => Employee.fromJson(json)).toList();
 
@@ -219,126 +219,128 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
   Widget build(BuildContext context) {
     bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
     return Scaffold(
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: isKeyboardVisible || isAdmin == 0
-          ? null
-          : FloatingActionButton(
-              backgroundColor: green2,
-              foregroundColor: black,
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  CupertinoPageRoute(
-                    builder: (context) => const EmployeeSignUpPage(),
-                  ),
-                );
-              },
-              shape: const CircleBorder(),
-              child: const Icon(Icons.add),
-            ),
-      bottomNavigationBar: CustomNavigationBar(
-        onItemSelected: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        selectedIndex: _selectedIndex,
-      ),
-      drawer: const Drawer(
-        child: Sidebar(),
-      ),
-      appBar: customAppBar("Employees"),
-      body: isAdmin == 1
-          ? Column(
-              children: [
-                _SearchBar(
-                    onSearch: _handleSearch,
-                    selectedColumn: _selectedColumn,
-                    onColumnSelect: _handleColumnSelect),
-                _employees.isNotEmpty
-                    ? Text(_noOfEmployees > 0
-                        ? 'Total Employees: $_noOfEmployees'
-                        : 'No Employees Found')
-                    : const SizedBox.shrink(),
-                const Divider(
-                  thickness: 1,
-                  height: 5,
-                ),
-                const Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          'Name',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          'Mobile',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(
-                  thickness: 1,
-                  height: 5,
-                ),
-                Expanded(
-                  child: ListView.separated(
-                    separatorBuilder: (context, index) => const Divider(
-                      thickness: 0.2,
-                      height: 0,
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButton: isKeyboardVisible || isAdmin == 0
+            ? null
+            : FloatingActionButton(
+                backgroundColor: green2,
+                foregroundColor: black,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    CupertinoPageRoute(
+                      builder: (context) => const EmployeeSignUpPage(),
                     ),
-                    controller: _scrollController,
-                    itemCount: _filteredEmployees.length + 1,
-                    itemBuilder: (context, index) {
-                      if (index == _filteredEmployees.length) {
-                        return _isLoadingMore
-                            ? const Center(child: CircularProgressIndicator())
-                            : const SizedBox();
-                      }
-                      final employee = _filteredEmployees[index];
-                      return InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            CupertinoPageRoute(
-                              builder: (context) =>
-                                  ViewEmployeeDetails(user: employee),
+                  );
+                },
+                shape: const CircleBorder(),
+                child: const Icon(Icons.add),
+              ),
+        bottomNavigationBar: CustomNavigationBar(
+          onItemSelected: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+          selectedIndex: _selectedIndex,
+        ),
+        drawer: const Drawer(
+          child: Sidebar(),
+        ),
+        appBar: customAppBar("Employees"),
+        body: Column(
+          children: [
+            _SearchBar(
+                onSearch: _handleSearch,
+                selectedColumn: _selectedColumn,
+                onColumnSelect: _handleColumnSelect),
+            _employees.isNotEmpty
+                ? Text(_noOfEmployees > 0
+                    ? 'Total Employees: $_noOfEmployees'
+                    : 'No Employees Found')
+                : const SizedBox.shrink(),
+            const Divider(
+              thickness: 1,
+              height: 5,
+            ),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Text(
+                      'Name',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Text(
+                      'Mobile',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(
+              thickness: 1,
+              height: 5,
+            ),
+            Expanded(
+              child: ListView.separated(
+                separatorBuilder: (context, index) => const Divider(
+                  thickness: 0.2,
+                  height: 0,
+                ),
+                controller: _scrollController,
+                itemCount: _filteredEmployees.length + 1,
+                itemBuilder: (context, index) {
+                  if (index == _filteredEmployees.length) {
+                    return _isLoadingMore
+                        ? const Center(child: CircularProgressIndicator())
+                        : const SizedBox();
+                  }
+                  final employee = _filteredEmployees[index];
+                  return InkWell(
+                    onTap: () {
+                      isAdmin == 1
+                          ? Navigator.push(
+                              context,
+                              CupertinoPageRoute(
+                                builder: (context) =>
+                                    ViewEmployeeDetails(user: employee),
+                              ),
+                            )
+                          : null;
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 4, // Larger space for item name
+                            child: Text(
+                              employee.name,
+                              style: const TextStyle(fontSize: 14),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                flex: 4, // Larger space for item name
-                                child: Text(
-                                  employee.name,
-                                  style: const TextStyle(fontSize: 14),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              Expanded(
-                                flex: 4, // Larger space for item name
-                                child: Text(
-                                  employee.mobile,
-                                  style: const TextStyle(fontSize: 14),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              Expanded(
+                          ),
+                          Expanded(
+                            flex: 4, // Larger space for item name
+                            child: Text(
+                              employee.mobile,
+                              style: const TextStyle(fontSize: 14),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          isAdmin == 1
+                              ? Expanded(
                                   flex: 1,
                                   child: IconButton(
                                       onPressed: () {
@@ -374,25 +376,16 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
                                         Icons.delete,
                                         color: red,
                                       )))
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            )
-          : const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text(
-                "YOU DO NOT HAVE PERMISSION TO ACCESS EMPLOYEE DATA",
-                style: TextStyle(
-                    fontSize: 16, color: red, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
+                              : const SizedBox.shrink(),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
-    );
+          ],
+        ));
   }
 }
 

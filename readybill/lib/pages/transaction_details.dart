@@ -61,18 +61,9 @@ class TransactionDetailPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  // Action for print button
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xff007bff),
-                  foregroundColor: Colors.white, // white text color
-                ),
-                child: const Text("Print"),
-              ),
-            ),
+            SizedBox(
+                width: double.infinity,
+                child: customElevatedButton("Print", blue, white, () {})),
             const SizedBox(height: 30),
           ],
         ),
