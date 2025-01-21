@@ -50,6 +50,12 @@ class _SignUpPageState extends State<SignUpPage> {
   TextEditingController confirmPasswordController = TextEditingController();
   TextEditingController gstinController = TextEditingController();
   FocusNode phoneNumberFocusNode = FocusNode();
+  FocusNode passwordFocusNode = FocusNode();
+  FocusNode confirmPasswordFocusNode = FocusNode();
+  FocusNode nameFocusNode = FocusNode();
+  FocusNode emailFocusNode = FocusNode();
+  FocusNode businessNameFocusNode = FocusNode();
+  FocusNode addressFocusNode = FocusNode();
 
   String phoneNumberErrorMessage = "";
 
@@ -65,6 +71,17 @@ class _SignUpPageState extends State<SignUpPage> {
     fullNameController.dispose();
     emailController.dispose();
     addressController.dispose();
+    confirmPasswordController.dispose();
+    buisnessNameController.dispose();
+    gstinController.dispose();
+    phoneNumberFocusNode.dispose();
+    passwordFocusNode.dispose();
+    confirmPasswordFocusNode.dispose();
+    nameFocusNode.dispose();
+    emailFocusNode.dispose();
+    businessNameFocusNode.dispose();
+    addressFocusNode.dispose();
+
     super.dispose();
   }
 
@@ -128,6 +145,7 @@ class _SignUpPageState extends State<SignUpPage> {
             value.length < 10 ||
             value.length > 10 ||
             int.tryParse(value) == null) {
+          phoneNumberFocusNode.requestFocus();
           return 'Must be 10-digit Number';
         }
         return null;
@@ -200,8 +218,10 @@ class _SignUpPageState extends State<SignUpPage> {
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
+          passwordFocusNode.requestFocus();
           return 'Password is required';
         } else if (value.length < 8) {
+          passwordFocusNode.requestFocus();
           return 'Password must be of atleast 8 characters';
         } else {
           return null;
@@ -245,9 +265,14 @@ class _SignUpPageState extends State<SignUpPage> {
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
+          confirmPasswordFocusNode.requestFocus();
           return 'Password is required';
         } else if (value.length < 8) {
+          confirmPasswordFocusNode.requestFocus();
           return 'Password must be of atleast 8 characters';
+        } else if (value != passwordController.text) {
+          confirmPasswordFocusNode.requestFocus();
+          return 'Passwords do not match';
         } else {
           return null;
         }
@@ -278,6 +303,7 @@ class _SignUpPageState extends State<SignUpPage> {
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
+          nameFocusNode.requestFocus();
           return 'FullName is required';
         }
         return null;
@@ -308,6 +334,7 @@ class _SignUpPageState extends State<SignUpPage> {
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
+          businessNameFocusNode.requestFocus();
           return 'Buisness Name is required';
         }
         return null;
@@ -337,6 +364,7 @@ class _SignUpPageState extends State<SignUpPage> {
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
+          emailFocusNode.requestFocus();
           return 'Email is required';
         }
         return null;
@@ -370,6 +398,7 @@ class _SignUpPageState extends State<SignUpPage> {
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
+          addressFocusNode.requestFocus();
           return 'Address is required';
         }
         return null;
@@ -554,29 +583,12 @@ class _SignUpPageState extends State<SignUpPage> {
           emailErrorMessage = "";
         });
       }
-      // Future.delayed(const Duration(seconds: 1), () {
-      //   setState(() {});
-      // });
-      // showDialog(
-      //     context: context,
-      //     builder: (context) {
-      //       return customAlertBox(
-      //           title: "Error",
-      //           content:
-      //               "Email Exists: $emailExists\nMobile Number Exists: $phoneNumberError",
-      //           actions: [
-      //             customElevatedButton("OK", green, white, () {
-      //               navigatorKey.currentState?.pop();
-      //             })
-      //           ]);
-      //     });
-      // Fluttertoast.showToast(msg: jsonData['data']['errors'].toString());
     }
-    // Call the function to show the response dialog
   }
 
   showEmailErrorMessage() {
     if (emailErrorMessage != '') {
+      emailFocusNode.requestFocus();
       return Row(
         children: [
           Text(
@@ -931,7 +943,7 @@ class _OtpModalBottomSheetState extends State<OtpModalBottomSheet> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
-                      "OTP not recieved?",
+                      "OTP not received?",
                       style: TextStyle(color: Colors.grey),
                     ),
                     ResendButton(onPressed: () {

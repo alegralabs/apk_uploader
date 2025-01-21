@@ -42,6 +42,7 @@ class _PreferencesPageState extends State<PreferencesPage> {
       'auth-key': '$apiKey',
     });
     var jsonData = jsonDecode(response.body);
+    // print(response.body);
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
       final preferencesData = jsonData['data'];
@@ -117,8 +118,12 @@ class _PreferencesPageState extends State<PreferencesPage> {
     setState(() {
       isLoading = true;
     });
+    if (showHSNSACCode == false) {
+      showHSNSACCodeInInvoice = false;
+    }
     var token = await APIService.getToken();
     var apiKey = await APIService.getXApiKey();
+
     const String apiUrl = '$baseUrl/prefernce';
     final response = await http.post(
       Uri.parse(apiUrl),
@@ -135,6 +140,8 @@ class _PreferencesPageState extends State<PreferencesPage> {
         'preference_hsn_invoice': showHSNSACCodeInInvoice ? 1 : 0,
       }),
     );
+
+    print(response.body);
     setState(() {
       isLoading = false;
     });
@@ -234,15 +241,17 @@ class _PreferencesPageState extends State<PreferencesPage> {
                         });
                       },
                     ),
-                    buildCheckbox(
-                      'Do you want to show HSN/ SAC code \nin invoice?',
-                      showHSNSACCodeInInvoice,
-                      (value) {
-                        setState(() {
-                          showHSNSACCodeInInvoice = value!;
-                        });
-                      },
-                    ),
+                    showHSNSACCode == true
+                        ? buildCheckbox(
+                            'Do you want to show HSN/ SAC code \nin invoice?',
+                            showHSNSACCodeInInvoice,
+                            (value) {
+                              setState(() {
+                                showHSNSACCodeInInvoice = value!;
+                              });
+                            },
+                          )
+                        : const SizedBox.shrink(),
                     const SizedBox(height: 20),
                     customElevatedButton("Save Changes", green2, white, () {
                       _saveUserPreferences();

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/models/transaction.dart';
@@ -6,8 +7,7 @@ import 'package:readybill/models/transaction.dart';
 class TransactionDetailPage extends StatelessWidget {
   final Transaction transaction;
 
-  const TransactionDetailPage({Key? key, required this.transaction})
-      : super(key: key);
+  const TransactionDetailPage({super.key, required this.transaction});
 
   @override
   Widget build(BuildContext context) {
@@ -25,13 +25,16 @@ class TransactionDetailPage extends StatelessWidget {
             _buildInfoRow('Total Price',
                 totalPrice > 0 ? "₹$totalPrice" : "-₹${totalPrice.abs()}"),
             const SizedBox(height: 16),
-            _buildInfoRow('Created At', transaction.createdAt),
+            _buildInfoRow(
+                'Created at',
+                DateFormat('dd-MM-yyyy \n hh:mm a')
+                    .format(DateTime.parse(transaction.createdAt))),
             const SizedBox(height: 16),
             const Text(
               'Items:',
               style: TextStyle(
                 fontSize: 20,
-                color: const Color(0xff28a745),
+                color:  Color(0xff28a745),
                 fontWeight: FontWeight.bold,
               ),
             ),

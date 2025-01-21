@@ -96,8 +96,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
     salePriceController = TextEditingController();
     tax1Controller = TextEditingController();
     tax2Controller = TextEditingController();
-    rateTwoValueController = TextEditingController();
-    rateOneValueController = TextEditingController();
+    rateTwoValueController.text = '0';
+    rateOneValueController.text = '0';
     mrpController = TextEditingController();
     fullUnitDropdownValue = 'Full Unit';
     shortUnitDropdownValue = 'Short Unit';
@@ -147,10 +147,10 @@ class _ProductEditPageState extends State<ProductEditPage> {
       setState(() {
         isLoading = false;
       });
-      print(response.body);
+
       if (response.statusCode == 200) {
         var jsonData = jsonDecode(response.body)['data'];
-        print(jsonData);
+
         setState(() {
           itemNameController.text = jsonData['item_name'];
           quantityController.text = jsonData['quantity'];
@@ -164,6 +164,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
           shortUnitDropdownValue = jsonData['short_unit'];
           hsn = jsonData['hsn'];
         });
+
+        
       } else {
         Result.error("Book list not available");
       }
@@ -214,10 +216,13 @@ class _ProductEditPageState extends State<ProductEditPage> {
 
   void _updateProduct() async {
     try {
+      print(
+          "fullUnitDropdoenMenu: $fullUnitDropdownValue, shortUnitDropdoenValue: $shortUnitDropdownValue");
       var response = await http.post(
         Uri.parse('$baseUrl/update-item'),
         headers: {
           'Authorization': 'Bearer $token',
+          'auth-key': '$apiKey',
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
@@ -384,12 +389,15 @@ class _ProductEditPageState extends State<ProductEditPage> {
                         ], (value) {
                           List<String> units = value!.split(' (');
                           String fullUnit = units[0];
+                          print("Full unit: $fullUnit");
                           String shortUnit =
                               units[1].substring(0, units[1].length - 1);
                           setState(() {
                             fullUnitDropdownValue = fullUnit;
                             shortUnitDropdownValue = shortUnit;
                           });
+                          print(
+                              "Fullunitdropdownvalue: $fullUnitDropdownValue");
                         }),
                         const SizedBox(
                           height: 15,

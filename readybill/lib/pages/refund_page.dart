@@ -6,6 +6,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/bill_widget.dart';
 import 'package:readybill/components/bottom_navigation_bar.dart';
@@ -735,7 +736,7 @@ class RefundPageState extends State<RefundPage> {
   Future<void> saveData() async {
     EasyLoading.show(status: 'loading...');
 
-    const String apiUrl = '$baseUrl/billing';
+    const String apiUrl = '$baseUrl/billing-n-refund';
     double grandTotal = calculateOverallTotal(); // Calculate overall total
 // Determine print flag
 
@@ -756,6 +757,8 @@ class RefundPageState extends State<RefundPage> {
         },
         body: formData,
       );
+
+      print(response.body);
 
       if (response.statusCode == 200) {
         EasyLoading.dismiss();
@@ -780,11 +783,10 @@ class RefundPageState extends State<RefundPage> {
         // Optionally, you can handle further actions after saving the data
       } else {
         //  print(response.body);
-        EasyLoading.dismiss();
 
-        // Handle other HTTP status codes
-        // debugPrint(
-        // 'Response body: ${response.body}'); // Print the whole response body
+        EasyLoading.dismiss();
+        var jsonData = jsonDecode(response.body);
+        Fluttertoast.showToast(msg: jsonData['data'].toString());
       }
     } catch (e) {
       EasyLoading.dismiss();

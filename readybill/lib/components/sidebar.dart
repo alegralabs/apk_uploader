@@ -90,7 +90,10 @@ class _SidebarState extends State<Sidebar> {
       if (mounted) {
         setState(() {
           imageUrl = jsonData['logo'];
-          logo = Image.network(imageUrl);
+          imageUrl == "assets/img/user.jpg"
+              ? logo = Image.asset('assets/user.png')
+              : logo = Image.network(imageUrl);
+
           isAdmin = jsonData['data']['isAdmin'];
           _name = jsonData['data']['name'];
           shopName = jsonData['data']['details']['business_name'];

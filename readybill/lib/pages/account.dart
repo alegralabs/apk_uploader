@@ -239,12 +239,11 @@ class _UserAccountState extends State<UserAccount> {
     }
   }
 
-  Widget textFieldCustom(TextEditingController controller, bool obscureText,
-      String hintText, bool readOnly) {
+  Widget textFieldCustom(
+      TextEditingController controller, String hintText, bool readOnly) {
     return TextFormField(
       textCapitalization: TextCapitalization.sentences,
       controller: controller,
-      obscureText: obscureText,
       readOnly: readOnly,
       decoration: readOnly ? null : customTfInputDecoration(hintText),
     );
@@ -295,7 +294,7 @@ class _UserAccountState extends State<UserAccount> {
                             backgroundColor: green2,
                             foregroundImage: selectedImageFile != null
                                 ? FileImage(selectedImageFile!)
-                                : (logo != ''
+                                : (logo != 'assets/img/user.jpg'
                                     ? NetworkImage(logo!) as ImageProvider
                                     : const AssetImage("assets/user.png")),
                           ),
@@ -322,31 +321,31 @@ class _UserAccountState extends State<UserAccount> {
                   ),
                   const SizedBox(height: 20.0),
                   labeltext("Entity ID:"),
-                  textFieldCustom(entityIdController, false, "Entity ID", true),
+                  textFieldCustom(entityIdController, "Entity ID", true),
                   const SizedBox(height: 20),
                   labeltext('Name:'),
-                  textFieldCustom(nameController, false, 'Name',
-                      isAdmin == 0 ? true : false),
+                  textFieldCustom(
+                      nameController, 'Name', isAdmin == 0 ? true : false),
                   const SizedBox(height: 20),
                   labeltext("Business Name:"),
                   textFieldCustom(
-                      businessNameController, false, 'Business Name', true),
+                      businessNameController, 'Business Name', true),
                   const SizedBox(height: 20),
                   labeltext("Email:"),
-                  textFieldCustom(emailController, false, 'Email', true),
+                  textFieldCustom(emailController, 'Email', true),
                   const SizedBox(height: 20),
                   labeltext("Mobile:"),
-                  textFieldCustom(phoneController, false, 'Mobile', true),
+                  textFieldCustom(phoneController, 'Mobile', true),
                   const SizedBox(height: 20),
                   labeltext("Address:"),
-                  textFieldCustom(addressController, false, 'Address',
+                  textFieldCustom(addressController, 'Address',
                       isAdmin == 0 ? true : false),
                   const SizedBox(height: 20),
                   labeltext("Shop Type:"),
-                  textFieldCustom(shopTypeController, false, 'Shop Type', true),
+                  textFieldCustom(shopTypeController, 'Shop Type', true),
                   const SizedBox(height: 20),
                   labeltext("GSTIN Number:"),
-                  textFieldCustom(gstinController, false, 'GSTIN Number',
+                  textFieldCustom(gstinController, 'GSTIN Number',
                       isAdmin == 0 ? true : false),
                   const SizedBox(height: 40.0),
                   SizedBox(

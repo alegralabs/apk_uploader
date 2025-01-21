@@ -305,16 +305,17 @@ class _TransactionList extends StatelessWidget {
                     ),
                     DataCell(
                       SizedBox(
-                        width: screenWidth * 0.33,
+                        width: screenWidth * 0.28,
                         child: Text(
                           getProductNames(transaction.itemList),
                           overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
                         ),
                       ),
                     ),
                     DataCell(
                       SizedBox(
-                        width: screenWidth * 0.08,
+                        width: screenWidth * 0.12,
                         child: Text(totalPrice > 0
                             ? "₹$totalPrice"
                             : "-₹${totalPrice.abs()}"),

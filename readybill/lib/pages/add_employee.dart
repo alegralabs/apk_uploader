@@ -35,10 +35,17 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
   TextEditingController passwordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
   TextEditingController addressController = TextEditingController();
+  FocusNode focusNode = FocusNode();
   int _selectedIndex = 3;
   bool isObscureConfirm = true;
   bool isObscure = true;
   File? selectedImageFile;
+
+  @override
+  void initState() {
+    super.initState();
+    focusNode.requestFocus();
+  }
 
   Future<void> submitData() async {
     EasyLoading.show(status: 'Loading...');
@@ -197,20 +204,20 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
                         ],
                       ),
                       const SizedBox(height: 30.0),
-                      _buildTF(
-                          "Name", nameController, TextInputType.text, false),
+                      _buildNameTF("Name *", nameController, TextInputType.text,
+                          false, TextCapitalization.words),
                       const SizedBox(height: 10.0),
-                      _buildTF("Mobile", mobileController, TextInputType.phone,
-                          false),
+                      _buildTF("Mobile *", mobileController,
+                          TextInputType.phone, false, TextCapitalization.none),
                       const SizedBox(height: 10.0),
-                      _buildTF("Password", passwordController,
-                          TextInputType.text, true),
+                      _buildPasswordTF(
+                          "Password *", passwordController, TextInputType.text),
                       const SizedBox(height: 10.0),
-                      _buildTF("Confirm Password", confirmPasswordController,
-                          TextInputType.text, false),
+                      _buildConfirmPasswordTF("Confirm Password *",
+                          confirmPasswordController, TextInputType.text),
                       const SizedBox(height: 10.0),
-                      _buildTF("Address", addressController, TextInputType.text,
-                          false),
+                      _buildTF("Address *", addressController,
+                          TextInputType.text, false, TextCapitalization.words),
                       const SizedBox(height: 40.0),
                       // _buildSignUpBtn(),
                       const SizedBox(height: 10.0),
@@ -226,15 +233,135 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
     );
   }
 
-  Widget _buildTF(String hintText, TextEditingController controller,
-      TextInputType keyboardType, bool isObscure) {
+  Widget _buildTF(
+      String hintText,
+      TextEditingController controller,
+      TextInputType keyboardType,
+      bool isObscure,
+      TextCapitalization textCapitalization) {
+    return Container(
+      alignment: Alignment.centerLeft,
+      child: TextField(
+        textCapitalization: textCapitalization,
+        controller: controller,
+        keyboardType: keyboardType,
+        decoration: customTfInputDecoration(hintText),
+        obscureText: isObscure,
+      ),
+    );
+  }
+
+  Widget _buildNameTF(
+      String hintText,
+      TextEditingController controller,
+      TextInputType keyboardType,
+      bool isObscure,
+      TextCapitalization textCapitalization) {
+    return Container(
+      alignment: Alignment.centerLeft,
+      child: TextField(
+        focusNode: focusNode,
+        textCapitalization: textCapitalization,
+        controller: controller,
+        keyboardType: keyboardType,
+        decoration: customTfInputDecoration(hintText),
+        obscureText: isObscure,
+      ),
+    );
+  }
+
+  Widget _buildPasswordTF(
+    String hintText,
+    TextEditingController controller,
+    // bool isObscure,
+    TextInputType keyboardType,
+  ) {
     return Container(
       alignment: Alignment.centerLeft,
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
-        decoration: customTfInputDecoration(hintText),
+        decoration: InputDecoration(
+          suffixIcon: IconButton(
+            icon: Icon(
+              isObscure ? Icons.visibility : Icons.visibility_off,
+              color: Colors.grey,
+            ),
+            onPressed: () {
+              setState(() {
+                isObscure = !isObscure;
+              });
+              print(isObscure);
+            },
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: const BorderSide(
+              color: Color(0xffbfbfbf),
+              width: 3.0,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: const BorderSide(
+              color: green2,
+              width: 3.0,
+            ),
+          ),
+          hintText: hintText,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+        ),
         obscureText: isObscure,
+      ),
+    );
+  }
+
+  Widget _buildConfirmPasswordTF(
+    String hintText,
+    TextEditingController controller,
+    // bool isObscure,
+    TextInputType keyboardType,
+  ) {
+    return Container(
+      alignment: Alignment.centerLeft,
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          suffixIcon: IconButton(
+            icon: Icon(
+              isObscure ? Icons.visibility : Icons.visibility_off,
+              color: Colors.grey,
+            ),
+            onPressed: () {
+              setState(() {
+                isObscureConfirm = !isObscureConfirm;
+              });
+              print(isObscure);
+            },
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: const BorderSide(
+              color: Color(0xffbfbfbf),
+              width: 3.0,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: const BorderSide(
+              color: green2,
+              width: 3.0,
+            ),
+          ),
+          hintText: hintText,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+        ),
+        obscureText: isObscureConfirm,
       ),
     );
   }
@@ -258,8 +385,8 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
             content: message,
             actions: [
               customElevatedButton("OK", green2, white, () {
-                  navigatorKey.currentState?.pop();
-                }),
+                navigatorKey.currentState?.pop();
+              }),
             ],
           );
         });

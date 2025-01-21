@@ -5,6 +5,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/components/custom_components.dart';
+import 'package:readybill/components/password_textfield.dart';
 import 'package:readybill/components/resend_button.dart';
 import 'package:readybill/pages/login_page.dart';
 
@@ -28,12 +29,15 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   TextEditingController otpController = TextEditingController();
   TextEditingController newPasswordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
+  bool obscurePassword = true;
+  bool obscureConfirmPassword = true;
 
   final _passwordFormKey = GlobalKey<FormState>();
   bool otpSent = false;
 
   FocusNode otpFocusNode = FocusNode();
   FocusNode newPasswordFocusNode = FocusNode();
+  FocusNode confirmPasswordFocusNode = FocusNode();
 
   Future _verifyOtp(String otp) async {
     var token = await APIService.getToken();
@@ -105,34 +109,29 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 30),
-                TextFormField(
-                  focusNode: newPasswordFocusNode,
-                  cursorColor: green,
-                  validator: (value) {
-                    if (value == null || value.isEmpty || value.length < 8) {
-                      return 'Length must be atleast 8 characters';
-                    }
-                    return null;
-                  },
-                  obscureText: true,
-                  controller: newPasswordController,
-                  decoration: customTfInputDecoration("Enter New Password"),
-                ),
+                PasswordTextField(
+                    controller: newPasswordController,
+                    label: "Enter new password",
+                    validator: (value) {
+                      if (value == null || value.isEmpty || value.length < 8) {
+                        return 'Length must be atleast 8 characters';
+                      }
+                      return null;
+                    },
+                    focusNode: newPasswordFocusNode),
                 const SizedBox(
                   height: 15,
                 ),
-                TextFormField(
-                    cursorColor: green,
+                PasswordTextField(
+                    controller: confirmPasswordController,
+                    label: "Confirm Password",
                     validator: (value) {
                       if (newPasswordController.text != value) {
                         return 'Passwords do not match';
                       }
                       return null;
                     },
-                    obscureText: true,
-                    controller: confirmPasswordController,
-                    keyboardType: TextInputType.text,
-                    decoration: customTfInputDecoration("Confirm Password")),
+                    focusNode: confirmPasswordFocusNode),
                 const SizedBox(height: 20),
                 SizedBox(
                     width: double.infinity,
@@ -189,122 +188,124 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: customAppBar("Change Password"),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Text(
-                "Change Password",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Roboto_Regular',
-                ),
-              ),
-              const SizedBox(height: 15),
-              const Text(
-                "To change your password, we will need to send you an OTP in your registered mobile.\n\nClick Send OTP to confirm.\n",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 15),
-              Visibility(
-                visible: otpSent,
-                child: Center(
-                  child: Pinput(
-                    focusNode: otpFocusNode,
-                    showCursor: true,
-                    onChanged: (value) => setState(() {}),
-                    controller: otpController,
-                    defaultPinTheme: PinTheme(
-                      textStyle: const TextStyle(
-                          fontSize: 22, fontWeight: FontWeight.bold),
-                      width: 50,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: darkGrey,
-                      ),
-                    ),
-                    focusedPinTheme: PinTheme(
-                      textStyle: const TextStyle(fontSize: 22),
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: green,
-                      ),
-                    ),
-                    length: 6,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Text(
+                  "Change Password",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Roboto_Regular',
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: otpSent
-                      ? () async {
-                          if (otpController.text.length == 6) {
-                            EasyLoading.show();
-                            try {
-                              _verifyOtp(otpController.text);
-                              EasyLoading.dismiss();
-                            } catch (e) {
-                              Result.error("Book list not available");
+                const SizedBox(height: 15),
+                const Text(
+                  "To change your password, we will need to send you an OTP to your registered mobile.\n\nClick Send OTP to confirm.\n",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 15),
+                Visibility(
+                  visible: otpSent,
+                  child: Center(
+                    child: Pinput(
+                      focusNode: otpFocusNode,
+                      showCursor: true,
+                      onChanged: (value) => setState(() {}),
+                      controller: otpController,
+                      defaultPinTheme: PinTheme(
+                        textStyle: const TextStyle(
+                            fontSize: 22, fontWeight: FontWeight.bold),
+                        width: 50,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: darkGrey,
+                        ),
+                      ),
+                      focusedPinTheme: PinTheme(
+                        textStyle: const TextStyle(fontSize: 22),
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: green,
+                        ),
+                      ),
+                      length: 6,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: otpSent
+                        ? () async {
+                            if (otpController.text.length == 6) {
+                              EasyLoading.show();
+                              try {
+                                _verifyOtp(otpController.text);
+                                EasyLoading.dismiss();
+                              } catch (e) {
+                                Result.error("Book list not available");
+                              }
+                            } else {
+                              Fluttertoast.showToast(
+                                  msg: 'OTP has to be of 6 digits.');
                             }
-                          } else {
-                            Fluttertoast.showToast(
-                                msg: 'OTP has to be of 6 digits.');
                           }
-                        }
-                      : () {
-                          setState(() {
-                            sendOtp();
-                          });
-                        },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.all(15.0),
-                    backgroundColor: otpSent
-                        ? otpController.text.length == 6
-                            ? green2
-                            : Colors.grey
-                        : green2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
+                        : () {
+                            setState(() {
+                              sendOtp();
+                            });
+                          },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.all(15.0),
+                      backgroundColor: otpSent
+                          ? otpController.text.length == 6
+                              ? green2
+                              : Colors.grey
+                          : green2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    otpSent ? 'Confirm' : 'Send OTP',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: white,
-                      fontFamily: 'Roboto-Regular',
+                    child: Text(
+                      otpSent ? 'Confirm' : 'Send OTP',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: white,
+                        fontFamily: 'Roboto-Regular',
+                      ),
                     ),
                   ),
                 ),
-              ),
-              otpSent
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          "OTP not recieved?",
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                        ResendButton(
-                          onPressed: () {
-                            sendOtp();
-                          },
-                        ),
-                      ],
-                    )
-                  : const SizedBox.shrink(),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.2),
-            ],
+                otpSent
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            "OTP not recieved?",
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                          ResendButton(
+                            onPressed: () {
+                              sendOtp();
+                            },
+                          ),
+                        ],
+                      )
+                    : const SizedBox.shrink(),
+                SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+              ],
+            ),
           ),
         ),
       ),

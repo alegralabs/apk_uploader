@@ -39,7 +39,7 @@ class HomePageState extends State<HomePage> {
   int quantity = 0;
   int _selectedIndex = 0;
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController quantityController = TextEditingController();
+  final TextEditingController _quantityController = TextEditingController();
 
   final FocusNode _nameFocusNode = FocusNode();
   final FocusNode _quantityFocusNode = FocusNode();
@@ -152,6 +152,12 @@ class HomePageState extends State<HomePage> {
     initializeData();
     initTTS();
     initSpeech();
+    _quantityController.text =
+        Provider.of<HomeBillItemProvider>(context, listen: false).quantity == 0
+            ? ''
+            : Provider.of<HomeBillItemProvider>(context, listen: false)
+                .quantity
+                .toString();
   }
 
   @override
@@ -161,7 +167,7 @@ class HomePageState extends State<HomePage> {
 
     _speechToText.cancel();
     _nameController.dispose();
-    quantityController.dispose();
+    _quantityController.dispose();
     _nameFocusNode.dispose();
     _quantityFocusNode.dispose();
     _scrollController.dispose();
@@ -362,12 +368,12 @@ class HomePageState extends State<HomePage> {
         String part2 = numberStr.substring(splitIndex);
         int totalSum = int.parse(part1) + int.parse(part2);
         quantity = totalSum;
-        //quantityController.text = totalSum.toString();
+        //_quantityController.text = totalSum.toString();
         quantityNumeric = double.parse(totalSum.toString());
         if (mounted) setState(() {});
         return int.parse(part1) + int.parse(part2);
       } else {
-        //  quantityController.text = numbers[0].toString();
+        //  _quantityController.text = numbers[0].toString();
         quantity = numbers[0];
         quantityNumeric = double.parse(numbers[0].toString());
         if (mounted) setState(() {});
@@ -377,7 +383,7 @@ class HomePageState extends State<HomePage> {
       // Sentence like "Amul Butter Quantity 3000 38 pieces"
       int sumNumber = numbers.reduce((value, element) => value + element);
       quantity = sumNumber;
-      //  quantityController.text = sumNumber.toString();
+      //  _quantityController.text = sumNumber.toString();
       quantityNumeric = double.parse(sumNumber.toString());
       if (mounted) setState(() {});
       return numbers.reduce((value, element) => value + element);
@@ -397,7 +403,7 @@ class HomePageState extends State<HomePage> {
                   if (mounted) {
                     setState(() {
                       _localDatabase.clearSuggestions();
-                      quantityController.clear();
+                      _quantityController.clear();
                       _nameController.clear();
                       isInputThroughText ? _nameFocusNode.nextFocus() : null;
                       _stopListening();
@@ -470,7 +476,7 @@ class HomePageState extends State<HomePage> {
                                   availableStockValue =
                                       suggestion.quantity.toString();
                                   _nameController.text = suggestion.name;
-                                  quantityController.text =
+                                  _quantityController.text =
                                       Provider.of<HomeBillItemProvider>(context,
                                               listen: false)
                                           .quantity
@@ -775,7 +781,7 @@ class HomePageState extends State<HomePage> {
     if (mounted) {
       setState(() {
         _nameController.clear();
-        quantityController.clear();
+        _quantityController.clear();
         _errorMessage = "";
         validProductName =
             true; // Clear error message when clearing the text field
@@ -842,7 +848,7 @@ class HomePageState extends State<HomePage> {
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
     print("screenHeight: $screenHeight");
-    quantityController.text =
+    _quantityController.text =
         Provider.of<HomeBillItemProvider>(context, listen: false)
             .quantity
             .toString();
@@ -917,7 +923,7 @@ class HomePageState extends State<HomePage> {
                                 ? IconButton(
                                     onPressed: () {
                                       _nameController.clear();
-                                      quantityController.clear();
+                                      _quantityController.clear();
                                       _localDatabase.clearSuggestions();
                                       setState(() {});
                                     },
@@ -932,15 +938,7 @@ class HomePageState extends State<HomePage> {
                         onTap: () {
                           setState(() {});
                         },
-                        controller: TextEditingController(
-                          text: Provider.of<HomeBillItemProvider>(context)
-                                      .quantity ==
-                                  0
-                              ? ''
-                              : Provider.of<HomeBillItemProvider>(context)
-                                  .quantity
-                                  .toString(),
-                        ),
+                        controller: _quantityController,
                         keyboardType: TextInputType.number,
                         onChanged: (value) {
                           if (value.isEmpty) {
@@ -1049,7 +1047,7 @@ class HomePageState extends State<HomePage> {
                           style: ElevatedButton.styleFrom(
                             elevation: 1.0,
                             backgroundColor: (_nameController.text.isEmpty ||
-                                    quantityController.text.isEmpty)
+                                    _quantityController.text.isEmpty)
                                 ? lightGrey
                                 : blue,
                             shape: RoundedRectangleBorder(
@@ -1060,8 +1058,8 @@ class HomePageState extends State<HomePage> {
                             _stopListening();
 
                             if (_nameController.text.isNotEmpty &&
-                                quantityController.text.isNotEmpty) {
-                              String quantityValue = quantityController.text;
+                                _quantityController.text.isNotEmpty) {
+                              String quantityValue = _quantityController.text;
                               double? quantityValueforConvert =
                                   double.tryParse(quantityValue);
                               _primaryUnit = unit;
@@ -1094,7 +1092,7 @@ class HomePageState extends State<HomePage> {
                                     unit,
                                     salePriceforTable!);
                                 _nameController.clear();
-                                quantityController.clear();
+                                _quantityController.clear();
 
                                 //  _dropdownItemsQuantity.insert(0, "Unit");
                                 // Reset to default value
@@ -1136,7 +1134,7 @@ class HomePageState extends State<HomePage> {
                               style: TextStyle(
                                   fontSize: 18,
                                   color: (_nameController.text.isEmpty ||
-                                          quantityController.text.isEmpty)
+                                          _quantityController.text.isEmpty)
                                       ? darkGrey
                                       : white,
                                   fontWeight: FontWeight.bold),
@@ -1323,10 +1321,9 @@ class HomePageState extends State<HomePage> {
                                               "Are you sure you want to cancel the bill?",
                                           actions: [
                                             customElevatedButton(
-                                                'No',
-                                                green2,
-                                                white,
-                                                (){navigatorKey.currentState?.pop();}),
+                                                'No', green2, white, () {
+                                              navigatorKey.currentState?.pop();
+                                            }),
                                             customElevatedButton(
                                               "Yes",
                                               red,

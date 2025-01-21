@@ -455,7 +455,7 @@ class _AddInventoryState extends State<AddInventory> {
                           ));
                         },
                         child: const Text(
-                          "How to upload inventory data in XLS or CLS format?",
+                          "How to upload inventory data in XLS or CSV format?",
                           style: TextStyle(
                               color: blue,
                               decoration: TextDecoration.underline,
