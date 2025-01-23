@@ -927,7 +927,10 @@ class HomePageState extends State<HomePage> {
                                       _localDatabase.clearSuggestions();
                                       setState(() {});
                                     },
-                                    icon: const Icon(Icons.cancel),
+                                    icon: const Icon(
+                                      Icons.cancel,
+                                      color: white,
+                                    ),
                                   )
                                 : null,
                             _nameFocusNode),
@@ -1004,6 +1007,9 @@ class HomePageState extends State<HomePage> {
                                   : darkGrey,
                             ),
                             child: DropdownButton<String>(
+                              iconEnabledColor: _quantityFocusNode.hasFocus
+                                  ? white
+                                  : lightGrey,
                               elevation: 16,
                               menuMaxHeight:
                                   MediaQuery.of(context).size.height * 0.3,

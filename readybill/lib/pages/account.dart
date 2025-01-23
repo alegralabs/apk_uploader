@@ -249,17 +249,6 @@ class _UserAccountState extends State<UserAccount> {
     );
   }
 
-  Widget labeltext(String label) {
-    return Text(
-      label,
-      style: const TextStyle(
-          color: black,
-          fontFamily: 'Roboto_Regular',
-          fontWeight: FontWeight.bold,
-          fontSize: 16),
-    );
-  }
-
   Future<void> pickLogoImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);

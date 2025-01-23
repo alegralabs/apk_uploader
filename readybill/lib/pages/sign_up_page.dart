@@ -354,7 +354,7 @@ class _SignUpPageState extends State<SignUpPage> {
         )),
         filled: true,
         fillColor: white,
-        hintText: 'Email *',
+        hintText: 'Email',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.all(
             Radius.circular(7.0),
@@ -362,13 +362,6 @@ class _SignUpPageState extends State<SignUpPage> {
           borderSide: BorderSide.none,
         ),
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          emailFocusNode.requestFocus();
-          return 'Email is required';
-        }
-        return null;
-      },
     );
   }
 

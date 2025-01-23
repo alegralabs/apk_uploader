@@ -25,8 +25,6 @@ InputDecoration customTfInputDecoration(String hintText) {
   );
 }
 
-
-
 InputDecoration phoneNumberInputDecoration(String hintText) {
   return InputDecoration(
     prefixIcon: const Column(
@@ -157,5 +155,16 @@ customAlertBox(
     ),
     actions: actions,
     actionsAlignment: MainAxisAlignment.spaceEvenly,
+  );
+}
+
+labeltext(String label) {
+  return Text(
+    label,
+    style: const TextStyle(
+        color: black,
+        fontFamily: 'Roboto_Regular',
+        fontWeight: FontWeight.bold,
+        fontSize: 16),
   );
 }

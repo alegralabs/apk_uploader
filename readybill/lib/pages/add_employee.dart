@@ -12,7 +12,6 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:readybill/components/api_constants.dart';
 
-import 'package:readybill/components/bottom_navigation_bar.dart';
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/components/sidebar.dart';
@@ -36,7 +35,7 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
   TextEditingController confirmPasswordController = TextEditingController();
   TextEditingController addressController = TextEditingController();
   FocusNode focusNode = FocusNode();
-  int _selectedIndex = 3;
+
   bool isObscureConfirm = true;
   bool isObscure = true;
   File? selectedImageFile;
@@ -119,41 +118,8 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
 
   @override
   Widget build(BuildContext context) {
-    bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
     return Scaffold(
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: isKeyboardVisible
-          ? null
-          : FloatingActionButton(
-              backgroundColor: green2,
-              foregroundColor: black,
-              shape: const CircleBorder(),
-              child: const Icon(Icons.check),
-              onPressed: () {
-                if (mobileController.text == '' ||
-                    nameController.text == '' ||
-                    passwordController.text == '' ||
-                    confirmPasswordController.text == '' ||
-                    addressController.text == '') {
-                  callAlert("all fields are required");
-                } else {
-                  submitData();
-                }
-              },
-            ),
-      drawer: const Drawer(
-        child: Sidebar(),
-      ),
       appBar: customAppBar("Add Employee"),
-      bottomNavigationBar: CustomNavigationBar(
-        onItemSelected: (index) {
-          // Handle navigation item selection
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        selectedIndex: _selectedIndex,
-      ),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
         child: GestureDetector(
@@ -165,7 +131,7 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 40.0,
+                    horizontal: 20.0,
                     vertical: 30.0,
                   ),
                   child: Column(
@@ -219,7 +185,25 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
                       _buildTF("Address *", addressController,
                           TextInputType.text, false, TextCapitalization.words),
                       const SizedBox(height: 40.0),
-                      // _buildSignUpBtn(),
+                      SizedBox(
+                        width: double.maxFinite,
+                        child: customElevatedButton(
+                          "Save",
+                          blue,
+                          white,
+                          () {
+                            if (mobileController.text == '' ||
+                                nameController.text == '' ||
+                                passwordController.text == '' ||
+                                confirmPasswordController.text == '' ||
+                                addressController.text == '') {
+                              callAlert("all fields are required");
+                            } else {
+                              submitData();
+                            }
+                          },
+                        ),
+                      ),
                       const SizedBox(height: 10.0),
                       // _buildSignInText(),
                     ],

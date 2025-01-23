@@ -192,6 +192,10 @@ class _LoginPageState extends State<LoginPage> {
                                     }
                                     return null;
                                   },
+                                  style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 2),
                                   textAlignVertical: TextAlignVertical.center,
                                   controller: phoneNumberController,
                                   keyboardType: TextInputType.number,
@@ -204,7 +208,7 @@ class _LoginPageState extends State<LoginPage> {
                                         Text(
                                           "  +91  ",
                                           style: TextStyle(
-                                            fontSize: 16,
+                                            fontSize: 18,
                                             fontWeight: FontWeight.bold,
                                           ),
                                           //  textAlign: TextAlign.,
@@ -234,6 +238,10 @@ class _LoginPageState extends State<LoginPage> {
                                     }
                                     return null;
                                   },
+                                  style: const TextStyle(
+                                      letterSpacing: 2,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold),
                                   controller: passwordController,
                                   focusNode: _passwordFocusNode,
                                   obscureText: isObscure,

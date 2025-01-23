@@ -433,7 +433,8 @@ class _SearchBarState extends State<_SearchBar> {
                 onChanged: widget.onColumnSelect,
                 style: const TextStyle(color: Colors.black),
                 underline: Container(),
-                icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                icon: Icon(Icons.arrow_drop_down,
+                    color: focusNode.hasFocus ? white : lightGrey),
                 items: _columnNames.map((columnName) {
                   return DropdownMenuItem<String>(
                     value: columnName,

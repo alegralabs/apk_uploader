@@ -1,4 +1,4 @@
-package com.example.speech_to_text_search
+package com.alegra.readybill
 
 import io.flutter.embedding.android.FlutterActivity
 

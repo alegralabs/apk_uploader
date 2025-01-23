@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fuzzywuzzy/fuzzywuzzy.dart';
 
 import 'package:readybill/components/bottom_navigation_bar.dart';
 import 'package:readybill/components/custom_components.dart';
@@ -101,6 +102,7 @@ class _ProductListPageState extends State<ProductListPage> {
   }
 
   bool _filterProduct(Map<String, dynamic> product) {
+    if (_searchQuery.isEmpty) return true;
     final itemName = product['name'].toString().toLowerCase();
     final quantity = product['quantity'].toString();
     final unit = product['unit'].toString();
@@ -110,7 +112,11 @@ class _ProductListPageState extends State<ProductListPage> {
       case 'ID':
         return id.contains(_searchQuery);
       case 'Item Name':
-        return itemName.contains(_searchQuery);
+        final similarity = partialRatio(
+          itemName,
+          _searchQuery.toLowerCase(),
+        );
+        return similarity >= 70;
       case 'Qty':
         return quantity.contains(_searchQuery);
       case 'Unit':
@@ -170,7 +176,8 @@ class _ProductListPageState extends State<ProductListPage> {
                   onChanged: _handleColumnSelect,
                   style: const TextStyle(color: Colors.black),
                   underline: Container(),
-                  icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                  icon: Icon(Icons.arrow_drop_down,
+                      color: _focusNode.hasFocus ? white : lightGrey),
                   items: _columnNames.map((columnName) {
                     return DropdownMenuItem<String>(
                       value: columnName,

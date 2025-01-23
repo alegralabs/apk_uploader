@@ -61,6 +61,7 @@ dependencies:
   record: ^5.2.0
   connectivity_plus: 
   pinput: ^5.0.0
+  google_maps_flutter: ^2.10.0
 
 dev_dependencies:
   flutter_test:

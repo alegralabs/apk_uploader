@@ -10,6 +10,7 @@ import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/pages/account.dart';
 import 'package:readybill/pages/add_product.dart';
 import 'package:readybill/pages/change_password_page.dart';
+import 'package:readybill/pages/contact_us.dart';
 
 import 'package:readybill/pages/home_page.dart';
 import 'package:readybill/pages/login_page.dart';
@@ -317,6 +318,17 @@ class _SidebarState extends State<Sidebar> {
                 navigatorKey.currentState?.push(
                   CupertinoPageRoute(
                     builder: (context) => const ContactSupportPage(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.contact_page_outlined),
+              title: const Text('Contact Us'),
+              onTap: () {
+                navigatorKey.currentState?.push(
+                  CupertinoPageRoute(
+                    builder: (context) => const ContactUsPage(),
                   ),
                 );
               },

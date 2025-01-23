@@ -400,29 +400,8 @@ class _AddInventoryState extends State<AddInventory> {
         return;
       },
       child: Scaffold(
-        drawer: const Drawer(
-          child: Sidebar(),
-        ),
         backgroundColor: const Color.fromRGBO(246, 247, 255, 1),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            submitData();
-          },
-          backgroundColor: green2,
-          shape: const CircleBorder(),
-          child: const Icon(Icons.check),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         appBar: customAppBar("Add Product"),
-        bottomNavigationBar: CustomNavigationBar(
-          onItemSelected: (index) {
-            // Handle navigation item selection
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          selectedIndex: _selectedIndex,
-        ),
         body: isLoading
             ? const Center(
                 child: CircularProgressIndicator(), // Show loading indicator

@@ -29,6 +29,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
   late TextEditingController mrpController;
   TextEditingController rateOneValueController = TextEditingController();
   TextEditingController rateTwoValueController = TextEditingController();
+  TextEditingController hsnCodeController = TextEditingController();
   late TextEditingController tax1Controller;
   late TextEditingController tax2Controller;
   late String fullUnitDropdownValue;
@@ -36,6 +37,9 @@ class _ProductEditPageState extends State<ProductEditPage> {
   late String tax1DropdownValue;
   late String tax2DropdownValue;
   late String hsn;
+  bool maintainMRP = false;
+  bool maintainStock = false;
+  bool showHSNSACCode = false;
 
   List<String> fullUnits = [
     'Bags',
@@ -132,9 +136,59 @@ class _ProductEditPageState extends State<ProductEditPage> {
     isAdmin = prefs.getInt('isAdmin');
     APIService.getUserDetails(token, _showFailedDialog);
     _fetchProductDetails();
+    _fetchUserPreferences();
+  }
+
+  Future<void> _fetchUserPreferences() async {
+    setState(() {
+      isLoading = true;
+    });
+    var token = await APIService.getToken();
+
+    const String apiUrl = '$baseUrl/user-preferences';
+    var apiKey = await APIService.getXApiKey();
+    final response = await http.get(Uri.parse(apiUrl), headers: {
+      'Authorization': 'Bearer $token',
+      'auth-key': '$apiKey',
+    });
+    setState(() {
+      isLoading = false;
+    });
+
+    if (response.statusCode == 200) {
+      final jsonData = json.decode(response.body);
+      final preferencesData = jsonData['data'];
+
+      setState(() {
+        maintainMRP = preferencesData['preference_mrp'] == 1 ? true : false;
+        maintainStock =
+            preferencesData['preference_quantity'] == 1 ? true : false;
+        showHSNSACCode = preferencesData['preference_hsn'] == 1 ? true : false;
+      });
+    } else {
+      showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) {
+          return customAlertBox(
+            title: 'Error',
+            content: 'An error occurred. Please login and try again.',
+            actions: <Widget>[
+              customElevatedButton("OK", green2, white, () {
+                navigatorKey.currentState?.pop();
+                // Redirect to login page
+                navigatorKey.currentState?.pushReplacement(CupertinoPageRoute(
+                    builder: (context) => const LoginPage()));
+              }),
+            ],
+          );
+        },
+      );
+    }
   }
 
   Future<void> _fetchProductDetails() async {
+    print('productId: ${widget.productId}');
     setState(() {
       isLoading = true;
     });
@@ -162,10 +216,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
           mrpController.text = jsonData['mrp'];
           fullUnitDropdownValue = jsonData['full_unit'];
           shortUnitDropdownValue = jsonData['short_unit'];
-          hsn = jsonData['hsn'];
+          hsnCodeController.text = jsonData['hsn'];
         });
-
-        
       } else {
         Result.error("Book list not available");
       }
@@ -215,6 +267,13 @@ class _ProductEditPageState extends State<ProductEditPage> {
   }
 
   void _updateProduct() async {
+    if (rateOneValueController.text == "N/A") {
+      rateOneValueController.text = '0';
+    }
+    if (rateTwoValueController.text == "N/A") {
+      rateTwoValueController.text = '0';
+    }
+    print("rateTwoValueController.text: ${rateTwoValueController.text}");
     try {
       print(
           "fullUnitDropdoenMenu: $fullUnitDropdownValue, shortUnitDropdoenValue: $shortUnitDropdownValue");
@@ -229,7 +288,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
           'id': widget.productId,
           'mrp': mrpController.text,
           'item_name': itemNameController.text,
-          'quantity': quantityController.text,
+          maintainStock ? 'quantity' : quantityController.text: '',
+          //'quantity': quantityController.text,
           'sale_price': salePriceController.text,
           'full_unit': fullUnitDropdownValue,
           'short_unit': shortUnitDropdownValue,
@@ -237,7 +297,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
           'rate2': rateTwoValueController.text,
           'tax1': tax1DropdownValue,
           'tax2': tax2DropdownValue,
-          'hsn': hsn,
+          showHSNSACCode ? 'hsn' : hsnCodeController.text: '',
+          //'hsn': hsnCodeController.text,
         }),
       );
 
@@ -376,8 +437,13 @@ class _ProductEditPageState extends State<ProductEditPage> {
                         const SizedBox(
                           height: 15,
                         ),
-                        labeltext("Stock Quantity:"),
-                        _buildTextField(quantityController, 'Stock Quantity'),
+                        maintainStock
+                            ? labeltext("Stock Quantity:")
+                            : const SizedBox.shrink(),
+                        maintainStock
+                            ? _buildTextField(
+                                quantityController, 'Stock Quantity')
+                            : const SizedBox.shrink(),
                         const SizedBox(
                           height: 15,
                         ),
@@ -404,16 +470,22 @@ class _ProductEditPageState extends State<ProductEditPage> {
                         ),
                         Row(
                           children: [
-                            SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.4,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    labeltext("MRP:"),
-                                    _buildTextField(mrpController, 'MRP'),
-                                  ],
-                                )),
-                            const SizedBox(width: 15),
+                            maintainMRP
+                                ? SizedBox(
+                                    width:
+                                        MediaQuery.of(context).size.width * 0.4,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        labeltext("MRP:"),
+                                        _buildTextField(mrpController, 'MRP'),
+                                      ],
+                                    ))
+                                : const SizedBox.shrink(),
+                            maintainMRP
+                                ? const SizedBox(width: 15)
+                                : const SizedBox.shrink(),
                             SizedBox(
                                 width: MediaQuery.of(context).size.width * 0.4,
                                 child: Column(
@@ -429,6 +501,17 @@ class _ProductEditPageState extends State<ProductEditPage> {
                         const SizedBox(
                           height: 15,
                         ),
+                        showHSNSACCode
+                            ? labeltext('HSN Code:')
+                            : const SizedBox.shrink(),
+                        showHSNSACCode
+                            ? _buildTextField(hsnCodeController, 'HSN Code')
+                            : const SizedBox.shrink(),
+                        showHSNSACCode
+                            ? const SizedBox(
+                                height: 15,
+                              )
+                            : const SizedBox.shrink(),
                         labeltext("Taxes:"),
                         Column(
                           children: [

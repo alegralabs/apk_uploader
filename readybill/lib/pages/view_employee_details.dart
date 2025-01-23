@@ -8,9 +8,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/color_constants.dart';
+import 'package:readybill/pages/change_password_page.dart';
 import 'package:readybill/pages/view_employee.dart';
 import 'package:readybill/services/api_services.dart';
 import 'package:http/http.dart' as http;
+import 'package:readybill/services/global_internet_connection_handler.dart';
 
 class ViewEmployeeDetails extends StatefulWidget {
   final Employee user;
@@ -171,9 +173,18 @@ class _ViewEmployeeDetailsState extends State<ViewEmployeeDetails> {
               const SizedBox(
                 height: 20,
               ),
-              labeltext("Label Text:"),
+              labeltext("Enter Address:"),
               buildTextField("Enter Address", addressController),
               const SizedBox(height: 20),
+              customElevatedButton("Change Password", blue, white, () {
+                navigatorKey.currentState
+                    ?.push(CupertinoPageRoute(builder: (context) {
+                  return ChangePasswordPage(
+                    phoneNumber: widget.user.mobile,
+                    smsType: 'chnange_password',
+                  );
+                }));
+              }),
               SizedBox(
                   width: double.infinity,
                   child: customElevatedButton(

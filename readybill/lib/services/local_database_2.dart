@@ -35,7 +35,7 @@ class LocalDatabase2 {
 
   Future<Database> getDatabase() async {
     final databaseDirectoryPath = await getDatabasesPath();
-    final databasePath = join(databaseDirectoryPath, 'probill_inventory.db');
+    final databasePath = join(databaseDirectoryPath, 'readybill_inventory.db');
     final database =
         await openDatabase(databasePath, version: 1, onCreate: (db, version) {
       db.execute('CREATE TABLE $_tableName ('
@@ -83,6 +83,9 @@ class LocalDatabase2 {
 
   Future<void> insertDataIntoSQLite(
       Database db, List<Map<String, dynamic>> data) async {
+    data.sort((a, b) =>
+        (a['name'] ?? '').toString().compareTo((b['name'] ?? '').toString()));
+
     for (var row in data) {
       await db.insert(
         _tableName,
