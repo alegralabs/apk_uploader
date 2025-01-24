@@ -27,7 +27,7 @@ class _ContactUsPageState extends State<ContactUsPage> {
   final FocusNode _phoneFocusNode = FocusNode();
   final FocusNode _messageFocusNode = FocusNode();
   late GoogleMapController mapController;
-  final LatLng _center = const LatLng(26.1581, 91.6848);
+  final LatLng _center = const LatLng(26.158480796775176, 91.68502376783557);
   final formKey = GlobalKey<FormState>();
   String emailErrorMessage = "";
 
@@ -107,8 +107,8 @@ class _ContactUsPageState extends State<ContactUsPage> {
                     ),
                     markers: {
                       const Marker(
-                        markerId: MarkerId('Sydney'),
-                        position: LatLng(26.158173391661677, 91.68481049717907),
+                        markerId: MarkerId('Alegra labs'),
+                        position: LatLng(26.15797032330177, 91.68481049710812),
                       )
                     },
                   ),

@@ -847,7 +847,7 @@ class HomePageState extends State<HomePage> {
     //     Provider.of<HomeBillItemProvider>(context, listen: false).unit;
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
-    print("screenHeight: $screenHeight");
+
     _quantityController.text =
         Provider.of<HomeBillItemProvider>(context, listen: false)
             .quantity
