@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:readybill/components/color_constants.dart';
+import 'package:readybill/services/global_internet_connection_handler.dart';
 
 InputDecoration customTfInputDecoration(String hintText) {
   return InputDecoration(
@@ -166,5 +167,97 @@ labeltext(String label) {
         fontFamily: 'Roboto_Regular',
         fontWeight: FontWeight.bold,
         fontSize: 16),
+  );
+}
+
+duplicatesAlertBox({
+  required BuildContext context,
+  required List<String> excelDuplicates,
+  required List<String> dbDuplicates,
+}) {
+  return AlertDialog(
+    title: const Text(
+      'Duplicate Entry',
+      style: TextStyle(
+        fontWeight: FontWeight.bold,
+        fontFamily: 'Roboto_Regular',
+      ),
+      textAlign: TextAlign.center,
+    ),
+    content: SizedBox(
+      width: MediaQuery.of(context).size.width,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'We detected the following duplicates entry in the uploaded file:',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Roboto_Regular',
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+          if (excelDuplicates.isNotEmpty) ...[
+            const Text(
+              "Excel Duplicates (entries that have multiple occurences in the uploaded file):",
+              style: TextStyle(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.2,
+              ),
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemBuilder: (context, index) {
+                  return Text(
+                    excelDuplicates[index],
+                    textAlign: TextAlign.center,
+                  );
+                },
+                separatorBuilder: (context, index) => const Divider(
+                  thickness: 1,
+                  height: 2,
+                ),
+                itemCount: excelDuplicates.length,
+              ),
+            ),
+          ],
+          const SizedBox(height: 10),
+          if (dbDuplicates.isNotEmpty) ...[
+            const Text(
+              "Database Duplicates(entries that already exist in the database):",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.5,
+              ),
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemBuilder: (context, index) {
+                  return Text(
+                    dbDuplicates[index],
+                    textAlign: TextAlign.center,
+                  );
+                },
+                separatorBuilder: (context, index) => const Divider(
+                  thickness: 0.2,
+                  height: 0,
+                ),
+                itemCount: dbDuplicates.length,
+              ),
+            ),
+          ],
+        ],
+      ),
+    ),
+    actions: [
+      customElevatedButton("OK", blue, white, navigatorKey.currentState!.pop),
+    ],
   );
 }

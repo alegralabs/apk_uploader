@@ -23,7 +23,7 @@ class UserDetail {
   final int id;
   final String name;
 
-  final String email;
+  final String? email;
   final String mobile;
   final String address;
   final String shopType;
@@ -35,7 +35,7 @@ class UserDetail {
   UserDetail({
     required this.id,
     required this.name,
-    required this.email,
+    this.email,
     required this.mobile,
     required this.address,
     required this.shopType,
@@ -213,6 +213,7 @@ class _UserAccountState extends State<UserAccount> {
           id: userData['user_id'],
           name: userData['name'],
           //   username: userData['username'],
+
           email: userData['details']['email'],
           mobile: userData['mobile'],
           address: userData['details']['address'],

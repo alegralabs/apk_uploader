@@ -185,6 +185,7 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget _buildPasswordTF() {
     // Flag to toggle password visibility
     return TextFormField(
+      focusNode: passwordFocusNode,
       // textCapitalization: TextCapitalization.sentences,
       controller: passwordController,
       obscureText: isPasswordObscure,
@@ -232,6 +233,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Widget _buildConfirmPasswordTF() {
     return TextFormField(
+      focusNode: confirmPasswordFocusNode,
       obscureText: isConfirmPasswordObscure,
       // textCapitalization: TextCapitalization.sentences,
       keyboardType: TextInputType.visiblePassword,
@@ -282,6 +284,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Widget _buildFullNameTF() {
     return TextFormField(
+      focusNode: nameFocusNode,
       textCapitalization: TextCapitalization.words,
       controller: fullNameController,
       keyboardType: TextInputType.text,
@@ -313,6 +316,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Widget _buildBuisnessNameTF() {
     return TextFormField(
+      focusNode: businessNameFocusNode,
       textCapitalization: TextCapitalization.words,
       controller: buisnessNameController,
       keyboardType: TextInputType.text,
@@ -344,6 +348,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Widget _buildEmailTF() {
     return TextFormField(
+      focusNode: emailFocusNode,
       controller: emailController,
       keyboardType: TextInputType.emailAddress,
       decoration: const InputDecoration(
@@ -367,6 +372,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Widget _buildAddressTF() {
     return TextFormField(
+      focusNode: addressFocusNode,
       textCapitalization: TextCapitalization.sentences,
       controller: addressController,
       keyboardType: TextInputType.text,

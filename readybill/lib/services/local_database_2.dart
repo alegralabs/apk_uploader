@@ -93,6 +93,7 @@ class LocalDatabase2 {
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
+    print('data inserted');
   }
 
   void clearTable() async {

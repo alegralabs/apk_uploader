@@ -24,6 +24,7 @@ import 'package:readybill/services/global_internet_connection_handler.dart';
 import 'package:readybill/services/local_database_2.dart';
 import 'package:readybill/services/result.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 String uploadExcelAPI = '$baseUrl/preview/excel';
 String downloadExcelAPI = '$baseUrl/export';
@@ -126,7 +127,7 @@ class _AddInventoryState extends State<AddInventory> {
 
   String? fullUnitDropdownValue;
   String? shortUnitDropdownValue;
-  int _selectedIndex = 2;
+
   bool maintainMRP = false;
   bool maintainStock = false;
   bool showHSNSACCode = false;
@@ -141,7 +142,6 @@ class _AddInventoryState extends State<AddInventory> {
     var key = GlobalKey();
     taxRateRowKeys.add(key);
     taxRateRows.add(_buildTaxRateRow(key, 0));
-    // Initialize the taxRateRows list with the first row
 
     rateControllers[0] = "";
     taxControllers[0] = "GST";
@@ -159,7 +159,8 @@ class _AddInventoryState extends State<AddInventory> {
       var response = await AddInventoryService.uploadXLS(file);
 
       if (response.statusCode == 200) {
-        // Show response in a dialog
+        LocalDatabase2.instance.clearTable();
+        LocalDatabase2.instance.fetchDataAndStoreLocally();
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -175,26 +176,49 @@ class _AddInventoryState extends State<AddInventory> {
           },
         );
       } else if (response.statusCode == 403) {
-        // Show error message in a dialog
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return customAlertBox(
-              title: 'Upload Error',
-              content: 'Duplicate entry found, please check the file',
-              actions: [
-                customElevatedButton("OK", green2, white, () {
-                  navigatorKey.currentState?.pop();
-                }),
-              ],
-            );
-          },
-        );
+        Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        print("jsonResponse: $jsonResponse");
+        if (jsonResponse['status'] == '0') {
+          List<String> excelDuplicates = [];
+          List<String> dbDuplicates = [];
+
+          if (jsonResponse['excel_duplicates'] != null) {
+            excelDuplicates = (jsonResponse['excel_duplicates'] as List)
+                .map((item) => item['ITEM NAME'].toString())
+                .toList();
+          }
+
+          if (jsonResponse['database_duplicates'] != null) {
+            dbDuplicates = (jsonResponse['database_duplicates'] as List)
+                .map((item) => item['ITEM NAME'].toString())
+                .toList();
+          }
+          // Show error message in a dialog
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return duplicatesAlertBox(
+                  context: context,
+                  excelDuplicates: excelDuplicates,
+                  dbDuplicates: dbDuplicates);
+            },
+          );
+        } else {
+          showDialog(
+              context: context,
+              builder: (context) => customAlertBox(
+                    title: "Failed to Upload",
+                    content: jsonResponse['message'],
+                    actions: [
+                      customElevatedButton("OK", green2, white, () {
+                        navigatorKey.currentState?.pop();
+                      })
+                    ],
+                  ));
+        }
       }
     }
   }
-
-  
 
   Widget _buildCombinedDropdown(
       List<String> items, void Function(String?) onChanged) {
@@ -287,17 +311,26 @@ class _AddInventoryState extends State<AddInventory> {
     }
   }
 
-  void downloadFile() async {
-    final downloader = FileDownloadHandler();
-
-    try {
-      final file = await downloader.downloadFile(
-          'https://example.com/file.pdf', 'readybill_inventory.xlsx');
-      customToast('File downloaded to: ${file.path}');
-    } catch (e) {
-      print('Download failed: $e');
+  downloadFile() async {
+    final Uri url =
+        Uri.parse('https://dev.readybill.app/storage/media/exported_data.xlsx');
+    if (!await launchUrl(url)) {
+      throw Exception('Could not launch $url');
     }
   }
+
+  // void downloadFile() async {
+  //   final downloader = FileDownloadHandler();
+
+  //   try {
+  //     final file = await downloader.downloadFile(
+  //         'https://dev.readybill.app/storafe/media/exported_data.xlsx',
+  //         'readybill_inventory.xlsx');
+  //     customToast('File downloaded to: ${file.path}');
+  //   } catch (e) {
+  //     print('Download failed: $e');
+  //   }
+  // }
 
   Future<void> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -315,7 +348,6 @@ class _AddInventoryState extends State<AddInventory> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
-        _selectedIndex = 0;
         // Navigate to NextPage when user tries to pop MyHomePage
         Navigator.pushReplacement(
           context,
