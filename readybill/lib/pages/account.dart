@@ -243,10 +243,24 @@ class _UserAccountState extends State<UserAccount> {
   Widget textFieldCustom(
       TextEditingController controller, String hintText, bool readOnly) {
     return TextFormField(
-      textCapitalization: TextCapitalization.sentences,
+      textCapitalization: TextCapitalization.words,
       controller: controller,
       readOnly: readOnly,
-      decoration: readOnly ? null : customTfInputDecoration(hintText),
+      decoration: readOnly
+          ? disabledTfInputDecoration(hintText)
+          : customTfInputDecoration(hintText),
+    );
+  }
+
+  Widget textFieldPhone(
+      TextEditingController controller, String hintText, bool readOnly) {
+    return TextFormField(
+      keyboardType: TextInputType.phone,
+      controller: controller,
+      readOnly: readOnly,
+      decoration: readOnly
+          ? disabledTfInputDecoration(hintText)
+          : customTfInputDecoration(hintText),
     );
   }
 
@@ -325,7 +339,7 @@ class _UserAccountState extends State<UserAccount> {
                   textFieldCustom(emailController, 'Email', true),
                   const SizedBox(height: 20),
                   labeltext("Mobile:"),
-                  textFieldCustom(phoneController, 'Mobile', true),
+                  textFieldPhone(phoneController, 'Mobile', true),
                   const SizedBox(height: 20),
                   labeltext("Address:"),
                   textFieldCustom(addressController, 'Address',

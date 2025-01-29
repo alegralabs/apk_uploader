@@ -258,34 +258,40 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
                 ? Text(_noOfEmployees > 0
                     ? 'Total Employees: $_noOfEmployees'
                     : 'No Employees Found')
-                : const SizedBox.shrink(),
+                : const Text(
+                    "You have not added any employees.",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
             const Divider(
               thickness: 1,
               height: 5,
             ),
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      'Name',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            _employees.isNotEmpty
+                ? const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            'Name',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            'Mobile',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      'Mobile',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                  )
+                : const SizedBox.shrink(),
             const Divider(
               thickness: 1,
               height: 5,

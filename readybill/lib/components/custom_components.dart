@@ -26,6 +26,25 @@ InputDecoration customTfInputDecoration(String hintText) {
   );
 }
 
+InputDecoration disabledTfInputDecoration(String hintText) {
+  return InputDecoration(
+    filled: true,
+    fillColor: lightGrey,
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8.0),
+      borderSide: BorderSide.none,
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8.0),
+      borderSide: BorderSide.none,
+    ),
+    hintText: hintText,
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8.0),
+    ),
+  );
+}
+
 InputDecoration phoneNumberInputDecoration(String hintText) {
   return InputDecoration(
     prefixIcon: const Column(

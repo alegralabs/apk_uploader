@@ -201,6 +201,7 @@ class _ContactUsPageState extends State<ContactUsPage> {
                   }
                 },
                 controller: _messageController,
+                maxLines: 5,
                 decoration: customTfInputDecoration("Enter Your Message *"),
               ),
               const SizedBox(

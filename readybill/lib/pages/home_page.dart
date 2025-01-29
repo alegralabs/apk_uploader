@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -14,6 +15,7 @@ import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/quantity_modal_bottom_sheet.dart';
 import 'package:readybill/components/sidebar.dart';
 import 'package:readybill/components/microphone_button.dart';
+import 'package:readybill/pages/print_page.dart';
 import 'package:readybill/services/api_services.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
 import 'package:readybill/services/home_bill_item_provider.dart';
@@ -678,6 +680,8 @@ class HomePageState extends State<HomePage> {
     // Add the product to the list
   }
 
+  double? total;
+
   double calculateOverallTotal() {
     double overallTotal = 0.0; // Initialize overall total
 
@@ -689,6 +693,8 @@ class HomePageState extends State<HomePage> {
           itemForBillRow['amount']; // Get the amount for the current product
       overallTotal += amount; // Add the amount to the overall total
     }
+
+    total = overallTotal;
 
     return double.parse(overallTotal.toStringAsFixed(2));
   }
@@ -716,9 +722,7 @@ class HomePageState extends State<HomePage> {
     return formData;
   }
 
-  Future<void> saveData() async {
-    EasyLoading.show(status: 'loading...');
-
+  Future<void> saveData(String action) async {
     const String apiUrl = '$baseUrl/billing';
     double grandTotal = calculateOverallTotal(); // Calculate overall total
 // Determine print flag
@@ -732,6 +736,7 @@ class HomePageState extends State<HomePage> {
     Map<String, String> formData = convertJsonToFormData(requestBody);
     // Send POST request with bearer token
     try {
+      EasyLoading.show(status: 'loading...');
       var response = await http.post(
         Uri.parse(apiUrl),
         headers: {
@@ -740,35 +745,22 @@ class HomePageState extends State<HomePage> {
         },
         body: formData,
       );
+      EasyLoading.dismiss();
+
+      print("Save response : ${response.body}");
 
       if (response.statusCode == 200) {
-        EasyLoading.dismiss();
-        Provider.of<HomeBillItemProvider>(context, listen: false)
-            .clearItems(); // Clear the list
+        if (action == 'save') {
+          Provider.of<HomeBillItemProvider>(context, listen: false)
+              .clearItems();
+        } // Clear the list
         clearProductName(); // Call the clearProductName function
         // Show dialog
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return customAlertBox(
-              title: "Billing is done",
-              content: '',
-              actions: [
-                customElevatedButton('OK', green2, white, () {
-                  navigatorKey.currentState?.pop();
-                }),
-              ],
-            );
-          },
-        );
+
         // Optionally, you can handle further actions after saving the data
       } else {
         //  print(response.body);
         EasyLoading.dismiss();
-
-        // Handle other HTTP status codes
-        // debugPrint(
-        // 'Response body: ${response.body}'); // Print the whole response body
       }
     } catch (e) {
       EasyLoading.dismiss();
@@ -1309,7 +1301,7 @@ class HomePageState extends State<HomePage> {
                                   // white text color
                                 ),
                                 onPressed: () {
-                                  saveData();
+                                  saveData("save");
                                 },
                                 child: const Text("Save"),
                               ),
@@ -1416,7 +1408,12 @@ class HomePageState extends State<HomePage> {
                       borderRadius: BorderRadius.circular(screenWidth * 0.1)),
                   child: IconButton(
                     onPressed: () {
-                      saveData();
+                      saveData("print");
+                      navigatorKey.currentState?.push(CupertinoPageRoute(
+                          builder: (context) => PrintPage(
+                              data: Provider.of<HomeBillItemProvider>(context)
+                                  .homeItemForBillRows,
+                              totalAmount: total.toString())));
                     },
                     icon: const Icon(Icons.print),
                     color: white,

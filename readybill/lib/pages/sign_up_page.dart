@@ -894,7 +894,7 @@ class _OtpModalBottomSheetState extends State<OtpModalBottomSheet> {
               topRight: Radius.circular(20),
             ),
           ),
-          height: MediaQuery.of(context).size.height * 0.5,
+          height: MediaQuery.of(context).size.height * 0.9,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(10, 20, 10, 10),
             child: Column(

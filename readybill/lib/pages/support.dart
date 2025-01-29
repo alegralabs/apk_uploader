@@ -56,7 +56,7 @@ class _ContactSupportPageState extends State<ContactSupportPage> {
     print(response.body);
     if (response.statusCode == 200) {
       Navigator.pop(context);
-      Fluttertoast.showToast(msg: "Question submitted successfully");
+      Fluttertoast.showToast(msg: "We have received your question.");
       questionTitleController.clear();
       questionBodyController.clear();
       file = null;
@@ -105,6 +105,7 @@ class _ContactSupportPageState extends State<ContactSupportPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(25.0),
@@ -114,107 +115,126 @@ class _ContactSupportPageState extends State<ContactSupportPage> {
       builder: (context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.7,
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Center(
-                        child: Text("ENTER YOUR QUESTION",
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold)),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        "Title: ",
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      TextFormField(
-                        focusNode: questionTitleFocusNode,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            questionTitleFocusNode.requestFocus();
-                            return "Please enter a title";
-                          }
-                          return null;
-                        },
-                        controller: questionTitleController,
-                        decoration: customTfInputDecoration("Title"),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        "Details: ",
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      TextFormField(
-                        focusNode: questionBodyFocusNode,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            questionBodyFocusNode.requestFocus();
-                            return "Please enter the details";
-                          }
-                          return null;
-                        },
-                        controller: questionBodyController,
-                        decoration: customTfInputDecoration("Details"),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width * 0.4,
-                            child: customElevatedButton(
-                                "Add Attachment", blue, white, () {
-                              uploadAttachment();
-                              // Force bottom sheet to rebuild
-                              setState(() {});
-                            }),
-                          ),
-                          if (file != null) ...[
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.3,
-                              child: Text(
-                                file!.path.split('/').last,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 2,
-                                style: const TextStyle(color: Colors.blue),
-                                softWrap: true,
-                              ),
+            return Padding(
+              padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom),
+              child: DraggableScrollableSheet(
+                initialChildSize: 0.7,
+                minChildSize: 0.5,
+                maxChildSize: 0.95,
+                expand: false,
+                builder: (context, scrollController) {
+                  return Container(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Form(
+                      key: _formKey,
+                      child: SingleChildScrollView(
+                        controller: scrollController,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Center(
+                              child: Text("ENTER YOUR QUESTION",
+                                  style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold)),
                             ),
-                            IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  file = null;
-                                });
+                            const SizedBox(height: 16),
+                            const Text(
+                              "Title: ",
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                            TextFormField(
+                              textCapitalization: TextCapitalization.sentences,
+                              focusNode: questionTitleFocusNode,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  questionTitleFocusNode.requestFocus();
+                                  return "Please enter a title";
+                                }
+                                return null;
                               },
-                              icon: const Icon(
-                                Icons.delete,
-                                color: red,
-                              ),
+                              controller: questionTitleController,
+                              decoration: customTfInputDecoration("Title"),
                             ),
+                            const SizedBox(height: 16),
+                            const Text(
+                              "Details: ",
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                            TextFormField(
+                              maxLines: 5,
+                              textCapitalization: TextCapitalization.sentences,
+                              focusNode: questionBodyFocusNode,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  questionBodyFocusNode.requestFocus();
+                                  return "Please enter the details";
+                                }
+                                return null;
+                              },
+                              controller: questionBodyController,
+                              decoration: customTfInputDecoration("Details"),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                SizedBox(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.4,
+                                  child: customElevatedButton(
+                                      "Add Attachment", blue, white, () {
+                                    uploadAttachment();
+                                    setState(() {});
+                                  }),
+                                ),
+                                if (file != null) ...[
+                                  SizedBox(
+                                    width:
+                                        MediaQuery.of(context).size.width * 0.3,
+                                    child: Text(
+                                      file!.path.split('/').last,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 2,
+                                      style:
+                                          const TextStyle(color: Colors.blue),
+                                      softWrap: true,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        file = null;
+                                      });
+                                    },
+                                    icon: const Icon(
+                                      Icons.delete,
+                                      color: red,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              width: double.maxFinite,
+                              child: customElevatedButton(
+                                  "Submit", green2, white, () {
+                                if (_formKey.currentState!.validate()) {
+                                  submitQuestion();
+                                }
+                              }),
+                            ),
+                            const SizedBox(height: 16),
                           ],
-                        ],
+                        ),
                       ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.maxFinite,
-                        child:
-                            customElevatedButton("Submit", green2, white, () {
-                          if (_formKey.currentState!.validate()) {
-                            submitQuestion();
-                          }
-                        }),
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               ),
             );
           },
@@ -244,7 +264,7 @@ class _ContactSupportPageState extends State<ContactSupportPage> {
                       questionModalBottomSheet(context);
                     },
                     child: const Text(
-                      "Ask us a question",
+                      "Ask us a question?",
                       style: TextStyle(
                         color: Colors.blue,
                         fontSize: 16,

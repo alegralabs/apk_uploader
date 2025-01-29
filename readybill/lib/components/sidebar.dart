@@ -16,6 +16,7 @@ import 'package:readybill/pages/home_page.dart';
 import 'package:readybill/pages/login_page.dart';
 import 'package:readybill/pages/preferences.dart';
 import 'package:readybill/pages/add_employee.dart';
+import 'package:readybill/pages/print_page.dart';
 import 'package:readybill/pages/subscriptions.dart';
 import 'package:readybill/pages/support.dart';
 import 'package:readybill/pages/transaction_list.dart';
@@ -333,6 +334,16 @@ class _SidebarState extends State<Sidebar> {
                 );
               },
             ),
+            // ListTile(
+            //     leading: const Icon(Icons.bluetooth),
+            //     title: Text("Connect Printer"),
+            //     onTap: () {
+            //       navigatorKey.currentState?.push(
+            //         CupertinoPageRoute(
+            //           builder: (context) => const PrintPage(),
+            //         ),
+            //       );
+            //     }),
             ListTile(
               leading: const Icon(Icons.exit_to_app),
               title: const Text('Logout'),
