@@ -1,14 +1,20 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'package:readybill/pages/splash_screen.dart';
+import 'package:readybill/services/firebase_api.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
 import 'package:readybill/services/home_bill_item_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:readybill/services/refund_bill_item_provider.dart';
 import 'package:provider/provider.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+
+  await FirebaseApi().initNotifications();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   runApp(

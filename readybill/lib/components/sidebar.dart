@@ -16,7 +16,7 @@ import 'package:readybill/pages/home_page.dart';
 import 'package:readybill/pages/login_page.dart';
 import 'package:readybill/pages/preferences.dart';
 import 'package:readybill/pages/add_employee.dart';
-import 'package:readybill/pages/print_page.dart';
+import 'package:readybill/pages/print_page_50mm.dart';
 import 'package:readybill/pages/subscriptions.dart';
 import 'package:readybill/pages/support.dart';
 import 'package:readybill/pages/transaction_list.dart';

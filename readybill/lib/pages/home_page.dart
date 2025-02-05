@@ -15,7 +15,7 @@ import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/quantity_modal_bottom_sheet.dart';
 import 'package:readybill/components/sidebar.dart';
 import 'package:readybill/components/microphone_button.dart';
-import 'package:readybill/pages/print_page.dart';
+import 'package:readybill/pages/print_page_50mm.dart';
 import 'package:readybill/services/api_services.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
 import 'package:readybill/services/home_bill_item_provider.dart';
@@ -84,6 +84,8 @@ class HomePageState extends State<HomePage> {
   String lastError = '';
   String lastStatus = '';
 
+  Widget? receipt;
+
   FlutterTts flutterTts = FlutterTts();
 
   //New Variable
@@ -143,7 +145,7 @@ class HomePageState extends State<HomePage> {
   int currentPage = 0; // Current page for loading items
 
   //GlobalKey<AutoCompleteTextFieldState<String>> quantityKey = GlobalKey();
-  String _errorMessage = '';
+
   var listQuantity = 1;
   Map? currentVoice;
   List<Map>? voices;
@@ -584,7 +586,9 @@ class HomePageState extends State<HomePage> {
     relatedUnit = relatedUnit.toLowerCase();
     //  print('itemId: $itemId, quantity: $quantity, relatedUnit: $relatedUnit');
     print('checkStockStatus');
+
     try {
+      EasyLoading.show();
       final response = await http.post(
         Uri.parse('$baseUrl/stock-quantity'),
         headers: {
@@ -598,6 +602,7 @@ class HomePageState extends State<HomePage> {
           'relatedUnit': relatedUnit,
         }),
       );
+      EasyLoading.dismiss();
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
@@ -774,7 +779,7 @@ class HomePageState extends State<HomePage> {
       setState(() {
         _nameController.clear();
         _quantityController.clear();
-        _errorMessage = "";
+
         validProductName =
             true; // Clear error message when clearing the text field
       });
@@ -1409,11 +1414,17 @@ class HomePageState extends State<HomePage> {
                   child: IconButton(
                     onPressed: () {
                       saveData("print");
+
                       navigatorKey.currentState?.push(CupertinoPageRoute(
-                          builder: (context) => PrintPage(
-                              data: Provider.of<HomeBillItemProvider>(context)
-                                  .homeItemForBillRows,
-                              totalAmount: total.toString())));
+                          builder: (context) => PrintPage50mm(
+                                data: Provider.of<HomeBillItemProvider>(context)
+                                    .homeItemForBillRows,
+                                totalAmount: total.toString(),
+                                clearData: Provider.of<HomeBillItemProvider>(
+                                        context,
+                                        listen: false)
+                                    .clearItems,
+                              )));
                     },
                     icon: const Icon(Icons.print),
                     color: white,

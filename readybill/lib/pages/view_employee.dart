@@ -60,7 +60,7 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
   int _selectedIndex = 3;
   int _noOfEmployees = 0;
   String _selectedColumn = 'Name';
-
+  int isSubscriptionExpired = 0;
   String _searchQuery = '';
 
   List<Employee> _filteredEmployees = [];
@@ -70,7 +70,7 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-    _scrollController.addListener(_onScroll);
+
     _fetchEmployees();
   }
 
@@ -99,7 +99,8 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
 
       return data;
     } else if (response.statusCode == 403 &&
-        jsonData['message'] == 'No subscription found for the shop.') {
+            jsonData['message'] == 'No subscription found for the shop.' ||
+        jsonData['message'] == 'The shop subscription has expired.') {
       showDialog(
           context: context,
           builder: (context) {
@@ -125,6 +126,8 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
   }
 
   Future<void> _fetchEmployees() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    isSubscriptionExpired = prefs.getInt('isSubscriptionExpired') ?? 0;
     if (!_hasMoreData) return; // No more data to load
     setState(() {
       _isLoadingMore = true;
@@ -147,14 +150,6 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
       setState(() {
         _isLoadingMore = false;
       });
-    }
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels ==
-            _scrollController.position.maxScrollExtent &&
-        !_isLoadingMore) {
-      _fetchEmployees(); // Fetch more data when reaching the bottom
     }
   }
 
@@ -218,180 +213,193 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
   @override
   Widget build(BuildContext context) {
     bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
+
     return Scaffold(
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        floatingActionButton: isKeyboardVisible || isAdmin == 0
-            ? null
-            : FloatingActionButton(
-                backgroundColor: green2,
-                foregroundColor: black,
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    CupertinoPageRoute(
-                      builder: (context) => const EmployeeSignUpPage(),
-                    ),
-                  );
-                },
-                shape: const CircleBorder(),
-                child: const Icon(Icons.add),
-              ),
-        bottomNavigationBar: CustomNavigationBar(
-          onItemSelected: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          selectedIndex: _selectedIndex,
-        ),
-        drawer: const Drawer(
-          child: Sidebar(),
-        ),
-        appBar: customAppBar("Employees"),
-        body: Column(
-          children: [
-            _SearchBar(
-                onSearch: _handleSearch,
-                selectedColumn: _selectedColumn,
-                onColumnSelect: _handleColumnSelect),
-            _employees.isNotEmpty
-                ? Text(_noOfEmployees > 0
-                    ? 'Total Employees: $_noOfEmployees'
-                    : 'No Employees Found')
-                : const Text(
-                    "You have not added any employees.",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: isKeyboardVisible || isAdmin == 0
+          ? null
+          : FloatingActionButton(
+              backgroundColor: green2,
+              foregroundColor: black,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  CupertinoPageRoute(
+                    builder: (context) => const EmployeeSignUpPage(),
                   ),
-            const Divider(
-              thickness: 1,
-              height: 5,
+                );
+              },
+              shape: const CircleBorder(),
+              child: const Icon(Icons.add),
             ),
-            _employees.isNotEmpty
-                ? const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            'Name',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            'Mobile',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : const SizedBox.shrink(),
-            const Divider(
-              thickness: 1,
-              height: 5,
-            ),
-            Expanded(
-              child: ListView.separated(
-                separatorBuilder: (context, index) => const Divider(
-                  thickness: 0.2,
-                  height: 0,
-                ),
-                controller: _scrollController,
-                itemCount: _filteredEmployees.length + 1,
-                itemBuilder: (context, index) {
-                  if (index == _filteredEmployees.length) {
-                    return _isLoadingMore
-                        ? const Center(child: CircularProgressIndicator())
-                        : const SizedBox();
-                  }
-                  final employee = _filteredEmployees[index];
-                  return InkWell(
-                    onTap: () {
-                      isAdmin == 1
-                          ? Navigator.push(
-                              context,
-                              CupertinoPageRoute(
-                                builder: (context) =>
-                                    ViewEmployeeDetails(user: employee),
-                              ),
-                            )
-                          : null;
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            flex: 4, // Larger space for item name
-                            child: Text(
-                              employee.name,
-                              style: const TextStyle(fontSize: 14),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Expanded(
-                            flex: 4, // Larger space for item name
-                            child: Text(
-                              employee.mobile,
-                              style: const TextStyle(fontSize: 14),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          isAdmin == 1
-                              ? Expanded(
-                                  flex: 1,
-                                  child: IconButton(
-                                      onPressed: () {
-                                        showDialog(
-                                            context: context,
-                                            builder: (context) {
-                                              return customAlertBox(
-                                                title: 'Remove Employee?',
-                                                content:
-                                                    "Are you sure you want to remove ${employee.name} from your employees? ",
-                                                actions: [
-                                                  customElevatedButton(
-                                                      'NO', green2, white, () {
-                                                    navigatorKey.currentState
-                                                        ?.pop();
-                                                  }),
-                                                  customElevatedButton(
-                                                    "YES",
-                                                    red,
-                                                    white,
-                                                    () {
-                                                      deleteEmployee(
-                                                          employee.id);
-                                                      navigatorKey.currentState
-                                                          ?.pop();
-                                                    },
-                                                  )
-                                                ],
-                                              );
-                                            });
-                                      },
-                                      icon: const Icon(
-                                        Icons.delete,
-                                        color: red,
-                                      )))
-                              : const SizedBox.shrink(),
-                        ],
+      bottomNavigationBar: CustomNavigationBar(
+        onItemSelected: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        selectedIndex: _selectedIndex,
+      ),
+      drawer: const Drawer(
+        child: Sidebar(),
+      ),
+      appBar: customAppBar("Employees"),
+      body: isSubscriptionExpired == 0
+          ? Column(
+              children: [
+                _SearchBar(
+                    onSearch: _handleSearch,
+                    selectedColumn: _selectedColumn,
+                    onColumnSelect: _handleColumnSelect),
+                _employees.isNotEmpty
+                    ? Text(_noOfEmployees > 0
+                        ? 'Total Employees: $_noOfEmployees'
+                        : 'No Employees Found')
+                    : const Text(
+                        "You have not added any employees.",
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
                       ),
+                const Divider(
+                  thickness: 1,
+                  height: 5,
+                ),
+                _employees.isNotEmpty
+                    ? const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                'Name',
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                'Mobile',
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+                const Divider(
+                  thickness: 1,
+                  height: 5,
+                ),
+                Expanded(
+                  child: ListView.separated(
+                    separatorBuilder: (context, index) => const Divider(
+                      thickness: 0.2,
+                      height: 0,
                     ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ));
+                    controller: _scrollController,
+                    itemCount: _filteredEmployees.length + 1,
+                    itemBuilder: (context, index) {
+                      if (index == _filteredEmployees.length) {
+                        return _isLoadingMore
+                            ? const Center(child: CircularProgressIndicator())
+                            : const SizedBox();
+                      }
+                      final employee = _filteredEmployees[index];
+                      return InkWell(
+                        onTap: () {
+                          isAdmin == 1
+                              ? Navigator.push(
+                                  context,
+                                  CupertinoPageRoute(
+                                    builder: (context) =>
+                                        ViewEmployeeDetails(user: employee),
+                                  ),
+                                )
+                              : null;
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 4, // Larger space for item name
+                                child: Text(
+                                  employee.name,
+                                  style: const TextStyle(fontSize: 14),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Expanded(
+                                flex: 4, // Larger space for item name
+                                child: Text(
+                                  employee.mobile,
+                                  style: const TextStyle(fontSize: 14),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              isAdmin == 1
+                                  ? Expanded(
+                                      flex: 1,
+                                      child: IconButton(
+                                          onPressed: () {
+                                            showDialog(
+                                                context: context,
+                                                builder: (context) {
+                                                  return customAlertBox(
+                                                    title: 'Remove Employee?',
+                                                    content:
+                                                        "Are you sure you want to remove ${employee.name} from your employees? ",
+                                                    actions: [
+                                                      customElevatedButton(
+                                                          'NO', green2, white,
+                                                          () {
+                                                        navigatorKey
+                                                            .currentState
+                                                            ?.pop();
+                                                      }),
+                                                      customElevatedButton(
+                                                        "YES",
+                                                        red,
+                                                        white,
+                                                        () {
+                                                          deleteEmployee(
+                                                              employee.id);
+                                                          navigatorKey
+                                                              .currentState
+                                                              ?.pop();
+                                                        },
+                                                      )
+                                                    ],
+                                                  );
+                                                });
+                                          },
+                                          icon: const Icon(
+                                            Icons.delete,
+                                            color: red,
+                                          )))
+                                  : const SizedBox.shrink(),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            )
+          : const Center(
+              child: Text(
+              "No active subscription found.\n Please renew your subscription to view employee data.",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            )),
+    );
   }
 }
 

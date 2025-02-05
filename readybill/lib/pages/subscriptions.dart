@@ -91,50 +91,77 @@ class _SubscriptionsState extends State<Subscriptions> {
   Widget buildPlanCard(
       Map<String, dynamic> plan, double screenHeight, double screenWidth) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.fromLTRB(0, 15, 00, 0),
       margin: EdgeInsets.fromLTRB(
           screenWidth * 0.07, screenWidth * 0.07, screenWidth * 0.07, 0),
       height: screenHeight * 0.23,
-      width: screenWidth * 0.9,
+      width: screenWidth * 0.5,
       decoration: const BoxDecoration(
+        // border: Border(
+        //   top: BorderSide(color: black, width: 2),
+        // ),
         borderRadius: BorderRadius.all(Radius.circular(10)),
         color: lightGrey,
       ),
-      child: Column(children: [
-        Text(
-          plan['plan_name'],
-          style: const TextStyle(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            plan['plan_name'],
+            style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Roboto_Regular',
+                fontSize: 20),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            "Price: ₹${plan['price'].toString()}/-",
+            style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontFamily: 'Roboto_Regular',
-              fontSize: 20),
-        ),
-        const Divider(thickness: 2),
-        const SizedBox(height: 10),
-        Text(
-          "Price: ₹${plan['price'].toString()}",
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Roboto_Regular',
-            fontSize: 25,
-          ),
-        ),
-        const SizedBox(height: 10),
-        ElevatedButton(
-          onPressed: () {},
-          style: ButtonStyle(
-            backgroundColor: WidgetStateProperty.all(green),
-            shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-              RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
+              fontSize: 25,
             ),
           ),
-          child: const Text(
-            'Upgrade Now',
-            style: TextStyle(color: white),
-          ),
-        ),
-      ]),
+          const SizedBox(height: 10),
+          // ElevatedButton(
+          //   onPressed: () {},
+          //   style: ButtonStyle(
+          //     backgroundColor: WidgetStateProperty.all(green),
+          //     shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+          //       RoundedRectangleBorder(
+          //         borderRadius: BorderRadius.circular(8.0),
+          //       ),
+          //     ),
+          //   ),
+          //   child: const Text(
+          //     'Upgrade Now',
+          //     style: TextStyle(color: white),
+          //   ),
+          // ),
+          InkWell(
+            onTap: () {},
+            child: Container(
+                decoration: const BoxDecoration(
+                    color: black,
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(10),
+                      bottomRight: Radius.circular(10),
+                    )),
+                height: screenHeight * 0.06,
+                width: double.maxFinite,
+                child: const Center(
+                  child: Text(
+                    "Subscribe Now",
+                    style: TextStyle(
+                      color: white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                )),
+          )
+        ],
+      ),
     );
   }
 
@@ -153,89 +180,99 @@ class _SubscriptionsState extends State<Subscriptions> {
           ? const Center(child: CircularProgressIndicator())
           : plans.isEmpty
               ? const Center(child: Text('No subscription plans available'))
-              : SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        width: screenWidth * 0.85,
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "Current Plan Details",
-                                style: TextStyle(
+              : Container(
+                  decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                          colors: [white, Color(0xff95BB72)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight)),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: screenWidth * 0.85,
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Current Plan Details",
+                                  style: TextStyle(
+                                      fontFamily: 'Roboto_Regular',
+                                      fontWeight: FontWeight.bold,
+                                      decoration: TextDecoration.underline),
+                                ),
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                                Text(
+                                  "Plan: $currentPlan",
+                                  style: const TextStyle(
                                     fontFamily: 'Roboto_Regular',
                                     fontWeight: FontWeight.bold,
-                                    decoration: TextDecoration.underline),
-                              ),
-                              const SizedBox(
-                                height: 10,
-                              ),
-                              Text(
-                                "Plan: $currentPlan",
-                                style: const TextStyle(
-                                  fontFamily: 'Roboto_Regular',
-                                  fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(
-                                height: 10,
-                              ),
-                              Text(
-                                "Expiry Date: $expiryDate",
-                                style: const TextStyle(
-                                  fontFamily: 'Roboto_Regular',
-                                  fontWeight: FontWeight.bold,
+                                const SizedBox(
+                                  height: 10,
                                 ),
+                                Text(
+                                  "Expiry Date: $expiryDate",
+                                  style: const TextStyle(
+                                    fontFamily: 'Roboto_Regular',
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ]),
+                        ),
+                        ...plans.map((plan) =>
+                            buildPlanCard(plan, screenHeight, screenWidth)),
+                        const SizedBox(height: 20),
+                        const Text(
+                          "Sales and Technical Support",
+                          style: TextStyle(
+                              fontFamily: 'Roboto_Regular',
+                              fontWeight: FontWeight.bold,
+                              decoration: TextDecoration.underline),
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.phone, color: black),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Text(
+                              "+91 88227 74191 / +91 98640 81806",
+                              style: TextStyle(
+                                fontFamily: 'Roboto_Regular',
                               ),
-                            ]),
-                      ),
-                      ...plans.map((plan) =>
-                          buildPlanCard(plan, screenHeight, screenWidth)),
-                      const SizedBox(height: 20),
-                      const Text(
-                        "Sales and Technical Support",
-                        style: TextStyle(
-                            fontFamily: 'Roboto_Regular',
-                            fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.underline),
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.phone, color: green),
-                          Text(
-                            "+91 88227 74191 / +91 98640 81806",
-                            style: TextStyle(
-                              fontFamily: 'Roboto_Regular',
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.email, color: green),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Text(
-                            "info@alegralabs.com",
-                            style: TextStyle(
-                              fontFamily: 'Roboto_Regular',
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.email, color: black),
+                            SizedBox(
+                              width: 10,
                             ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: screenHeight * 0.1),
-                    ],
+                            Text(
+                              "info@alegralabs.com",
+                              style: TextStyle(
+                                fontFamily: 'Roboto_Regular',
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: screenHeight * 0.1),
+                      ],
+                    ),
                   ),
                 ),
     );

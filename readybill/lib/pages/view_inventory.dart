@@ -44,9 +44,10 @@ class _ProductListPageState extends State<ProductListPage> {
 
   getPrefs() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    subscriptionExpired = prefs.getInt('isSubscriptionExpired');
     isAdmin = prefs.getInt('isAdmin');
-    print(" sub exp: ${prefs.getInt('isSubscriptionExpired')}");
-    if (prefs.getInt('isSubscriptionExpired') != 0) {
+    //print(" sub exp: ${prefs.getInt('isSubscriptionExpired')}");
+    if (subscriptionExpired != 0) {
       showDialog(
           context: context,
           builder: (context) {
@@ -155,116 +156,126 @@ class _ProductListPageState extends State<ProductListPage> {
         selectedIndex: _selectedIndex,
       ),
       appBar: customAppBar("Inventory"),
-      body: _products.isNotEmpty
-          ? Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: TextField(
-                    focusNode: _focusNode,
-                    onTap: () {
-                      setState(() {});
-                    },
-                    onSubmitted: (value) {
-                      setState(() {});
-                    },
-                    onChanged: _handleSearch,
-                    decoration: customTfDecorationWithSuffix(
-                      "Search",
-                      DropdownButton<String>(
-                        value: _selectedColumn,
-                        onChanged: _handleColumnSelect,
-                        style: const TextStyle(color: Colors.black),
-                        underline: Container(),
-                        icon: Icon(Icons.arrow_drop_down,
-                            color: _focusNode.hasFocus ? white : lightGrey),
-                        items: _columnNames.map((columnName) {
-                          return DropdownMenuItem<String>(
-                            value: columnName,
-                            child: Text(columnName),
-                          );
-                        }).toList(),
+      body: subscriptionExpired == 0
+          ? _products.isNotEmpty
+              ? Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextField(
+                        focusNode: _focusNode,
+                        onTap: () {
+                          setState(() {});
+                        },
+                        onSubmitted: (value) {
+                          setState(() {});
+                        },
+                        onChanged: _handleSearch,
+                        decoration: customTfDecorationWithSuffix(
+                          "Search",
+                          DropdownButton<String>(
+                            value: _selectedColumn,
+                            onChanged: _handleColumnSelect,
+                            style: const TextStyle(color: Colors.black),
+                            underline: Container(),
+                            icon: Icon(Icons.arrow_drop_down,
+                                color: _focusNode.hasFocus ? white : lightGrey),
+                            items: _columnNames.map((columnName) {
+                              return DropdownMenuItem<String>(
+                                value: columnName,
+                                child: Text(columnName),
+                              );
+                            }).toList(),
+                          ),
+                          _focusNode,
+                        ),
                       ),
-                      _focusNode,
                     ),
+                    const SizedBox(width: 10),
+                    const Padding(
+                      padding: EdgeInsets.only(
+                          left: 15, right: 15, top: 8.0, bottom: 8),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            flex: 5, // Larger space for item name
+                            child: Text(
+                              'Item Name',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2, // Smaller space for Qty
+                            child: Text(
+                              'Stock',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2, // Smaller space for Unit
+                            child: Text(
+                              "Unit",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                        child: _isLoading
+                            ? const Center(child: CircularProgressIndicator())
+                            : ListView.builder(
+                                controller: _scrollController,
+                                itemCount:
+                                    _products.where(_filterProduct).length,
+                                itemBuilder: (context, index) {
+                                  final product = _products
+                                      .where(_filterProduct)
+                                      .toList()[index];
+                                  return _products
+                                          .where(_filterProduct)
+                                          .isNotEmpty
+                                      ? InkWell(
+                                          onTap: () {
+                                            isAdmin == 1
+                                                ? Navigator.push(context,
+                                                    CupertinoPageRoute(
+                                                        builder: (context) {
+                                                    return ProductEditPage(
+                                                        productId:
+                                                            product['itemId']);
+                                                  }))
+                                                : null;
+                                          },
+                                          child: itemWidget(product),
+                                        )
+                                      : const Center(
+                                          child: Text('No Data Found'),
+                                        );
+                                },
+                              )),
+                  ],
+                )
+              : const Center(
+                  child: Text(
+                    'You have not added any item. Go to "Add Inventory" and start adding items.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                ),
-                const SizedBox(width: 10),
-                const Padding(
-                  padding:
-                      EdgeInsets.only(left: 15, right: 15, top: 8.0, bottom: 8),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        flex: 5, // Larger space for item name
-                        child: Text(
-                          'Item Name',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2, // Smaller space for Qty
-                        child: Text(
-                          'Stock',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2, // Smaller space for Unit
-                        child: Text(
-                          "Unit",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                    child: _isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : ListView.builder(
-                            controller: _scrollController,
-                            itemCount: _products.where(_filterProduct).length,
-                            itemBuilder: (context, index) {
-                              final product = _products
-                                  .where(_filterProduct)
-                                  .toList()[index];
-                              return _products.where(_filterProduct).isNotEmpty
-                                  ? InkWell(
-                                      onTap: () {
-                                        isAdmin == 1
-                                            ? Navigator.push(context,
-                                                CupertinoPageRoute(
-                                                    builder: (context) {
-                                                return ProductEditPage(
-                                                    productId:
-                                                        product['itemId']);
-                                              }))
-                                            : null;
-                                      },
-                                      child: itemWidget(product),
-                                    )
-                                  : const Center(
-                                      child: Text('No Data Found'),
-                                    );
-                            },
-                          )),
-              ],
-            )
+                )
           : const Center(
               child: Text(
-                'You have not added any item. Go to "Add Inventory" and start adding items.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ),
+              "No active subscription found.\n Please renew your subscription to view inventory data.",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            )),
     );
   }
 
