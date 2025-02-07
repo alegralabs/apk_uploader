@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fuzzywuzzy/fuzzywuzzy.dart';
 
 import 'package:readybill/components/bottom_navigation_bar.dart';
@@ -40,6 +41,19 @@ class _ProductListPageState extends State<ProductListPage> {
     super.initState();
     _fetchProductsFromLocalDatabase();
     getPrefs();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight
+    ]);
+  }
+
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
   }
 
   getPrefs() async {

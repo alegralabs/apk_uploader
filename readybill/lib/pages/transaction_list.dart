@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
 import 'package:http/http.dart' as http;
 
 import 'dart:convert';
@@ -66,6 +68,19 @@ class _TransactionListPageState extends State<TransactionListPage> {
   void initState() {
     super.initState();
     _fetchTransactions();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight
+    ]);
+  }
+
+  void dispose() {
+    scrollController.dispose();
+    super.dispose();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
   }
 
   Future<void> _fetchTransactions() async {

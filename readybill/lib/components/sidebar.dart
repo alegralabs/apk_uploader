@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bluetooth_printer/flutter_bluetooth_printer_library.dart';
 import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/components/custom_components.dart';
@@ -16,7 +17,8 @@ import 'package:readybill/pages/home_page.dart';
 import 'package:readybill/pages/login_page.dart';
 import 'package:readybill/pages/preferences.dart';
 import 'package:readybill/pages/add_employee.dart';
-import 'package:readybill/pages/print_page_50mm.dart';
+
+import 'package:readybill/pages/printer_connected.dart';
 import 'package:readybill/pages/subscriptions.dart';
 import 'package:readybill/pages/support.dart';
 import 'package:readybill/pages/transaction_list.dart';
@@ -28,6 +30,7 @@ import 'package:readybill/services/result.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Sidebar extends StatefulWidget {
   const Sidebar({super.key});
@@ -46,7 +49,7 @@ class _SidebarState extends State<Sidebar> {
   String address = '';
   String phone = '';
   int? subscriptionExpired;
-
+  String _selectedPaperSize = '';
   final Uri _userDataUrl = Uri.parse('$baseUrl/user-detail');
 
   @override
@@ -80,6 +83,8 @@ class _SidebarState extends State<Sidebar> {
   Future<void> _getData() async {
     String? token = await APIService.getToken();
     var apiKey = await APIService.getXApiKey();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _selectedPaperSize = await prefs.getString('paperSize') ?? '80mm';
 
     final response = await http.get(
       _userDataUrl,
@@ -105,6 +110,92 @@ class _SidebarState extends State<Sidebar> {
         });
       }
     }
+  }
+
+  Widget _buildPrinterSelector() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final device = await FlutterBluetoothPrinter.selectDevice(context);
+      if (device != null) {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('printerAddress', device.address);
+
+        if (context.mounted) {
+          _showPaperSizeDialog(context);
+        }
+      } else {
+        // If no printer was selected, close the modal
+        if (context.mounted) {
+          Navigator.pop(context);
+        }
+      }
+    });
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+
+  void _showPaperSizeDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text("Select Paper Size"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  RadioListTile<String>(
+                    title: const Text('80mm'),
+                    value: '80mm',
+                    groupValue: _selectedPaperSize,
+                    onChanged: (String? value) async {
+                      if (value != null) {
+                        setState(() {
+                          _selectedPaperSize = value;
+                        });
+                        SharedPreferences prefs =
+                            await SharedPreferences.getInstance();
+                        await prefs.setString('paperSize', value);
+                      }
+                    },
+                  ),
+                  RadioListTile<String>(
+                    title: const Text('58mm'),
+                    value: '58mm',
+                    groupValue: _selectedPaperSize,
+                    onChanged: (String? value) async {
+                      if (value != null) {
+                        setState(() {
+                          _selectedPaperSize = value;
+                        });
+                        SharedPreferences prefs =
+                            await SharedPreferences.getInstance();
+                        await prefs.setString('paperSize', value);
+                      }
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                customElevatedButton("Save", blue, white, () {
+                  navigatorKey.currentState?.pop();
+
+                  navigatorKey.currentState
+                      ?.push(MaterialPageRoute(builder: (context) {
+                    return const PrinterConnected();
+                  }));
+                })
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -270,6 +361,12 @@ class _SidebarState extends State<Sidebar> {
                     },
                   )
                 : const SizedBox.shrink(),
+            ListTile(
+                leading: const Icon(Icons.print_outlined),
+                title: const Text('Connect Printer'),
+                onTap: () {
+                  _buildPrinterSelector();
+                }),
             ListTile(
               leading: const Icon(Icons.account_circle_outlined),
               title: const Text('Account'),

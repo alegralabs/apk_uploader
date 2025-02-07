@@ -15,7 +15,7 @@ import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/quantity_modal_bottom_sheet.dart';
 import 'package:readybill/components/sidebar.dart';
 import 'package:readybill/components/microphone_button.dart';
-import 'package:readybill/pages/print_page_50mm.dart';
+import 'package:readybill/pages/print_page.dart';
 import 'package:readybill/services/api_services.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
 import 'package:readybill/services/home_bill_item_provider.dart';
@@ -727,7 +727,7 @@ class HomePageState extends State<HomePage> {
     return formData;
   }
 
-  Future<void> saveData(String action) async {
+  Future<String> saveData(String action) async {
     const String apiUrl = '$baseUrl/billing';
     double grandTotal = calculateOverallTotal(); // Calculate overall total
 // Determine print flag
@@ -746,25 +746,20 @@ class HomePageState extends State<HomePage> {
         Uri.parse(apiUrl),
         headers: {
           "Authorization": "Bearer $token",
-          "auth-key": "$apiKey", // Include bearer token
+          "auth-key": "$apiKey", 
         },
         body: formData,
       );
       EasyLoading.dismiss();
 
-      print("Save response : ${response.body}");
-
       if (response.statusCode == 200) {
         if (action == 'save') {
           Provider.of<HomeBillItemProvider>(context, listen: false)
               .clearItems();
-        } // Clear the list
-        clearProductName(); // Call the clearProductName function
-        // Show dialog
-
-        // Optionally, you can handle further actions after saving the data
+        }
+        clearProductName();
+        return jsonDecode(response.body)['data']['invoice_number'].toString();
       } else {
-        //  print(response.body);
         EasyLoading.dismiss();
       }
     } catch (e) {
@@ -772,6 +767,7 @@ class HomePageState extends State<HomePage> {
       Result.error("Book list not available");
       // Handle exceptions
     }
+    return '';
   }
 
   void clearProductName() {
@@ -1412,11 +1408,12 @@ class HomePageState extends State<HomePage> {
                       color: black,
                       borderRadius: BorderRadius.circular(screenWidth * 0.1)),
                   child: IconButton(
-                    onPressed: () {
-                      saveData("print");
+                    onPressed: () async {
+                      String invoiceNumber = await saveData("print");
 
                       navigatorKey.currentState?.push(CupertinoPageRoute(
-                          builder: (context) => PrintPage50mm(
+                          builder: (context) => PrintPage(
+                                invoiceNumber: invoiceNumber,
                                 data: Provider.of<HomeBillItemProvider>(context)
                                     .homeItemForBillRows,
                                 totalAmount: total.toString(),

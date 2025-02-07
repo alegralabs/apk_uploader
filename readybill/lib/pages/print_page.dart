@@ -2,30 +2,32 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_printer/flutter_bluetooth_printer_library.dart';
-import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+
 import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/services/api_services.dart';
 import 'package:http/http.dart' as http;
-import 'package:readybill/services/global_internet_connection_handler.dart';
-import 'package:readybill/services/home_bill_item_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class PrintPage50mm extends StatefulWidget {
+class PrintPage extends StatefulWidget {
   final Function clearData;
   final List data;
   final String totalAmount;
-  const PrintPage50mm(
+  final String invoiceNumber;
+  const PrintPage(
       {super.key,
       required this.data,
       required this.totalAmount,
-      required this.clearData});
+      required this.clearData,
+      required this.invoiceNumber});
 
   @override
-  State<PrintPage50mm> createState() => _PrintPageState();
+  State<PrintPage> createState() => _PrintPageState();
 }
 
-class _PrintPageState extends State<PrintPage50mm> {
+class _PrintPageState extends State<PrintPage> {
   ReceiptController? controller;
   String shopName = '';
   String address = '';
@@ -35,9 +37,11 @@ class _PrintPageState extends State<PrintPage50mm> {
   Image logo = Image.asset('assets/ReadyBillBlack.png');
 
   Future<void> printIt() async {
-    final device = await FlutterBluetoothPrinter.selectDevice(context);
-    if (device != null) {
-      controller?.print(address: device.address);
+    controller!.paperSize = PaperSize.mm58;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final deviceAddress = prefs.getString('printerAddress');
+    if (deviceAddress != null) {
+      controller?.print(address: deviceAddress);
     }
   }
 
@@ -86,6 +90,7 @@ class _PrintPageState extends State<PrintPage50mm> {
         children: [
           Expanded(
             child: Receipt(
+              //   paperSize: PaperSize.mm58,
               builder: (context) => Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisSize: MainAxisSize.min,
@@ -126,59 +131,109 @@ class _PrintPageState extends State<PrintPage50mm> {
                       ? Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(gstIn, style: const TextStyle(fontSize: 17))
+                            Text("GST no: $gstIn",
+                                style: const TextStyle(fontSize: 17))
                           ],
                         )
                       : const SizedBox.shrink(),
+                  const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "INVOICE",
+                        style: TextStyle(
+                            fontSize: 17,
+                            decoration: TextDecoration.underline,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  const Divider(
+                    thickness: 1,
+                    color: black,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text("Invoice No: ${widget.invoiceNumber}",
+                          style: const TextStyle(fontSize: 17))
+                    ],
+                  ),
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    const Text("Date: ", style: TextStyle(fontSize: 17)),
+                    Text(
+                        DateFormat('dd-MM-yyyy hh:mm a').format(DateTime.now()),
+                        style: const TextStyle(fontSize: 17))
+                  ]),
+                  const Divider(
+                    thickness: 1,
+                    color: black,
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
                   Flexible(
                     child: SingleChildScrollView(
                       child: DataTable(
                         headingRowHeight: 22,
                         dividerThickness: 0,
                         horizontalMargin: 0,
-                        headingRowColor: WidgetStatePropertyAll(black),
+                        columnSpacing:
+                            20, // Add this to control space between columns
                         columns: const [
                           DataColumn(
-                              label: Text(
-                            "ITEM",
-                            style: TextStyle(
+                            label: Text(
+                              "ITEM",
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: white),
-                          )),
+                              ),
+                            ),
+                            // Add this to control column width
+                            tooltip: "Item Name",
+                          ),
                           DataColumn(
-                              label: Text(
-                            "QUANTITY",
-                            style: TextStyle(
+                            label: Text(
+                              "QUANTITY",
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: white),
-                          )),
+                              ),
+                            ),
+                          ),
                           DataColumn(
-                              label: Text(
-                            "PRICE",
-                            style: TextStyle(
+                            label: Text(
+                              "PRICE",
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: white),
-                          )),
+                              ),
+                            ),
+                          ),
                         ],
                         rows: widget.data.map<DataRow>((item) {
                           return DataRow(cells: [
                             DataCell(
-                              Text(
-                                item['itemName'],
-                                style: const TextStyle(fontSize: 18),
+                              SizedBox(
+                                width: MediaQuery.of(context).size.width * 0.4,
+                                child: Text(
+                                  item['itemName'],
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontSize: 18),
+                                ),
                               ),
                             ),
                             DataCell(Text(
                               item['quantity'].toString(),
                               style: const TextStyle(fontSize: 18),
                             )),
-                            DataCell(Text(
-                              item['amount'].toString(),
-                              style: const TextStyle(fontSize: 18),
-                            )),
+                            DataCell(
+                              Text(
+                                item['amount'].toString(),
+                                style: const TextStyle(fontSize: 18),
+                              ),
+                            ),
                           ]);
                         }).toList(),
                       ),
@@ -192,6 +247,22 @@ class _PrintPageState extends State<PrintPage50mm> {
                           fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
+                  const Divider(
+                    thickness: 1,
+                    color: black,
+                  ),
+                  const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "THANK YOU",
+                        style: TextStyle(
+                            fontSize: 17,
+                            decoration: TextDecoration.underline,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  )
                 ],
               ),
               onInitialized: (controller) {
