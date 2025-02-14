@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:readybill/components/api_constants.dart';
-import 'package:readybill/components/bottom_navigation_bar.dart';
+
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/services/api_services.dart';

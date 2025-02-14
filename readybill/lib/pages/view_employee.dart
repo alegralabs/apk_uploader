@@ -24,6 +24,7 @@ class Employee {
   final String mobile;
   final String address;
   final String photo;
+  final String countryCode;
 
   Employee({
     required this.id,
@@ -31,6 +32,7 @@ class Employee {
     required this.mobile,
     required this.address,
     required this.photo,
+    required this.countryCode,
   });
 
   factory Employee.fromJson(Map<String, dynamic> json) {
@@ -40,6 +42,7 @@ class Employee {
       mobile: json['mobile'],
       address: json['address'],
       photo: json['photo'],
+      countryCode: json['country_code'],
     );
   }
 }
@@ -106,8 +109,6 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
 
       final List<dynamic> EmployeesData = jsonData['data'];
 
-      // print(EmployeesData);
-      //  print('employees data: $EmployeesData');
       var data = EmployeesData.map((json) => Employee.fromJson(json)).toList();
 
       return data;
@@ -345,7 +346,7 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
                               Expanded(
                                 flex: 4, // Larger space for item name
                                 child: Text(
-                                  employee.mobile,
+                                  '${employee.countryCode} ${employee.mobile}',
                                   style: const TextStyle(fontSize: 14),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,

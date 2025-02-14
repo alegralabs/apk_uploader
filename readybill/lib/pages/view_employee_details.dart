@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/color_constants.dart';
@@ -12,6 +13,7 @@ import 'package:readybill/pages/change_password_page.dart';
 import 'package:readybill/pages/view_employee.dart';
 import 'package:readybill/services/api_services.dart';
 import 'package:http/http.dart' as http;
+import 'package:readybill/services/country_code_provider.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
 
 class ViewEmployeeDetails extends StatefulWidget {
@@ -37,9 +39,6 @@ class _ViewEmployeeDetailsState extends State<ViewEmployeeDetails> {
     nameController.text = widget.user.name;
     mobileController.text = widget.user.mobile;
     addressController.text = widget.user.address;
-    nameController.text = widget.user.name;
-    mobileController.text = widget.user.mobile;
-    addressController.text = widget.user.address;
   }
 
   Future<void> pickLogoImage() async {
@@ -53,6 +52,8 @@ class _ViewEmployeeDetailsState extends State<ViewEmployeeDetails> {
   }
 
   Future<void> updateUserDetails() async {
+    print(
+        'edit employee country code: ${Provider.of<CountryCodeProvider>(context, listen: false).editEmployeePageCountryCode}');
     try {
       String? token = await APIService.getToken();
       String? apiKey = await APIService.getXApiKey();
@@ -70,6 +71,9 @@ class _ViewEmployeeDetailsState extends State<ViewEmployeeDetails> {
       request.fields['address'] = addressController.text;
       request.fields['mobile'] = mobileController.text;
       request.fields['staff_id'] = widget.user.id.toString();
+      request.fields['country_code'] =
+          Provider.of<CountryCodeProvider>(context, listen: false)
+              .editEmployeePageCountryCode;
 
       if (selectedImageFile != null) {
         request.files.add(await http.MultipartFile.fromPath(
@@ -169,7 +173,7 @@ class _ViewEmployeeDetailsState extends State<ViewEmployeeDetails> {
                 height: 20,
               ),
               labeltext("Enter Mobile Number:"),
-              buildTextField("Enter Mobile Number", mobileController),
+              buildPhoneField("Enter Mobile Number", mobileController),
               const SizedBox(
                 height: 20,
               ),
@@ -182,6 +186,7 @@ class _ViewEmployeeDetailsState extends State<ViewEmployeeDetails> {
                   return ChangePasswordPage(
                     phoneNumber: widget.user.mobile,
                     smsType: 'chnange_password',
+                    countryCode: '+91',
                   );
                 }));
               }),
@@ -198,8 +203,20 @@ class _ViewEmployeeDetailsState extends State<ViewEmployeeDetails> {
 
   buildTextField(String label, TextEditingController controller) {
     return TextField(
-      textCapitalization: TextCapitalization.sentences,
+      textCapitalization: TextCapitalization.words,
       decoration: customTfInputDecoration(label),
+      controller: controller,
+    );
+  }
+
+  buildPhoneField(String label, TextEditingController controller) {
+    return TextField(
+      textCapitalization: TextCapitalization.words,
+      decoration: phoneNumberInputDecoration(
+          label,
+          Provider.of<CountryCodeProvider>(context)
+              .setEditEmployeePageCountryCode,
+          widget.user.countryCode),
       controller: controller,
     );
   }

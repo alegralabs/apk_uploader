@@ -3,12 +3,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
 import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/components/custom_components.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:readybill/services/api_services.dart';
 import 'package:http/http.dart' as http;
+import 'package:readybill/services/country_code_provider.dart';
 
 class ContactUsPage extends StatefulWidget {
   const ContactUsPage({super.key});
@@ -30,6 +32,7 @@ class _ContactUsPageState extends State<ContactUsPage> {
   final LatLng _center = const LatLng(26.158480796775176, 91.68502376783557);
   final formKey = GlobalKey<FormState>();
   String emailErrorMessage = "";
+  String countryCode = '';
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
@@ -157,8 +160,11 @@ class _ContactUsPageState extends State<ContactUsPage> {
                 },
                 keyboardType: TextInputType.number,
                 controller: _phoneController,
-                decoration:
-                    phoneNumberInputDecoration("Enter Contact Number *"),
+                decoration: phoneNumberInputDecoration(
+                    "Enter Contact Number *",
+                    Provider.of<CountryCodeProvider>(context, listen: false)
+                        .setContactPageCountryCode,
+                    ''),
               ),
               const SizedBox(
                 height: 12,

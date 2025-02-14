@@ -42,7 +42,7 @@ class _SplashScreenState extends State<SplashScreen>
     ).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: Interval(0.0, 0.6), // First 60% of the animation
+        curve: const Interval(0.0, 0.6),
       ),
     );
 
@@ -52,7 +52,7 @@ class _SplashScreenState extends State<SplashScreen>
     ).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: Interval(0.6, 1.0), // Last 40% of the animation
+        curve: const Interval(0.6, 1.0),
       ),
     );
 
@@ -148,11 +148,11 @@ class _SplashScreenState extends State<SplashScreen>
     await prefs.setBool('isLoggedIn', isLoggedIn); // Ensure this is awaited
   }
 
-  Future<bool> _getLoggedInStatus() async {
-    print('getting logged in status');
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('isLoggedIn') ?? false;
-  }
+  // Future<bool> _getLoggedInStatus() async {
+  //   print('getting logged in status');
+  //   final prefs = await SharedPreferences.getInstance();
+  //   return prefs.getBool('isLoggedIn') ?? false;
+  // }
 
   void _navigateToLoginScreen() {
     print("navigate to login screen");
@@ -165,7 +165,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   void _navigateToSearchApp() {
     print("navigate to search app");
-    Future.delayed(const Duration(milliseconds: 2200), () {
+    Future.delayed(const Duration(milliseconds: 2000), () {
       navigatorKey.currentState?.pushReplacement(
         CupertinoPageRoute(builder: (context) => const HomePage()),
       );
@@ -183,7 +183,7 @@ class _SplashScreenState extends State<SplashScreen>
             AnimatedBuilder(
               animation: _logoWidthAnimation,
               builder: (context, child) {
-                return Container(
+                return SizedBox(
                   width: _logoWidthAnimation.value,
                   child: child,
                 );

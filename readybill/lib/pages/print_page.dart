@@ -12,7 +12,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PrintPage extends StatefulWidget {
-  final Function clearData;
+  final Function? clearData;
   final List data;
   final String totalAmount;
   final String invoiceNumber;
@@ -20,7 +20,7 @@ class PrintPage extends StatefulWidget {
       {super.key,
       required this.data,
       required this.totalAmount,
-      required this.clearData,
+      this.clearData,
       required this.invoiceNumber});
 
   @override

@@ -1,8 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/models/transaction.dart';
+import 'package:readybill/pages/print_page.dart';
+import 'package:readybill/services/global_internet_connection_handler.dart';
 
 class TransactionDetailPage extends StatelessWidget {
   final Transaction transaction;
@@ -34,7 +37,7 @@ class TransactionDetailPage extends StatelessWidget {
               'Items:',
               style: TextStyle(
                 fontSize: 20,
-                color:  Color(0xff28a745),
+                color: Color(0xff28a745),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -66,7 +69,13 @@ class TransactionDetailPage extends StatelessWidget {
             const SizedBox(height: 16),
             SizedBox(
                 width: double.infinity,
-                child: customElevatedButton("Print", blue, white, () {})),
+                child: customElevatedButton("Print", blue, white, () {
+                  navigatorKey.currentState?.push(CupertinoPageRoute(
+                      builder: (context) => PrintPage(
+                          data: transaction.itemList,
+                          totalAmount: transaction.totalPrice,
+                          invoiceNumber: transaction.invoiceNumber)));
+                })),
             const SizedBox(height: 30),
           ],
         ),

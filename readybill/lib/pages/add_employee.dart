@@ -10,14 +10,16 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:provider/provider.dart';
 import 'package:readybill/components/api_constants.dart';
 
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/color_constants.dart';
-import 'package:readybill/components/sidebar.dart';
 
 import 'package:readybill/pages/view_employee.dart';
 import 'package:readybill/services/api_services.dart';
+import 'package:readybill/services/country_code_provider.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
 import 'package:readybill/services/result.dart';
 
@@ -67,6 +69,9 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
     request.fields['password'] = passwordController.text;
     request.fields['password_confirmation'] = confirmPasswordController.text;
     request.fields['address'] = addressController.text;
+    request.fields['country_code'] =
+        Provider.of<CountryCodeProvider>(context, listen: false)
+            .addEmployeePageCountryCode;
     if (selectedImageFile != null) {
       request.files.add(await http.MultipartFile.fromPath(
         'photo',
@@ -170,11 +175,12 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
                         ],
                       ),
                       const SizedBox(height: 30.0),
+
                       _buildNameTF("Name *", nameController, TextInputType.text,
                           false, TextCapitalization.words),
                       const SizedBox(height: 10.0),
-                      _buildTF("Mobile *", mobileController,
-                          TextInputType.phone, false, TextCapitalization.none),
+
+                      _buildMobileTF(),
                       const SizedBox(height: 10.0),
                       _buildPasswordTF(
                           "Password *", passwordController, TextInputType.text),
@@ -232,6 +238,18 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
         decoration: customTfInputDecoration(hintText),
         obscureText: isObscure,
       ),
+    );
+  }
+
+  Widget _buildMobileTF() {
+    return TextField(
+      keyboardType: TextInputType.numberWithOptions(),
+      controller: mobileController,
+      decoration: phoneNumberInputDecoration(
+          "Mobile *",
+          Provider.of<CountryCodeProvider>(context)
+              .setAddEmployeePageCountryCode,
+          ''),
     );
   }
 

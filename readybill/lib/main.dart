@@ -1,8 +1,8 @@
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'package:readybill/pages/splash_screen.dart';
+import 'package:readybill/services/country_code_provider.dart';
 import 'package:readybill/services/firebase_api.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
 import 'package:readybill/services/home_bill_item_provider.dart';
@@ -20,6 +20,7 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => CountryCodeProvider()),
         ChangeNotifierProvider(create: (_) => HomeBillItemProvider()),
         ChangeNotifierProvider(create: (_) => RefundBillItemProvider()),
       ],

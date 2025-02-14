@@ -16,10 +16,14 @@ import 'package:pinput/pinput.dart';
 import 'package:http/http.dart' as http;
 
 class ChangePasswordPage extends StatefulWidget {
+  final String countryCode;
   final String phoneNumber;
   final String smsType;
   const ChangePasswordPage(
-      {super.key, required this.smsType, required this.phoneNumber});
+      {super.key,
+      required this.smsType,
+      required this.phoneNumber,
+      required this.countryCode});
 
   @override
   State<ChangePasswordPage> createState() => _ChangePasswordPageState();
@@ -159,6 +163,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   }
 
   sendOtp() async {
+    print('phone number: ${widget.phoneNumber}');
     var token = await APIService.getToken();
     var authKey = await APIService.getXApiKey();
     print('button tapped');
@@ -167,11 +172,12 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       'Authorization': 'Bearer $token',
       'auth-key': '$authKey',
     }, body: {
+      'country_code': widget.countryCode,
       'mobile': widget.phoneNumber,
       'type': 'send-otp',
       'sms_type': widget.smsType,
     });
-
+    print(response.body);
     if (response.statusCode == 200) {
       setState(() {
         otpSent = true;
@@ -179,6 +185,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       });
       Fluttertoast.showToast(msg: 'OTP sent successfully');
     } else if (response.statusCode == 400) {
+      print(response.body);
       Fluttertoast.showToast(
           msg: 'Could not find an account with this mobile number');
     }

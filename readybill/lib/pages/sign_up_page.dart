@@ -14,17 +14,19 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/color_constants.dart';
+import 'package:readybill/components/country_selector_prefix.dart';
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/resend_button.dart';
 import 'package:readybill/pages/login_page.dart';
 import 'package:readybill/pages/terms_and_conditions.dart';
+import 'package:readybill/services/country_code_provider.dart';
 
 import 'package:readybill/services/global_internet_connection_handler.dart';
 import 'package:readybill/services/result.dart';
 import 'package:pinput/pinput.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -152,27 +154,19 @@ class _SignUpPageState extends State<SignUpPage> {
       },
       controller: mobileNumberController,
       keyboardType: TextInputType.number,
-      decoration: const InputDecoration(
-        errorStyle: TextStyle(color: red),
-        prefixIcon: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "  +91  ",
-              style: TextStyle(
-                fontSize: 16,
-              ),
-            ),
-          ],
-        ),
-        focusedBorder: OutlineInputBorder(
+      decoration: InputDecoration(
+        errorStyle: const TextStyle(color: red),
+        prefixIcon: CountrySelectorPrefix(
+            provider: Provider.of<CountryCodeProvider>(context, listen: false)
+                .setRegisterPageCountryCode),
+        focusedBorder: const OutlineInputBorder(
             borderSide: BorderSide(
           color: green,
         )),
         filled: true,
         fillColor: white,
         hintText: 'Mobile Number *',
-        border: OutlineInputBorder(
+        border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(
             Radius.circular(7.0),
           ),

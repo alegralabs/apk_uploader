@@ -78,9 +78,10 @@ class APIService {
         return 404; // Return a custom status code indicating user data not found
       }
 
-      String name = userData['data']['name'];
+      String name = userData['data']['details']['name'];
       int isAdmin = userData['data']['isAdmin'];
       int isSubscriptionExpired = userData['isSubscriptionExpired'];
+      String subscriptionExpiryDate = userData['subscription_expiry_date'];
       print("isAdmin: $isAdmin");
       //print("isSubscriptionExpired: $isSubscriptionExpired");
       // String username = userData['data']['username'];
@@ -88,6 +89,7 @@ class APIService {
       await prefs.setString('name', name);
       await prefs.setInt('isAdmin', isAdmin);
       await prefs.setInt('isSubscriptionExpired', isSubscriptionExpired);
+      await prefs.setString('subscriptionExpiryDate', subscriptionExpiryDate);
       // await prefs.setString('username', username);
 
       return response.statusCode; // Return the response status code directly

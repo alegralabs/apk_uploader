@@ -7,11 +7,14 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/color_constants.dart';
+import 'package:readybill/components/country_selector_prefix.dart';
 import 'package:readybill/components/resend_button.dart';
 import 'package:readybill/pages/reset_password.dart';
 import 'package:readybill/services/api_services.dart';
+import 'package:readybill/services/country_code_provider.dart';
 
 import 'package:readybill/services/result.dart';
 import 'package:pinput/pinput.dart';
@@ -49,6 +52,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     }, body: {
       'type': 'verify-otp',
       'mobile': phoneNumber,
+      'country_code': Provider.of<CountryCodeProvider>(context, listen: false)
+          .forgotPasswordPageCountryCode,
       'otp': otp
     });
     EasyLoading.dismiss();
@@ -189,30 +194,19 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                   textAlignVertical: TextAlignVertical.center,
                                   controller: phoneNumberController,
                                   keyboardType: TextInputType.number,
-                                  decoration: const InputDecoration(
-                                    errorStyle: TextStyle(color: red),
-                                    prefixIcon: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          "  +91  ",
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          //  textAlign: TextAlign.,
-                                        ),
-                                      ],
+                                  decoration: InputDecoration(
+                                    errorStyle: const TextStyle(color: red),
+                                    prefixIcon: CountrySelectorPrefix(
+                                      provider:
+                                          Provider.of<CountryCodeProvider>(
+                                                  context,
+                                                  listen: false)
+                                              .setForgotPasswordPageCountryCode,
                                     ),
-                                    focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                      color: green,
-                                    )),
                                     filled: true,
                                     fillColor: white,
                                     hintText: 'Mobile Number',
-                                    border: OutlineInputBorder(
+                                    border: const OutlineInputBorder(
                                       borderRadius: BorderRadius.all(
                                         Radius.circular(7.0),
                                       ),
@@ -225,29 +219,32 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                   visible: otpSent,
                                   child: Center(
                                     child: Pinput(
-                                      
                                       focusNode: _otpFocusNode,
                                       onChanged: (value) => setState(() {}),
                                       controller: otpController,
                                       defaultPinTheme: PinTheme(
-                    textStyle: const TextStyle(
-                        fontSize: 22, fontWeight: FontWeight.bold),
-                    width: 50,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: darkGrey,
-                    ),
-                  ),
-                  focusedPinTheme: PinTheme(
-                    textStyle: const TextStyle(fontSize: 22),
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: green,
-                    ),
-                  ),
+                                        textStyle: const TextStyle(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.bold),
+                                        width: 50,
+                                        height: 60,
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          color: darkGrey,
+                                        ),
+                                      ),
+                                      focusedPinTheme: PinTheme(
+                                        textStyle:
+                                            const TextStyle(fontSize: 22),
+                                        width: 60,
+                                        height: 60,
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          color: green,
+                                        ),
+                                      ),
                                       length: 6,
                                     ),
                                   ),

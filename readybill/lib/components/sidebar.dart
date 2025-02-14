@@ -51,6 +51,7 @@ class _SidebarState extends State<Sidebar> {
   int? subscriptionExpired;
   String _selectedPaperSize = '';
   final Uri _userDataUrl = Uri.parse('$baseUrl/user-detail');
+  String countryCode = '';
 
   @override
   void initState() {
@@ -102,11 +103,12 @@ class _SidebarState extends State<Sidebar> {
               : logo = Image.network(imageUrl);
 
           isAdmin = jsonData['data']['isAdmin'];
-          _name = jsonData['data']['name'];
+          _name = jsonData['data']['details']['name'];
           shopName = jsonData['data']['details']['business_name'];
           address = jsonData['data']['details']['address'];
           phone = jsonData['data']['mobile'];
           subscriptionExpired = jsonData['isSubscriptionExpired'];
+          countryCode = jsonData['data']['country_code'];
         });
       }
     }
@@ -390,6 +392,7 @@ class _SidebarState extends State<Sidebar> {
                                   builder: (context) => ChangePasswordPage(
                                         smsType: 'change_password',
                                         phoneNumber: phone,
+                                        countryCode: countryCode,
                                       )),
                             )
                           : noSubscriptionDialog();

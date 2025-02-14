@@ -143,7 +143,7 @@ class RefundPageState extends State<RefundPage> {
   int currentPage = 0; // Current page for loading items
 
   //GlobalKey<AutoCompleteTextFieldState<String>> quantityKey = GlobalKey();
-  String _errorMessage = '';
+
   var listQuantity = 1;
   Map? currentVoice;
   List<Map>? voices;
@@ -800,7 +800,7 @@ class RefundPageState extends State<RefundPage> {
       setState(() {
         _nameController.clear();
         quantityController.clear();
-        _errorMessage = "";
+
         validProductName =
             true; // Clear error message when clearing the text field
       });

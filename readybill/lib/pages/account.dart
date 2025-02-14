@@ -7,13 +7,17 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:provider/provider.dart';
 import 'dart:convert';
 
 import 'package:readybill/components/api_constants.dart';
+import 'package:readybill/components/country_selector_prefix.dart';
 
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/services/api_services.dart';
+import 'package:readybill/services/country_code_provider.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -31,6 +35,7 @@ class UserDetail {
   final String logo;
   final String businessName;
   final String entityId;
+  final String countryCode;
 
   UserDetail({
     required this.id,
@@ -43,6 +48,7 @@ class UserDetail {
     required this.logo,
     required this.businessName,
     required this.entityId,
+    required this.countryCode,
   });
 }
 
@@ -63,6 +69,7 @@ class _UserAccountState extends State<UserAccount> {
   late TextEditingController gstinController;
   late TextEditingController businessNameController;
   late TextEditingController entityIdController;
+  String countryCode = '';
 
   UserDetail? userDetail;
   XFile? logoImageFile;
@@ -211,17 +218,15 @@ class _UserAccountState extends State<UserAccount> {
       setState(() {
         userDetail = UserDetail(
           id: userData['user_id'],
-          name: userData['name'],
-          //   username: userData['username'],
-
+          name: userData['details']['name'],
+          countryCode: userData['country_code'],
           email: userData['details']['email'],
           mobile: userData['mobile'],
           address: userData['details']['address'],
-          shopType: userData['details']['shop_type'],
+          shopType: userData['shop_type'],
           gstin: userData['details']['gstin'],
           logo: userData['logo'],
           businessName: userData['details']['business_name'],
-
           entityId: jsonData['entity_id'],
         );
       });
@@ -254,13 +259,18 @@ class _UserAccountState extends State<UserAccount> {
 
   Widget textFieldPhone(
       TextEditingController controller, String hintText, bool readOnly) {
+    print('countrycode: ${userDetail!.countryCode}');
     return TextFormField(
-      keyboardType: TextInputType.phone,
+      textCapitalization: TextCapitalization.words,
       controller: controller,
       readOnly: readOnly,
       decoration: readOnly
           ? disabledTfInputDecoration(hintText)
-          : customTfInputDecoration(hintText),
+          : phoneNumberInputDecoration(
+              hintText,
+              Provider.of<CountryCodeProvider>(context)
+                  .setAccountPageCountryCode,
+              userDetail!.countryCode),
     );
   }
 
@@ -277,6 +287,8 @@ class _UserAccountState extends State<UserAccount> {
 
   @override
   Widget build(BuildContext context) {
+    countryCode = Provider.of<CountryCodeProvider>(context, listen: false)
+        .accountPageCountryCode;
     return Scaffold(
       //  backgroundColor: const Color.fromRGBO(246, 247, 255, 1),
       appBar: customAppBar('Account Details'),

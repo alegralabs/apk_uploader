@@ -1,7 +1,29 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
+import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/color_constants.dart';
+import 'package:readybill/components/country_selector_prefix.dart';
+import 'package:readybill/pages/account.dart';
+import 'package:readybill/services/api_services.dart';
+import 'package:readybill/services/country_code_provider.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
+
+import 'package:http/http.dart' as http;
+
+getCountryCode() async {
+  var apiKey = await APIService.getXApiKey();
+  var token = await APIService.getToken();
+
+  var response = await http.get(Uri.parse('$baseUrl/countries-json'),
+      headers: {'token': '$token', 'auth-key': '$apiKey'});
+  List<dynamic> data = json.decode(response.body);
+
+  // Convert List<dynamic> to List<Map<String, dynamic>>
+  return data.map((country) => country as Map<String, dynamic>).toList();
+}
 
 InputDecoration customTfInputDecoration(String hintText) {
   return InputDecoration(
@@ -45,20 +67,12 @@ InputDecoration disabledTfInputDecoration(String hintText) {
   );
 }
 
-InputDecoration phoneNumberInputDecoration(String hintText) {
+InputDecoration phoneNumberInputDecoration(
+    String hintText, Function provider, String initialCountryCode) {
   return InputDecoration(
-    prefixIcon: const Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          "  +91  ",
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-          //  textAlign: TextAlign.,
-        ),
-      ],
+    prefixIcon:  Padding(
+      padding:const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+      child: CountrySelectorPrefix(provider: provider,initialCountryCode: initialCountryCode,),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(8.0),

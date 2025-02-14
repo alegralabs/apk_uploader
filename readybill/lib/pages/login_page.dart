@@ -6,14 +6,18 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:provider/provider.dart';
 import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/color_constants.dart';
+import 'package:readybill/components/country_selector_prefix.dart';
 import 'package:readybill/components/custom_components.dart';
+import 'package:readybill/pages/add_phone_number_page.dart';
 import 'package:readybill/pages/forgot_password_page.dart';
 import 'package:readybill/pages/home_page.dart';
 import 'package:readybill/pages/sign_up_page.dart';
 
 import 'package:readybill/services/api_services.dart';
+import 'package:readybill/services/country_code_provider.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
 //import 'package:readybill/services/local_database.dart';
 import 'package:readybill/services/local_database_2.dart';
@@ -199,30 +203,23 @@ class _LoginPageState extends State<LoginPage> {
                                   textAlignVertical: TextAlignVertical.center,
                                   controller: phoneNumberController,
                                   keyboardType: TextInputType.number,
-                                  decoration: const InputDecoration(
-                                    errorStyle: TextStyle(color: red),
-                                    prefixIcon: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          "  +91  ",
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          //  textAlign: TextAlign.,
-                                        ),
-                                      ],
+                                  decoration: InputDecoration(
+                                    errorStyle: const TextStyle(color: red),
+                                    prefixIcon: CountrySelectorPrefix(
+                                      provider:
+                                          Provider.of<CountryCodeProvider>(
+                                                  context,
+                                                  listen: false)
+                                              .setloginPageCountryCode,
                                     ),
-                                    focusedBorder: OutlineInputBorder(
+                                    focusedBorder: const OutlineInputBorder(
                                         borderSide: BorderSide(
                                       color: green,
                                     )),
                                     filled: true,
                                     fillColor: white,
                                     hintText: 'Mobile Number',
-                                    border: OutlineInputBorder(
+                                    border: const OutlineInputBorder(
                                       borderRadius: BorderRadius.all(
                                         Radius.circular(7.0),
                                       ),
@@ -388,11 +385,12 @@ class _LoginPageState extends State<LoginPage> {
                                     ),
                                     TextButton(
                                         onPressed: () {
-                                          Navigator.push(
-                                              context,
-                                              CupertinoPageRoute(
-                                                  builder: (context) =>
-                                                      const SignUpPage()));
+                                          navigatorKey.currentState?.push(
+                                            CupertinoPageRoute(
+                                              builder: (context) =>
+                                                  const AddPhoneNumberPage(),
+                                            ),
+                                          );
                                         },
                                         child: const Text(
                                           'Register Now',

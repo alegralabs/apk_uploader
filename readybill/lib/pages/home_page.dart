@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:intl/intl.dart';
 import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/bill_widget.dart';
 import 'package:readybill/components/bottom_navigation_bar.dart';
@@ -15,6 +16,7 @@ import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/quantity_modal_bottom_sheet.dart';
 import 'package:readybill/components/sidebar.dart';
 import 'package:readybill/components/microphone_button.dart';
+import 'package:readybill/components/subscription_expiry_alert.dart';
 import 'package:readybill/pages/print_page.dart';
 import 'package:readybill/services/api_services.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
@@ -25,6 +27,7 @@ import 'package:readybill/services/local_database_2.dart';
 import 'package:readybill/services/result.dart';
 import 'package:readybill/services/text_to_num.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:http/http.dart' as http;
@@ -177,6 +180,30 @@ class HomePageState extends State<HomePage> {
     _scrollController.dispose();
     _searchFocus.dispose();
     super.dispose();
+  }
+
+  void checkSubscription() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int isSubscriptionExpired = prefs.getInt('isSubscriptionExpired') ?? 0;
+    String subscriptionExpiryDate =
+        prefs.getString('subscription_expiry_date') ?? '';
+
+    if (subscriptionExpiryDate.isNotEmpty) {
+      DateTime expiryDate =
+          DateFormat('yyyy-MM-dd').parse(subscriptionExpiryDate);
+      DateTime today = DateTime.now();
+      int daysLeft = expiryDate.difference(today).inDays;
+
+      if (daysLeft <= 10) {
+        showDialog(
+          context: context,
+          builder: (context) => SubscriptionExpiryAlert(
+            isSubscriptionExpired: isSubscriptionExpired,
+            daysLeft: daysLeft.toString(),
+          ),
+        );
+      }
+    }
   }
 
   void initSpeech() async {
@@ -746,7 +773,7 @@ class HomePageState extends State<HomePage> {
         Uri.parse(apiUrl),
         headers: {
           "Authorization": "Bearer $token",
-          "auth-key": "$apiKey", 
+          "auth-key": "$apiKey",
         },
         body: formData,
       );
