@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/components/custom_components.dart';
+import 'package:readybill/components/subscription_expiry_alert.dart';
 import 'package:readybill/pages/home_page.dart';
 import 'package:readybill/pages/login_page.dart';
 import 'package:readybill/services/api_services.dart';
@@ -157,7 +158,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _navigateToSearchApp() {
-    Future.delayed(const Duration(milliseconds: 2000), () {
+    Future.delayed(const Duration(milliseconds: 1500), () {
       navigatorKey.currentState?.pushReplacement(
         CupertinoPageRoute(builder: (context) => const HomePage()),
       );

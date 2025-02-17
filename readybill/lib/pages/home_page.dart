@@ -155,6 +155,7 @@ class HomePageState extends State<HomePage> {
 
   @override
   void initState() {
+    // checkSubscription();
     super.initState();
     initializeData();
     initTTS();
@@ -186,20 +187,45 @@ class HomePageState extends State<HomePage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     int isSubscriptionExpired = prefs.getInt('isSubscriptionExpired') ?? 0;
     String subscriptionExpiryDate =
-        prefs.getString('subscription_expiry_date') ?? '';
+        prefs.getString('subscriptionExpiryDate') ?? '';
+
+    print("Subscription expiry date: $subscriptionExpiryDate");
 
     if (subscriptionExpiryDate.isNotEmpty) {
-      DateTime expiryDate =
-          DateFormat('yyyy-MM-dd').parse(subscriptionExpiryDate);
+      DateTime expiryDate;
+      try {
+        // First try with the expected format from your example (dd-MM-yyyy)
+        expiryDate = DateFormat('dd-MM-yyyy').parse(subscriptionExpiryDate);
+      } catch (e) {
+        try {
+          // If that fails, try with the format from your original code (yyyy-MM-dd)
+          expiryDate = DateFormat('yyyy-MM-dd').parse(subscriptionExpiryDate);
+        } catch (e) {
+          print("Error parsing date: $e");
+          return; // Exit function if date cannot be parsed
+        }
+      }
+
       DateTime today = DateTime.now();
       int daysLeft = expiryDate.difference(today).inDays;
 
-      if (daysLeft <= 10) {
+      print('days left: $daysLeft');
+
+      if (daysLeft <= 10 && daysLeft >= 0) {
         showDialog(
           context: context,
           builder: (context) => SubscriptionExpiryAlert(
             isSubscriptionExpired: isSubscriptionExpired,
             daysLeft: daysLeft.toString(),
+          ),
+        );
+      } else if (daysLeft < 0) {
+        // Subscription has already expired
+        showDialog(
+          context: context,
+          builder: (context) => const SubscriptionExpiryAlert(
+            isSubscriptionExpired: 1, // Mark as expired
+            daysLeft: "0", // No days left
           ),
         );
       }

@@ -14,7 +14,6 @@ class APIService {
 
   static Future<String?> getXApiKey() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    print('auth key: ${prefs.getString('auth-key')}');
     return prefs.getString('auth-key');
   }
 
@@ -62,11 +61,9 @@ class APIService {
       return 404;
     }
 
-    String? apikey;
+    String? apikey = await APIService.getXApiKey();
 
-    Future.delayed(const Duration(seconds: 1), () async {
-      apikey = await APIService.getXApiKey();
-    });
+    
 
     try {
       print('apikey in gudwd: $apikey');

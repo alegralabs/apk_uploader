@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:readybill/components/api_constants.dart';
@@ -7,6 +7,7 @@ import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/services/api_services.dart';
 import 'package:http/http.dart' as http;
 import 'package:geocoding/geocoding.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Country {
   final String name;
@@ -116,14 +117,13 @@ class _CountrySelectorPrefixState extends State<CountrySelectorPrefix> {
     }
   }
 
-  Future<String> getCountryName() async {
-    
-    Position position = await GeolocatorPlatform.instance.getCurrentPosition();
+  // Future<String> getCountryName() async {
+  //   Position position = await GeolocatorPlatform.instance.getCurrentPosition();
 
-    List<Placemark> placemarks =
-        await placemarkFromCoordinates(position.latitude, position.longitude);
-    return placemarks.first.isoCountryCode!;
-  }
+  //   List<Placemark> placemarks =
+  //       await placemarkFromCoordinates(position.latitude, position.longitude);
+  //   return placemarks.first.isoCountryCode!;
+  // }
 
   Future<void> _initializeDeviceCountry() async {
     if (widget.initialCountryCode != null && widget.initialCountryCode != '') {
@@ -155,7 +155,10 @@ class _CountrySelectorPrefixState extends State<CountrySelectorPrefix> {
     }
 
     try {
-      final String currentCountryCode = await getCountryName();
+      // final String currentCountryCode = await getCountryName();
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      String? currentCountryCode = prefs.getString('countryCode');
 
       if (_countriesData != null) {
         try {
@@ -355,7 +358,6 @@ class _CountrySelectorPrefixState extends State<CountrySelectorPrefix> {
   }
 
   Widget _buildLoadingIndicator() {
-
     final width = widget.width ?? 90.0;
 
     return Container(

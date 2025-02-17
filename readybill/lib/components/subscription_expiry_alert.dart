@@ -1,5 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:readybill/components/color_constants.dart';
+import 'package:readybill/components/custom_components.dart';
+import 'package:readybill/pages/subscriptions.dart';
+import 'package:readybill/services/global_internet_connection_handler.dart';
 
 class SubscriptionExpiryAlert extends StatelessWidget {
   final int isSubscriptionExpired;
@@ -14,7 +18,6 @@ class SubscriptionExpiryAlert extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: red.withOpacity(0.5),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8.0),
       ),
@@ -30,15 +33,14 @@ class SubscriptionExpiryAlert extends StatelessWidget {
         textAlign: TextAlign.center,
       ),
       actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: const Text(
-            "OK",
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-          ),
-        ),
+        customElevatedButton("OK", green2, white, () {
+          navigatorKey.currentState!.pop();
+          navigatorKey.currentState!.push(
+              CupertinoPageRoute(builder: (context) => const Subscriptions()));
+        }),
+        customElevatedButton("Cancel", red, white, () {
+          navigatorKey.currentState!.pop();
+        })
       ],
     );
   }

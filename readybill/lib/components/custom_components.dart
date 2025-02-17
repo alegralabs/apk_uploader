@@ -2,13 +2,13 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:provider/provider.dart';
+
 import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/components/country_selector_prefix.dart';
-import 'package:readybill/pages/account.dart';
+
 import 'package:readybill/services/api_services.dart';
-import 'package:readybill/services/country_code_provider.dart';
+
 import 'package:readybill/services/global_internet_connection_handler.dart';
 
 import 'package:http/http.dart' as http;
