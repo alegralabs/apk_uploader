@@ -14,7 +14,6 @@ import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/pages/add_phone_number_page.dart';
 import 'package:readybill/pages/forgot_password_page.dart';
 import 'package:readybill/pages/home_page.dart';
-import 'package:readybill/pages/sign_up_page.dart';
 
 import 'package:readybill/services/api_services.dart';
 import 'package:readybill/services/country_code_provider.dart';
@@ -307,15 +306,14 @@ class _LoginPageState extends State<LoginPage> {
                                               await loginUser(
                                                   phoneNumInt!, password);
                                           EasyLoading.dismiss();
-                                          print(
-                                              "response status: ${response['status']}");
+                                       
                                           if (response['status'] == 'success' ||
                                               response['status'] ==
                                                   'subscription-failed') {
                                             APIService
                                                 .getUserDetailsWithoutDialog(
                                                     response['data']['token']);
-                                           
+
                                             await storeTokenAndUser(
                                                 response['data']['token'],
                                                 response['data']['user'],
@@ -326,7 +324,7 @@ class _LoginPageState extends State<LoginPage> {
                                                   builder: (context) =>
                                                       const HomePage()),
                                             );
-                                            print("here 2");
+                                        
                                           } else if (response['status'] ==
                                                   'failed' &&
                                               response['message'] ==
@@ -488,11 +486,13 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> storeTokenAndUser(
       String token, Map<String, dynamic> userData, String apiKey) async {
-    print("Store token and user");
+
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     await prefs.setString('token', token);
     await prefs.setString('user', userData.toString());
     await prefs.setString('auth-key', apiKey);
+
+
   }
 }

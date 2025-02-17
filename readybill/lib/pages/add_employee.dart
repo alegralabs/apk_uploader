@@ -10,7 +10,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:intl_phone_field/intl_phone_field.dart';
+
 import 'package:provider/provider.dart';
 import 'package:readybill/components/api_constants.dart';
 

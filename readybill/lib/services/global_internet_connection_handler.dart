@@ -84,7 +84,7 @@ class _InternetConnectivityHandlerState
   void _handleConnectivityChange(bool hasInternet) {
     if (!_isInForeground) return; // Don't handle changes when in background
 
-    debugPrint('Connectivity changed: hasInternet = $hasInternet');
+
 
     // Cancel any existing timer
     _noInternetTimer?.cancel();

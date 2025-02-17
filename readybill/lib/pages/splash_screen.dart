@@ -60,7 +60,6 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _checkInternet() async {
-    print('checking internet');
     bool result = await InternetConnection().hasInternetAccess;
     if (result) {
       _checkPermissionsAndLogin();
@@ -98,35 +97,27 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _checkPermissionsAndLogin() async {
-    print('checking permissions');
     await _checkAndRequestPermissionStorage();
     await handleLogin();
   }
 
   Future<void> _checkAndRequestPermissionStorage() async {
-    print('checking storage permission');
     var status = await Permission.storage.status;
     if (status != PermissionStatus.granted) {
-      print('permission not granted');
       await Permission.storage.request();
     }
   }
 
   Future<void> handleLogin() async {
-    print('handling login');
     String? token = await APIService.getToken();
-    // print(token);
+
     if (token != null) {
       int statusReturnCode =
           await APIService.getUserDetailsWithoutDialog(token);
-      print("statusReturnCode: $statusReturnCode");
-      if (statusReturnCode == 404 || statusReturnCode == 333) {
-        print("statusReturnCode: $statusReturnCode");
-        // print('token: $token');
 
+      if (statusReturnCode == 404 || statusReturnCode == 333) {
         _navigateToLoginScreen();
       } else if (statusReturnCode == 200) {
-        print('statusCode: $statusReturnCode');
         LocalDatabase2.instance.clearTable();
         LocalDatabase2.instance.fetchDataAndStoreLocally();
         _navigateToSearchApp();
@@ -143,19 +134,11 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _setLoggedInStatus(bool isLoggedIn) async {
-    print('setting logged in status: $isLoggedIn');
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isLoggedIn', isLoggedIn); // Ensure this is awaited
   }
 
-  // Future<bool> _getLoggedInStatus() async {
-  //   print('getting logged in status');
-  //   final prefs = await SharedPreferences.getInstance();
-  //   return prefs.getBool('isLoggedIn') ?? false;
-  // }
-
   void _navigateToLoginScreen() {
-    print("navigate to login screen");
     Future.delayed(const Duration(milliseconds: 2200), () {
       navigatorKey.currentState?.pushReplacement(
         CupertinoPageRoute(builder: (context) => const LoginPage()),
@@ -164,7 +147,6 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _navigateToSearchApp() {
-    print("navigate to search app");
     Future.delayed(const Duration(milliseconds: 2000), () {
       navigatorKey.currentState?.pushReplacement(
         CupertinoPageRoute(builder: (context) => const HomePage()),

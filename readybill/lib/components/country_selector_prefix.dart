@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:readybill/components/api_constants.dart';
+import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/services/api_services.dart';
 import 'package:http/http.dart' as http;
+import 'package:geocoding/geocoding.dart';
 
 class Country {
   final String name;
@@ -58,7 +61,8 @@ class CountrySelectorPrefix extends StatefulWidget {
 
 class _CountrySelectorPrefixState extends State<CountrySelectorPrefix> {
   List<Map<String, dynamic>>? _countriesData;
-  bool _isLoading = true;
+  bool _isLoadingCountries = true;
+  bool _isDetectingCountry = true;
   String? _error;
   Country? _selectedCountry;
   String _searchQuery = '';
@@ -72,7 +76,6 @@ class _CountrySelectorPrefixState extends State<CountrySelectorPrefix> {
 
   Future<void> _loadCountriesAndInitialize() async {
     await _loadCountries();
-
     await _initializeDeviceCountry();
   }
 
@@ -97,7 +100,7 @@ class _CountrySelectorPrefixState extends State<CountrySelectorPrefix> {
         setState(() {
           _countriesData = data.whereType<Map<String, dynamic>>().toList();
           _initializeCountries();
-          _isLoading = false;
+          _isLoadingCountries = false;
         });
       } else {
         print("Failed to load countries: ${response.body}");
@@ -105,47 +108,78 @@ class _CountrySelectorPrefixState extends State<CountrySelectorPrefix> {
       }
     } catch (e) {
       setState(() {
-        _isLoading = false;
+        _isLoadingCountries = false;
+        _isDetectingCountry = false;
         _error = e.toString();
       });
       print('Error loading countries: $e');
     }
   }
 
+  Future<String> getCountryName() async {
+    Position position = await GeolocatorPlatform.instance.getCurrentPosition();
+
+    List<Placemark> placemarks =
+        await placemarkFromCoordinates(position.latitude, position.longitude);
+    return placemarks.first.isoCountryCode!;
+  }
+
   Future<void> _initializeDeviceCountry() async {
     if (widget.initialCountryCode != null && widget.initialCountryCode != '') {
-      print(_countriesData!.first);
-      final countryData = _countriesData!.firstWhere(
-        (country) =>
-            country['dial_code'].toString().replaceAll('+', '') ==
-            widget.initialCountryCode!.toString(),
-        orElse: () => _countriesData!.first,
-      );
+      if (_countriesData != null) {
+        try {
+          final countryData = _countriesData!.firstWhere(
+            (country) =>
+                country['dial_code'].toString().replaceAll('+', '') ==
+                widget.initialCountryCode!.toString(),
+            orElse: () => _countriesData!.first,
+          );
 
-      setState(() {
-        _selectedCountry = Country.fromJson(countryData);
-      });
+          setState(() {
+            _selectedCountry = Country.fromJson(countryData);
+            _isDetectingCountry = false;
+          });
+        } catch (e) {
+          print('Error finding country by dial code: $e');
+          setState(() {
+            _isDetectingCountry = false;
+          });
+        }
+      } else {
+        setState(() {
+          _isDetectingCountry = false;
+        });
+      }
       return;
     }
 
     try {
-      // final String deviceLocale =
-      //     View.of(context).platformDispatcher.locale.countryCode.toString();
-      final String deviceLocale = Platform.localeName;
-      print('deviceLocale: $deviceLocale');
-
-      final String currentCountryCode = deviceLocale.split('_').last;
+      final String currentCountryCode = await getCountryName();
 
       if (_countriesData != null) {
-        final countryData = _countriesData!.firstWhere(
-          (country) =>
-              country['code']?.toString().toUpperCase() ==
-              currentCountryCode.toUpperCase(),
-          orElse: () => _countriesData!.first,
-        );
+        try {
+          final countryData = _countriesData!.firstWhere(
+            (country) =>
+                country['code']?.toString().toUpperCase() == currentCountryCode,
+            orElse: () => _countriesData!.first,
+          );
 
+          setState(() {
+            _selectedCountry = Country.fromJson(countryData);
+            _isDetectingCountry = false;
+          });
+        } catch (e) {
+          print('Error finding country by code: $e');
+          if (_countries.isNotEmpty) {
+            setState(() {
+              _selectedCountry = _countries.first;
+              _isDetectingCountry = false;
+            });
+          }
+        }
+      } else {
         setState(() {
-          _selectedCountry = Country.fromJson(countryData);
+          _isDetectingCountry = false;
         });
       }
     } catch (e) {
@@ -153,14 +187,17 @@ class _CountrySelectorPrefixState extends State<CountrySelectorPrefix> {
       if (_countries.isNotEmpty) {
         setState(() {
           _selectedCountry = _countries.first;
+          _isDetectingCountry = false;
+        });
+      } else {
+        setState(() {
+          _isDetectingCountry = false;
         });
       }
     }
   }
 
   void _initializeCountries() {
-    //  print("_countriesData: $_countriesData");
-
     try {
       _countries = _countriesData!
           .map((json) {
@@ -168,7 +205,7 @@ class _CountrySelectorPrefixState extends State<CountrySelectorPrefix> {
               return Country.fromJson(json);
             } catch (e) {
               print("Error parsing country: $json -> $e");
-              return null; // Handle parsing failures
+              return null;
             }
           })
           .where((country) =>
@@ -178,21 +215,9 @@ class _CountrySelectorPrefixState extends State<CountrySelectorPrefix> {
           .cast<Country>()
           .toList()
         ..sort((a, b) => a.name.compareTo(b.name));
-
-      if (_selectedCountry == null && _countries.isNotEmpty) {
-        _selectedCountry = _countries.first;
-      }
-
-      //  print('_countries: $_countries');
     } catch (e) {
       print('Error initializing countries: $e');
       _countries = [];
-      _selectedCountry = const Country(
-        name: 'Unknown',
-        flagUrl: '',
-        dialCode: '',
-        code: 'XX',
-      );
     }
   }
 
@@ -294,7 +319,10 @@ class _CountrySelectorPrefixState extends State<CountrySelectorPrefix> {
   }
 
   Widget _buildCountryList(ScrollController scrollController) {
-    print("buildcountrylist: ${_selectedCountry!.flagUrl}");
+    if (_selectedCountry == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return Expanded(
       child: ListView.builder(
         controller: scrollController,
@@ -325,18 +353,66 @@ class _CountrySelectorPrefixState extends State<CountrySelectorPrefix> {
     );
   }
 
+  Widget _buildLoadingIndicator() {
+    // Fixed width that matches the expected size of the country selector
+    final width = widget.width ?? 90.0;
+
+    return Container(
+      width: width,
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // A smaller, more elegant loading indicator
+          SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Theme.of(context).primaryColor,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Placeholder text that maintains layout similar to when country is shown
+          Text(
+            '...',
+            style: widget.textStyle ??
+                TextStyle(color: Theme.of(context).hintColor),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const SizedBox(
-        width: 20,
-        height: 20,
-        child: CircularProgressIndicator(strokeWidth: 2),
-      );
+    if (_isLoadingCountries || _isDetectingCountry) {
+      return _buildLoadingIndicator();
     }
 
     if (_error != null) {
-      return const Icon(Icons.error, color: Colors.red);
+      return Container(
+        width: widget.width,
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error, color: red, size: 16),
+            SizedBox(width: 4),
+            Text(
+              'Error',
+              style: TextStyle(color: red),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_selectedCountry == null) {
+      return _buildLoadingIndicator();
     }
 
     return GestureDetector(
@@ -347,21 +423,19 @@ class _CountrySelectorPrefixState extends State<CountrySelectorPrefix> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (_selectedCountry != null) ...[
-              Text(
-                _selectedCountry!.flagUrl,
-                style: const TextStyle(fontSize: 20),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                _selectedCountry!.dialCode,
-                style: widget.textStyle,
-              ),
-              const Icon(
-                Icons.arrow_drop_down,
-                color: Colors.grey,
-              ),
-            ],
+            Text(
+              _selectedCountry!.flagUrl,
+              style: const TextStyle(fontSize: 20),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              _selectedCountry!.dialCode,
+              style: widget.textStyle,
+            ),
+            const Icon(
+              Icons.arrow_drop_down,
+              color: Colors.grey,
+            ),
           ],
         ),
       ),
