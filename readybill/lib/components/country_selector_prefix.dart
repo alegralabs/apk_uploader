@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/services/api_services.dart';
@@ -128,8 +129,10 @@ class _CountrySelectorPrefixState extends State<CountrySelectorPrefix> {
     }
 
     try {
-      final String deviceLocale =
-          View.of(context).platformDispatcher.locale.countryCode.toString();
+      // final String deviceLocale =
+      //     View.of(context).platformDispatcher.locale.countryCode.toString();
+      final String deviceLocale = Platform.localeName;
+      print('deviceLocale: $deviceLocale');
 
       final String currentCountryCode = deviceLocale.split('_').last;
 

@@ -635,15 +635,15 @@ class HomePageState extends State<HomePage> {
         final Map<String, dynamic> responseData = json.decode(response.body);
         if (responseData.containsKey('stockStatus')) {
           itemNameforTable = responseData['data']?['item_name'] as String?;
+          print('itemnamefortable: $itemNameforTable');
           print('responseData: $responseData');
           int? stockStatus = int.tryParse(responseData['stockStatus']);
-          if (stockStatus == 2) {
+          if (stockStatus == 1) {
             salePrice = responseData['data']['sale_price'];
           }
           //   print("Stock Status: $stockStatus");
           return stockStatus;
         } else {
-          // If stockStatus is not present in the response, return -1 to indicate an error
           return -1;
         }
       } else {
@@ -1106,10 +1106,8 @@ class HomePageState extends State<HomePage> {
                                   token!,
                                   "$apiKey");
                               print("stockStatus: $stockStatus");
-                              if (stockStatus == 2 &&
+                              if (stockStatus == 1 &&
                                   validProductName == true) {
-                                //print("tryParse");
-
                                 double? salePriceforTable =
                                     double.tryParse(salePrice);
                                 addProductTable(
@@ -1119,9 +1117,6 @@ class HomePageState extends State<HomePage> {
                                     salePriceforTable!);
                                 _nameController.clear();
                                 _quantityController.clear();
-
-                                //  _dropdownItemsQuantity.insert(0, "Unit");
-                                // Reset to default value
 
                                 if (mounted) {
                                   setState(() {

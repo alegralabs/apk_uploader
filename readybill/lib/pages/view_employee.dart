@@ -142,6 +142,27 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
   Future<void> _fetchEmployees() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     isSubscriptionExpired = prefs.getInt('isSubscriptionExpired') ?? 0;
+    print('view employee page: $isSubscriptionExpired');
+    if (isSubscriptionExpired != 0) {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return customAlertBox(
+                title: "No Subscription Found",
+                content:
+                    "No valid subscription found for the shop.\nPress 'OK' to get a new subscription.",
+                actions: [
+                  customElevatedButton("OK", green2, white, () {
+                    navigatorKey.currentState!.pop();
+                    navigatorKey.currentState!.push(CupertinoPageRoute(
+                        builder: (context) => const Subscriptions()));
+                  }),
+                  customElevatedButton("Cancel", red, white, () {
+                    navigatorKey.currentState!.pop();
+                  })
+                ]);
+          });
+    }
     if (!_hasMoreData) return; // No more data to load
     setState(() {
       _isLoadingMore = true;

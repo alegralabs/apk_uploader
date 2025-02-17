@@ -600,7 +600,7 @@ class RefundPageState extends State<RefundPage> {
           itemNameforTable = responseData['data']?['item_name'] as String?;
           print('responseData: $responseData');
           int? stockStatus = int.tryParse(responseData['stockStatus']);
-          if (stockStatus == 2) {
+          if (stockStatus == 1) {
             salePrice = responseData['data']['sale_price'];
           }
           //   print("Stock Status: $stockStatus");
@@ -1119,7 +1119,7 @@ class RefundPageState extends State<RefundPage> {
                                   token!,
                                   "$apiKey");
                               print("stockStatus: $stockStatus");
-                              if (stockStatus == 2 &&
+                              if (stockStatus == 1 &&
                                   validProductName == true) {
                                 //print("tryParse");
 
@@ -1225,7 +1225,7 @@ class RefundPageState extends State<RefundPage> {
                                   token!,
                                   "$apiKey");
                               print("stockStatus: $stockStatus");
-                              if (stockStatus == 2 &&
+                              if (stockStatus == 1 &&
                                   validProductName == true) {
                                 //print("tryParse");
 

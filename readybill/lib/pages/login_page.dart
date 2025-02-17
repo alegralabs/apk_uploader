@@ -315,9 +315,7 @@ class _LoginPageState extends State<LoginPage> {
                                             APIService
                                                 .getUserDetailsWithoutDialog(
                                                     response['data']['token']);
-                                            print("here 1");
-                                            print(
-                                                "store token and user data:  \n api_key: ${response['data']['api_key']},\n isSubscriptionExpired: ${response['isSubscriptionExpired']}");
+                                           
                                             await storeTokenAndUser(
                                                 response['data']['token'],
                                                 response['data']['user'],
