@@ -9,6 +9,7 @@ import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/pages/home_page.dart';
 import 'package:readybill/pages/login_page.dart';
 import 'package:readybill/services/api_services.dart';
+import 'package:readybill/services/firebase_api.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
 import 'package:readybill/services/local_database_2.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -98,6 +99,8 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _checkPermissionsAndLogin() async {
     await _checkAndRequestPermissionStorage();
+    await _checkAndRequestPermissionLocation();
+    await FirebaseApi().initNotifications();
     await handleLogin();
   }
 
@@ -105,6 +108,13 @@ class _SplashScreenState extends State<SplashScreen>
     var status = await Permission.storage.status;
     if (status != PermissionStatus.granted) {
       await Permission.storage.request();
+    }
+  }
+
+  Future<void> _checkAndRequestPermissionLocation() async {
+    var status = await Permission.location.status;
+    if (status != PermissionStatus.granted) {
+      await Permission.location.request();
     }
   }
 

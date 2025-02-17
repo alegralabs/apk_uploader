@@ -117,6 +117,7 @@ class _CountrySelectorPrefixState extends State<CountrySelectorPrefix> {
   }
 
   Future<String> getCountryName() async {
+    
     Position position = await GeolocatorPlatform.instance.getCurrentPosition();
 
     List<Placemark> placemarks =
@@ -354,7 +355,7 @@ class _CountrySelectorPrefixState extends State<CountrySelectorPrefix> {
   }
 
   Widget _buildLoadingIndicator() {
-    // Fixed width that matches the expected size of the country selector
+
     final width = widget.width ?? 90.0;
 
     return Container(
