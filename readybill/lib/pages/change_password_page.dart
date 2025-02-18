@@ -81,7 +81,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       'password': newPasswordController.text,
       'password_confirmation': confirmPasswordController.text
     });
-    print(response.body);
+
     if (response.statusCode == 200) {
       Fluttertoast.showToast(
           msg:
@@ -177,7 +177,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       'type': 'send-otp',
       'sms_type': widget.smsType,
     });
-    print(response.body);
+
     if (response.statusCode == 200) {
       setState(() {
         otpSent = true;
@@ -185,7 +185,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       });
       Fluttertoast.showToast(msg: 'OTP sent successfully');
     } else if (response.statusCode == 400) {
-      print(response.body);
       Fluttertoast.showToast(
           msg: 'Could not find an account with this mobile number');
     }

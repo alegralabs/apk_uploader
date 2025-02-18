@@ -37,7 +37,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       'password': _newPasswordController.text,
       'password_confirmation': _confirmPasswordController.text,
     });
-    print(response.body);
+
     if (response.statusCode == 200) {
       Fluttertoast.showToast(msg: 'Password reset successfully');
       Navigator.pushReplacement(

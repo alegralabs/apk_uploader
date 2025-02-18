@@ -13,7 +13,6 @@ import 'dart:convert';
 
 import 'package:readybill/components/api_constants.dart';
 
-
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/services/api_services.dart';
@@ -150,7 +149,6 @@ class _UserAccountState extends State<UserAccount> {
           showDialog(
             context: context,
             builder: (BuildContext context) {
-              print(response.body);
               return customAlertBox(
                 title: "Error",
                 content: "Failed to update profile. ${response.reasonPhrase}",
@@ -212,7 +210,7 @@ class _UserAccountState extends State<UserAccount> {
 
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
-      //print(response.body);
+      //
       final userData = jsonData['data'];
       logo = jsonData['logo'];
       setState(() {

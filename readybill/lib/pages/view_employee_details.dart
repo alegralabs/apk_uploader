@@ -86,7 +86,7 @@ class _ViewEmployeeDetailsState extends State<ViewEmployeeDetails> {
       var response = await http.Response.fromStream(streamedResponse);
 
       EasyLoading.dismiss();
-      print(response.body);
+
       print("status code: ${response.statusCode}");
       if (response.statusCode == 201) {
         var jsonData = jsonDecode(response.body);
@@ -95,7 +95,6 @@ class _ViewEmployeeDetailsState extends State<ViewEmployeeDetails> {
           return const EmployeeListPage();
         }));
       } else {
-        print(response.body);
         Fluttertoast.showToast(msg: 'Update failed');
       }
     } catch (e) {

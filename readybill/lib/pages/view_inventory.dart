@@ -58,9 +58,9 @@ class _ProductListPageState extends State<ProductListPage> {
 
   getPrefs() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    subscriptionExpired = prefs.getInt('isSubscriptionExpired') ?? 0;
+    subscriptionExpired = prefs.getInt('isSubscriptionExpired');
     isAdmin = prefs.getInt('isAdmin');
-    //print(" sub exp: ${prefs.getInt('isSubscriptionExpired')}");
+    print(" sub exp: ${prefs.getInt('isSubscriptionExpired')}");
     if (subscriptionExpired != 0) {
       showDialog(
           context: context,

@@ -306,13 +306,15 @@ class _LoginPageState extends State<LoginPage> {
                                               await loginUser(
                                                   phoneNumInt!, password);
                                           EasyLoading.dismiss();
-                                       
+
                                           if (response['status'] == 'success' ||
                                               response['status'] ==
                                                   'subscription-failed') {
                                             APIService
                                                 .getUserDetailsWithoutDialog(
-                                                    response['data']['token']);
+                                                    response['data']['token'],
+                                                    response['data']
+                                                        ['api_key']);
 
                                             await storeTokenAndUser(
                                                 response['data']['token'],
@@ -324,7 +326,6 @@ class _LoginPageState extends State<LoginPage> {
                                                   builder: (context) =>
                                                       const HomePage()),
                                             );
-                                        
                                           } else if (response['status'] ==
                                                   'failed' &&
                                               response['message'] ==
@@ -454,9 +455,8 @@ class _LoginPageState extends State<LoginPage> {
           // Forbidden
           final Map<String, dynamic> responseData = json.decode(response.body);
           if (responseData.containsKey('data')) {
-            // Handle specific validation errors
             errorResponse['message'] = 'Validation Error!';
-            // Construct a user-friendly message from the validation errors
+
             String errorMessage = '';
             responseData['data'].forEach((key, value) {
               errorMessage += '${value[0]}\n';
@@ -486,13 +486,14 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> storeTokenAndUser(
       String token, Map<String, dynamic> userData, String apiKey) async {
-
     SharedPreferences prefs = await SharedPreferences.getInstance();
-
+    // print(' apiKey in storetokenanduser: $apiKey');
+    // print(' userdata in storetokenanduser: $userData');
+    print('token in storetokenanduser: $token');
     await prefs.setString('token', token);
+    print('token saved');
     await prefs.setString('user', userData.toString());
     await prefs.setString('auth-key', apiKey);
-
-
+    print('apikey saved');
   }
 }

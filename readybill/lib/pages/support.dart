@@ -86,7 +86,7 @@ class _ContactSupportPageState extends State<ContactSupportPage> {
     var response = await http.Response.fromStream(streamedResponse);
 
     EasyLoading.dismiss();
-    print(response.body);
+
     if (response.statusCode == 200) {
       Navigator.pop(context);
       Fluttertoast.showToast(msg: "We have received your question.");

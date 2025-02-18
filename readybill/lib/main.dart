@@ -19,19 +19,9 @@ void main() async {
 
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
-  Future<String> getCountryName() async {
-    Position position = await GeolocatorPlatform.instance.getCurrentPosition();
 
-    List<Placemark> placemarks =
-        await placemarkFromCoordinates(position.latitude, position.longitude);
-    return placemarks.first.isoCountryCode!;
-  }
 
-  String countryCode = await getCountryName();
-
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-
-  prefs.setString('countryCode', countryCode);
+  
 
   runApp(
     MultiProvider(

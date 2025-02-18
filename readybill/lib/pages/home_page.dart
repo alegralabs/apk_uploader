@@ -147,16 +147,14 @@ class HomePageState extends State<HomePage> {
   bool isLoadingMore = false; // Flag to show loading indicator
   int currentPage = 0; // Current page for loading items
 
-  //GlobalKey<AutoCompleteTextFieldState<String>> quantityKey = GlobalKey();
-
   var listQuantity = 1;
   Map? currentVoice;
   List<Map>? voices;
 
   @override
   void initState() {
-    // checkSubscription();
     super.initState();
+    checkSubscription();
     initializeData();
     initTTS();
     initSpeech();
@@ -189,6 +187,15 @@ class HomePageState extends State<HomePage> {
     String subscriptionExpiryDate =
         prefs.getString('subscriptionExpiryDate') ?? '';
 
+    // Check if alert already shown today
+    String today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    String lastAlertShownDate = prefs.getString('last_alert_shown_date') ?? '';
+
+    if (lastAlertShownDate == today) {
+      print("Alert already shown today. Skipping.");
+      return;
+    }
+
     print("Subscription expiry date: $subscriptionExpiryDate");
 
     if (subscriptionExpiryDate.isNotEmpty) {
@@ -206,26 +213,32 @@ class HomePageState extends State<HomePage> {
         }
       }
 
-      DateTime today = DateTime.now();
-      int daysLeft = expiryDate.difference(today).inDays;
+      DateTime now = DateTime.now();
+      int daysLeft = expiryDate.difference(now).inDays;
 
       print('days left: $daysLeft');
 
-      if (daysLeft <= 10 && daysLeft >= 0) {
+      // List of specific days when the alert should be shown
+      List<int> alertDays = [10, 7, 5, 3, 2, 1];
+
+      if (alertDays.contains(daysLeft)) {
         showDialog(
+          barrierDismissible: false,
           context: context,
           builder: (context) => SubscriptionExpiryAlert(
             isSubscriptionExpired: isSubscriptionExpired,
             daysLeft: daysLeft.toString(),
           ),
         );
-      } else if (daysLeft < 0) {
-        // Subscription has already expired
+      } else if (daysLeft <= 0 && isSubscriptionExpired != 1) {
+        // Subscription has already expired and we haven't shown the expiry dialog yet
+        await prefs.setInt('isSubscriptionExpired', 1);
         showDialog(
+          barrierDismissible: false,
           context: context,
           builder: (context) => const SubscriptionExpiryAlert(
-            isSubscriptionExpired: 1, // Mark as expired
-            daysLeft: "0", // No days left
+            isSubscriptionExpired: 1,
+            daysLeft: "0",
           ),
         );
       }

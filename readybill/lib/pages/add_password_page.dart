@@ -154,9 +154,7 @@ class _AddPasswordPageState extends State<AddPasswordPage> {
               Fluttertoast.showToast(msg: 'User created successfully');
               navigatorKey.currentState?.push(CupertinoPageRoute(
                   builder: (context) => AddShopDetailsPage(userID: userID)));
-            } else {
-              print(response.body);
-            }
+            } else {}
           }
         },
         style: ElevatedButton.styleFrom(

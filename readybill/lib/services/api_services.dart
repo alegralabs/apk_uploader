@@ -8,13 +8,16 @@ String userDetailsAPI = '$baseUrl/user-detail';
 
 class APIService {
   static Future<String?> getToken() async {
+    String? token;
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token');
+    token = prefs.getString('token');
+    return token;
   }
 
   static Future<String?> getXApiKey() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth-key');
+    String? apiKey = prefs.getString('auth-key');
+    return apiKey;
   }
 
   static Future<void> clearToken() async {
@@ -56,29 +59,25 @@ class APIService {
     }
   }
 
-  static Future<int> getUserDetailsWithoutDialog(String token) async {
+  static Future<int> getUserDetailsWithoutDialog(
+      String token, String apiKey) async {
     if (token.isEmpty) {
       return 404;
     }
 
-    String? apikey = await APIService.getXApiKey();
-
-    
-
     try {
-      print('apikey in gudwd: $apikey');
       var response = await http.get(
         Uri.parse(userDetailsAPI),
         headers: {
           'Authorization': 'Bearer $token',
-          'auth-key': '$apikey',
+          'auth-key': apiKey,
         },
       );
 
       Map<String, dynamic> userData = json.decode(response.body);
 
       if (userData['data'] == null) {
-        print(response.body);
+        print("response body: ${response.body}");
         return 404;
       }
 
@@ -86,24 +85,18 @@ class APIService {
       int isAdmin = userData['data']['isAdmin'];
       int isSubscriptionExpired = userData['isSubscriptionExpired'];
       String subscriptionExpiryDate = userData['subscription_expiry_date'];
-      Future.delayed(const Duration(seconds: 2), () {
-        name = userData['data']['details']['name'];
-        isAdmin = userData['data']['isAdmin'];
-        isSubscriptionExpired = userData['isSubscriptionExpired'];
-        subscriptionExpiryDate = userData['subscription_expiry_date'];
-      });
+
       print('issubscriptionexpired: $isSubscriptionExpired');
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('name', name);
       await prefs.setInt('isAdmin', isAdmin);
       await prefs.setInt('isSubscriptionExpired', isSubscriptionExpired);
       await prefs.setString('subscriptionExpiryDate', subscriptionExpiryDate);
-      // await prefs.setString('username', username);
 
-      return response.statusCode; // Return the response status code directly
+      return response.statusCode;
     } catch (error) {
       Result.error("Book list not available");
-      return 333; // Return a custom status code indicating an error
+      return 333;
     }
   }
 }

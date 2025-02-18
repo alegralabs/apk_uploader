@@ -71,7 +71,6 @@ class _SubscriptionsState extends State<Subscriptions> {
           'auth-key': '$apiKey',
         },
       );
-      print(response.body);
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);

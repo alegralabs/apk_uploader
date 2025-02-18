@@ -758,8 +758,6 @@ class RefundPageState extends State<RefundPage> {
         body: formData,
       );
 
-      print(response.body);
-
       if (response.statusCode == 200) {
         EasyLoading.dismiss();
         Provider.of<RefundBillItemProvider>(context, listen: false)
@@ -782,7 +780,7 @@ class RefundPageState extends State<RefundPage> {
         );
         // Optionally, you can handle further actions after saving the data
       } else {
-        //  print(response.body);
+        //
 
         EasyLoading.dismiss();
         var jsonData = jsonDecode(response.body);

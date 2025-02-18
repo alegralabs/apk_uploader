@@ -42,7 +42,7 @@ class _PreferencesPageState extends State<PreferencesPage> {
       'auth-key': '$apiKey',
     });
     var jsonData = jsonDecode(response.body);
-    // print(response.body);
+    //
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
       final preferencesData = jsonData['data'];
@@ -141,7 +141,6 @@ class _PreferencesPageState extends State<PreferencesPage> {
       }),
     );
 
-    print(response.body);
     setState(() {
       isLoading = false;
     });

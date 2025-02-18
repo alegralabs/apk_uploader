@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/components/custom_components.dart';
@@ -99,33 +101,145 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _checkPermissionsAndLogin() async {
-    await _checkAndRequestPermissionStorage();
-    await _checkAndRequestPermissionLocation();
+    bool storageGranted = await _checkAndRequestPermissionStorage();
+    bool locationGranted = await _checkAndRequestPermissionLocation();
+
+    // If all critical permissions are granted, proceed normally
+    // If not, you've already shown appropriate dialogs in the permission methods
     await FirebaseApi().initNotifications();
     await handleLogin();
   }
 
-  Future<void> _checkAndRequestPermissionStorage() async {
+  Future<bool> _checkAndRequestPermissionStorage() async {
     var status = await Permission.storage.status;
     if (status != PermissionStatus.granted) {
-      await Permission.storage.request();
+      status = await Permission.storage.request();
+      // Check if permission was granted after request
+      if (status != PermissionStatus.granted) {
+        // Handle denied permission
+        _handleDeniedStoragePermission();
+        return false;
+      }
     }
+    return true;
   }
 
-  Future<void> _checkAndRequestPermissionLocation() async {
+  Future<String> getCountryName() async {
+    Position position = await GeolocatorPlatform.instance.getCurrentPosition();
+    List<Placemark> placemarks =
+        await placemarkFromCoordinates(position.latitude, position.longitude);
+    return placemarks.first.isoCountryCode!;
+  }
+
+  Future<bool> _checkAndRequestPermissionLocation() async {
     var status = await Permission.location.status;
     if (status != PermissionStatus.granted) {
-      await Permission.location.request();
+      status = await Permission.location.request();
+      // Check if permission was granted after request
+      if (status != PermissionStatus.granted) {
+        // Handle denied permission
+        _handleDeniedLocationPermission();
+        return false;
+      }
+    }
+    String countryCode = await getCountryName();
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    prefs.setString('countryCode', countryCode);
+    return true;
+  }
+
+  void _handleDeniedStoragePermission() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => customAlertBox(
+        title: 'Storage Permission Required',
+        content:
+            'This app needs storage access to save essential files. Without this permission, some features may not work properly.',
+        actions: <Widget>[
+          customElevatedButton('Open Settings', green2, white, () {
+            openAppSettings();
+            Navigator.pop(context);
+          }),
+          customElevatedButton('Continue Anyway', red, white, () {
+            Navigator.pop(context);
+          }),
+        ],
+      ),
+    );
+  }
+
+  void _handleDeniedLocationPermission() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => customAlertBox(
+        title: 'Location Permission Required',
+        content:
+            'This app needs location access to provide location-based services. Without this permission, some features may not work properly.',
+        actions: <Widget>[
+          customElevatedButton('Open Settings', green2, white, () {
+            // Open app settings so user can enable permissions
+            openAppSettings();
+            Navigator.pop(context);
+          }),
+          TextButton(
+            onPressed: () {
+              // Continue with limited functionality
+              Navigator.pop(context);
+              // The _checkPermissionsAndLogin will continue after this dialog is dismissed
+            },
+            child: const Text('Continue Anyway'),
+          ),
+        ],
+      ),
+    );
+  }
+
+// You might want to consider adding this method to track which permissions were granted
+  void _trackPermissionsAndProceed(
+      {bool storageGranted = false, bool locationGranted = false}) {
+    // Store permission state for later use
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setBool('storage_permission_granted', storageGranted);
+      prefs.setBool('location_permission_granted', locationGranted);
+    });
+
+    // Warn user about limited functionality based on which permissions were denied
+    List<String> deniedPermissions = [];
+    if (!storageGranted) deniedPermissions.add('storage');
+    if (!locationGranted) deniedPermissions.add('location');
+
+    if (deniedPermissions.isNotEmpty) {
+      String message =
+          'Some features related to ${deniedPermissions.join(', ')} '
+          'will not be available. You can enable permissions later in app settings.';
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'Settings',
+            onPressed: () {
+              openAppSettings();
+            },
+          ),
+        ),
+      );
     }
   }
 
   Future<void> handleLogin() async {
-    String? token = await APIService.getToken();
-
-    if (token != null) {
+    var token = await APIService.getToken();
+    var apiKey = await APIService.getXApiKey();
+    print('token in handlelogin: $token');
+    if (token != null && apiKey != null) {
       int statusReturnCode =
-          await APIService.getUserDetailsWithoutDialog(token);
-
+          await APIService.getUserDetailsWithoutDialog(token, apiKey);
+      print('statusReturnCode: $statusReturnCode');
       if (statusReturnCode == 404 || statusReturnCode == 333) {
         _navigateToLoginScreen();
       } else if (statusReturnCode == 200) {

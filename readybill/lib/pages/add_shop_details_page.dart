@@ -269,9 +269,7 @@ class _AddShopDetailsPageState extends State<AddShopDetailsPage> {
                   builder: (context) => const LoginPage(),
                 ),
               );
-            } else {
-              print(response.body);
-            }
+            } else {}
           }
         },
         style: ElevatedButton.styleFrom(

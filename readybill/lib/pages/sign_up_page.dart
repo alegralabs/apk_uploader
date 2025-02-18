@@ -842,7 +842,6 @@ class _OtpModalBottomSheetState extends State<OtpModalBottomSheet> {
     final response = await http.post(Uri.parse(url),
         body: {"mobile": widget.phoneNumber, "otp": otpController.text});
 
-    print(response.body);
     print(response.statusCode);
 
     if (response.statusCode == 200) {

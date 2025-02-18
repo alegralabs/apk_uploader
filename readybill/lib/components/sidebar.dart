@@ -462,6 +462,8 @@ class _SidebarState extends State<Sidebar> {
     try {
       var token = await APIService.getToken();
       var apiKey = await APIService.getXApiKey();
+      print(token);
+      print(apiKey);
       const String apiUrl = '$baseUrl/logout';
       final response = await http.post(
         Uri.parse(apiUrl),
@@ -470,7 +472,9 @@ class _SidebarState extends State<Sidebar> {
           'auth-key': '$apiKey',
         },
       );
+
       print(response.body);
+
       EasyLoading.dismiss();
       if (response.statusCode == 200) {
         navigatorKey.currentState?.pushReplacement(

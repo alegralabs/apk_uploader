@@ -64,7 +64,7 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
   int _selectedIndex = 3;
   int _noOfEmployees = 0;
   String _selectedColumn = 'Name';
-  int isSubscriptionExpired = 0;
+  int? isSubscriptionExpired;
   String _searchQuery = '';
 
   List<Employee> _filteredEmployees = [];
@@ -141,7 +141,7 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
 
   Future<void> _fetchEmployees() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    isSubscriptionExpired = prefs.getInt('isSubscriptionExpired') ?? 0;
+    isSubscriptionExpired = prefs.getInt('isSubscriptionExpired');
     print('view employee page: $isSubscriptionExpired');
     if (isSubscriptionExpired != 0) {
       showDialog(
