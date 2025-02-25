@@ -214,11 +214,10 @@ class HomePageState extends State<HomePage> {
       }
 
       DateTime now = DateTime.now();
-      int daysLeft = expiryDate.difference(now).inDays;
+      int daysLeft = expiryDate.difference(now).inDays + 1;
 
       print('days left: $daysLeft');
 
-      // List of specific days when the alert should be shown
       List<int> alertDays = [10, 7, 5, 3, 2, 1];
 
       if (alertDays.contains(daysLeft)) {
