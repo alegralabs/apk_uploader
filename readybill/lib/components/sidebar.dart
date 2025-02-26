@@ -12,6 +12,7 @@ import 'package:readybill/pages/account.dart';
 import 'package:readybill/pages/add_product.dart';
 import 'package:readybill/pages/change_password_page.dart';
 import 'package:readybill/pages/contact_us.dart';
+import 'package:readybill/pages/editabe_table.dart';
 
 import 'package:readybill/pages/home_page.dart';
 import 'package:readybill/pages/login_page.dart';
@@ -85,7 +86,7 @@ class _SidebarState extends State<Sidebar> {
     String? token = await APIService.getToken();
     var apiKey = await APIService.getXApiKey();
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    _selectedPaperSize = await prefs.getString('paperSize') ?? '80mm';
+    _selectedPaperSize = prefs.getString('paperSize') ?? '80mm';
 
     final response = await http.get(
       _userDataUrl,
@@ -394,6 +395,20 @@ class _SidebarState extends State<Sidebar> {
                                         phoneNumber: phone,
                                         countryCode: countryCode,
                                       )),
+                            )
+                          : noSubscriptionDialog();
+                    },
+                  )
+                : const SizedBox.shrink(),
+            isAdmin == 1
+                ? ListTile(
+                    leading: const Icon(Icons.upload_file),
+                    title: const Text('Upload Dataset'),
+                    onTap: () {
+                      subscriptionExpired == 0
+                          ? navigatorKey.currentState?.push(
+                              CupertinoPageRoute(
+                                  builder: (context) => const EditableTable()),
                             )
                           : noSubscriptionDialog();
                     },
