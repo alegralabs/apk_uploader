@@ -12,7 +12,7 @@ import 'package:readybill/pages/account.dart';
 import 'package:readybill/pages/add_product.dart';
 import 'package:readybill/pages/change_password_page.dart';
 import 'package:readybill/pages/contact_us.dart';
-import 'package:readybill/pages/editabe_table.dart';
+import 'package:readybill/pages/view_dataset.dart';
 
 import 'package:readybill/pages/home_page.dart';
 import 'package:readybill/pages/login_page.dart';
@@ -53,6 +53,7 @@ class _SidebarState extends State<Sidebar> {
   String _selectedPaperSize = '';
   final Uri _userDataUrl = Uri.parse('$baseUrl/user-detail');
   String countryCode = '';
+  String dialCode = '';
 
   @override
   void initState() {
@@ -109,7 +110,8 @@ class _SidebarState extends State<Sidebar> {
           address = jsonData['data']['details']['address'];
           phone = jsonData['data']['mobile'];
           subscriptionExpired = jsonData['isSubscriptionExpired'];
-          countryCode = jsonData['data']['country_code'];
+          countryCode = jsonData['data']['country_details']['code'];
+          dialCode = jsonData['data']['country_details']['dial_code'];
         });
       }
     }
@@ -408,7 +410,8 @@ class _SidebarState extends State<Sidebar> {
                       subscriptionExpired == 0
                           ? navigatorKey.currentState?.push(
                               CupertinoPageRoute(
-                                  builder: (context) => const EditableTable()),
+                                  builder: (context) =>
+                                      const ViewDataset(title: "Dataset")),
                             )
                           : noSubscriptionDialog();
                     },

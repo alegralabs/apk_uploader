@@ -75,6 +75,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
     ]);
   }
 
+  @override
   void dispose() {
     scrollController.dispose();
     super.dispose();
@@ -135,7 +136,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: customAppBar("Transactions"),
+      appBar: customAppBar("Transactions",[]),
       body: Column(
         children: [
           _SearchBar(

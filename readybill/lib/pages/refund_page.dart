@@ -895,7 +895,7 @@ class RefundPageState extends State<RefundPage> {
         },
         selectedIndex: _selectedIndex,
       ),
-      appBar: customAppBar(string != "" ? string : "ReadyBill"),
+      appBar: customAppBar(string != "" ? string : "ReadyBill",[]),
       body: SingleChildScrollView(
         child: GestureDetector(
           onTap: () {
@@ -1569,7 +1569,7 @@ class RefundPageState extends State<RefundPage> {
       flex: flex,
       child: Text(
         title,
-        style: TextStyle(
+        style: const TextStyle(
           fontWeight: FontWeight.bold,
         ),
         textAlign: TextAlign.center,

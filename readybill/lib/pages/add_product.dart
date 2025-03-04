@@ -10,13 +10,13 @@ import 'package:flutter/material.dart';
 
 import 'package:readybill/components/api_constants.dart';
 
-
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/color_constants.dart';
 
 import 'package:readybill/pages/home_page.dart';
 import 'package:readybill/pages/how_to_upload_xls.dart';
 import 'package:readybill/pages/login_page.dart';
+import 'package:readybill/pages/view_dataset.dart';
 import 'package:readybill/services/api_services.dart';
 
 import 'package:readybill/services/global_internet_connection_handler.dart';
@@ -157,8 +157,10 @@ class _AddInventoryState extends State<AddInventory> {
     if (result != null) {
       File file = File(result.files.single.path!);
       var response = await AddInventoryService.uploadXLS(file);
+      var jsonData = jsonDecode(response.body);
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 &&
+          jsonData['status'].toString().toLowerCase() == 'success') {
         LocalDatabase2.instance.clearTable();
         LocalDatabase2.instance.fetchDataAndStoreLocally();
         showDialog(
@@ -175,6 +177,11 @@ class _AddInventoryState extends State<AddInventory> {
             );
           },
         );
+      } else if (response.statusCode == 200 &&
+          jsonData['status'].toString().toLowerCase() == '0') {
+        navigatorKey.currentState?.push(CupertinoPageRoute(
+            builder: (context) =>
+                ViewDataset(title: "Excel Errors", jsonResponse: response)));
       } else if (response.statusCode == 403) {
         Map<String, dynamic> jsonResponse = jsonDecode(response.body);
         print("jsonResponse: $jsonResponse");
@@ -358,7 +365,7 @@ class _AddInventoryState extends State<AddInventory> {
       },
       child: Scaffold(
         backgroundColor: const Color.fromRGBO(246, 247, 255, 1),
-        appBar: customAppBar("Add Product"),
+        appBar: customAppBar("Add Product", []),
         body: isLoading
             ? const Center(
                 child: CircularProgressIndicator(), // Show loading indicator
@@ -509,6 +516,12 @@ class _AddInventoryState extends State<AddInventory> {
                       ),
 
                       const SizedBox(height: 20.0),
+
+                      SizedBox(
+                        width: double.infinity,
+                        child: customElevatedButton(
+                            "Submit", blue, white, submitData),
+                      )
                     ],
                   ),
                 ),

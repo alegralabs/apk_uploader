@@ -281,7 +281,7 @@ class _ContactSupportPageState extends State<ContactSupportPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: customAppBar("Support"),
+      appBar: customAppBar("Support",[]),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

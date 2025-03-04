@@ -6,12 +6,14 @@ import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:provider/provider.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/subscription_expiry_alert.dart';
 import 'package:readybill/pages/home_page.dart';
 import 'package:readybill/pages/login_page.dart';
 import 'package:readybill/services/api_services.dart';
+import 'package:readybill/services/country_code_provider.dart';
 import 'package:readybill/services/firebase_api.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
 import 'package:readybill/services/local_database_2.dart';
@@ -147,6 +149,8 @@ class _SplashScreenState extends State<SplashScreen>
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     prefs.setString('countryCode', countryCode);
+    Provider.of<CountryCodeProvider>(context, listen: false)
+        .setAllCountryCodes(countryCode);
     return true;
   }
 

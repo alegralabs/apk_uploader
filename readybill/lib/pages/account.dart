@@ -33,8 +33,10 @@ class UserDetail {
   final String businessName;
   final String entityId;
   final String countryCode;
+  final String dialCode;
 
   UserDetail({
+    required this.dialCode,
     required this.id,
     required this.name,
     this.email,
@@ -215,7 +217,8 @@ class _UserAccountState extends State<UserAccount> {
         userDetail = UserDetail(
           id: userData['user_id'],
           name: userData['details']['name'],
-          countryCode: userData['country_code'],
+          countryCode: userData['country_details']['code'],
+          dialCode: userData['country_details']['dial_code'],
           email: userData['details']['email'],
           mobile: userData['mobile'],
           address: userData['details']['address'],
@@ -287,7 +290,7 @@ class _UserAccountState extends State<UserAccount> {
         .accountPageCountryCode;
     return Scaffold(
       //  backgroundColor: const Color.fromRGBO(246, 247, 255, 1),
-      appBar: customAppBar('Account Details'),
+      appBar: customAppBar('Account Details', []),
       body: userDetail == null
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(

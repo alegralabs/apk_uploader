@@ -19,7 +19,7 @@ import 'package:readybill/services/global_internet_connection_handler.dart';
 class ViewEmployeeDetails extends StatefulWidget {
   final Employee user;
 
-  ViewEmployeeDetails({super.key, required this.user});
+  const ViewEmployeeDetails({super.key, required this.user});
 
   @override
   State<ViewEmployeeDetails> createState() => _ViewEmployeeDetailsState();
@@ -118,7 +118,7 @@ class _ViewEmployeeDetailsState extends State<ViewEmployeeDetails> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: customAppBar("Employee Details"),
+      appBar: customAppBar("Employee Details",[]),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: SingleChildScrollView(

@@ -4,11 +4,11 @@ class ItemModel {
   final String quantity;
   final String minStockAlert;
   final String mrp;
-  final double salePrice;
+  final String salePrice;
   final String unit;
   final String hsn;
-  final String rate1;
-  final String rate2;
+  final String gst;
+  final String cess;
   final int flag;
 
   ItemModel({
@@ -20,8 +20,8 @@ class ItemModel {
     required this.salePrice,
     required this.unit,
     required this.hsn,
-    required this.rate1,
-    required this.rate2,
+    required this.gst,
+    required this.cess,
     required this.flag,
   });
 
@@ -31,11 +31,11 @@ class ItemModel {
     String? quantity,
     String? minStockAlert,
     String? mrp,
-    double? salePrice,
+    String? salePrice,
     String? unit,
     String? hsn,
-    String? rate1,
-    String? rate2,
+    String? gst,
+    String? cess,
     int? flag,
   }) =>
       ItemModel(
@@ -47,8 +47,8 @@ class ItemModel {
         salePrice: salePrice ?? this.salePrice,
         unit: unit ?? this.unit,
         hsn: hsn ?? this.hsn,
-        rate1: rate1 ?? this.rate1,
-        rate2: rate2 ?? this.rate2,
+        gst: gst ?? this.gst,
+        cess: cess ?? this.cess,
         flag: flag ?? this.flag,
       );
 
@@ -59,11 +59,11 @@ class ItemModel {
       quantity: json['quantity'],
       minStockAlert: json['min_stock_alert'],
       mrp: json['mrp'],
-      salePrice: json['sale_price'].toDouble(),
+      salePrice: json['sale_price'],
       unit: json['unit'],
       hsn: json['hsn'],
-      rate1: json['rate1'],
-      rate2: json['rate2'],
+      gst: json['gst'],
+      cess: json['cess'],
       flag: json['flag'],
     );
   }
@@ -78,8 +78,8 @@ class ItemModel {
       'sale_price': salePrice,
       'unit': unit,
       'hsn': hsn,
-      'rate1': rate1,
-      'rate2': rate2,
+      'gst': gst,
+      'cess': cess,
       'flag': flag,
     };
   }
@@ -97,8 +97,8 @@ class ItemModel {
           salePrice == other.salePrice &&
           unit == other.unit &&
           hsn == other.hsn &&
-          rate1 == other.rate1 &&
-          rate2 == other.rate2 &&
+          gst == other.gst &&
+          cess == other.cess &&
           flag == other.flag;
 
   @override
@@ -111,7 +111,7 @@ class ItemModel {
       salePrice.hashCode ^
       unit.hashCode ^
       hsn.hashCode ^
-      rate1.hashCode ^
-      rate2.hashCode ^
+      gst.hashCode ^
+      cess.hashCode ^
       flag.hashCode;
 }

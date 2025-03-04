@@ -70,9 +70,12 @@ InputDecoration disabledTfInputDecoration(String hintText) {
 InputDecoration phoneNumberInputDecoration(
     String hintText, Function provider, String initialCountryCode) {
   return InputDecoration(
-    prefixIcon:  Padding(
-      padding:const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-      child: CountrySelectorPrefix(provider: provider,initialCountryCode: initialCountryCode,),
+    prefixIcon: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+      child: CountrySelectorPrefix(
+        provider: provider,
+        initialCountryCode: initialCountryCode,
+      ),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(8.0),
@@ -144,7 +147,7 @@ InputDecoration customTfDecorationWithSuffix(
   );
 }
 
-customAppBar(String title) {
+customAppBar(String title, List<Widget>? actions) {
   return AppBar(
     title: Text(
       title,
@@ -152,6 +155,7 @@ customAppBar(String title) {
           fontFamily: 'Roboto_Regular', fontWeight: FontWeight.w500),
     ),
     backgroundColor: green2,
+    actions: actions ?? [],
   );
 }
 

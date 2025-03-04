@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:readybill/components/color_constants.dart';
+import 'package:readybill/components/custom_components.dart';
 
 Future showTextDialog(context, {title, value}) => showDialog(
     context: context,
@@ -28,17 +30,22 @@ class _TextDialogWidgetState extends State<TextDialogWidget> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.title),
+      title: Text(
+        widget.title,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Roboto_Regular',
+        ),
+        textAlign: TextAlign.center,
+      ),
       content: TextField(
         controller: controller,
-        decoration: const InputDecoration(border: OutlineInputBorder()),
+        decoration: customTfInputDecoration(widget.value),
       ),
       actions: [
-        ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop(controller.text);
-            },
-            child: const Text('Done'))
+        customElevatedButton('Done', green2, white, () {
+          Navigator.of(context).pop(controller.text);
+        }),
       ],
     );
   }

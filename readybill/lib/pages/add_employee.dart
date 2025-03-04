@@ -49,6 +49,8 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
   }
 
   Future<void> submitData() async {
+    print(
+        "Country Code: ${Provider.of<CountryCodeProvider>(context, listen: false).addEmployeePageCountryCode}");
     EasyLoading.show(status: 'Loading...');
     var token = await APIService.getToken();
     var apiKey = await APIService.getXApiKey();
@@ -124,7 +126,7 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: customAppBar("Add Employee"),
+      appBar: customAppBar("Add Employee", []),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
         child: GestureDetector(
@@ -243,7 +245,7 @@ class _EmployeeSignUpPageState extends State<EmployeeSignUpPage> {
 
   Widget _buildMobileTF() {
     return TextField(
-      keyboardType: TextInputType.numberWithOptions(),
+      keyboardType: const TextInputType.numberWithOptions(),
       controller: mobileController,
       decoration: phoneNumberInputDecoration(
           "Mobile *",

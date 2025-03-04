@@ -85,7 +85,7 @@ class _PrintPageState extends State<PrintPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: customAppBar("Print Page"),
+      appBar: customAppBar("Print Page",[]),
       body: Column(
         children: [
           Expanded(

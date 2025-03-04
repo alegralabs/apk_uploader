@@ -8,7 +8,7 @@ class HowToUploadXlsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: customAppBar("How To Upload"),
+      appBar: customAppBar("How To Upload",[]),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(

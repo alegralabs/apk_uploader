@@ -166,7 +166,7 @@ class _SubscriptionsState extends State<Subscriptions> {
 
   @override
   Widget build(BuildContext context) {
-    AppBar appBar = customAppBar("Subscriptions");
+    AppBar appBar = customAppBar("Subscriptions",[]);
 
     final screenHeight =
         MediaQuery.of(context).size.height - appBar.preferredSize.height;

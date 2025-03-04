@@ -166,7 +166,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         decoration: BoxDecoration(
                           borderRadius:
                               const BorderRadius.all(Radius.circular(10)),
-                          color: Colors.grey.withOpacity(0.2),
+                          color: Colors.grey.withValues(),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(

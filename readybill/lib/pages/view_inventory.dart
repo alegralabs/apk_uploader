@@ -48,6 +48,7 @@ class _ProductListPageState extends State<ProductListPage> {
     ]);
   }
 
+  @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
@@ -169,7 +170,7 @@ class _ProductListPageState extends State<ProductListPage> {
         },
         selectedIndex: _selectedIndex,
       ),
-      appBar: customAppBar("Inventory"),
+      appBar: customAppBar("Inventory",[]),
       body: subscriptionExpired == 0
           ? _products.isNotEmpty
               ? Column(

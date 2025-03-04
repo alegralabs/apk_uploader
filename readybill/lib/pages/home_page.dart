@@ -794,8 +794,7 @@ class HomePageState extends State<HomePage> {
 
   Future<String> saveData(String action) async {
     const String apiUrl = '$baseUrl/billing';
-    double grandTotal = calculateOverallTotal(); // Calculate overall total
-// Determine print flag
+    double grandTotal = calculateOverallTotal();
 
     Map<String, dynamic> requestBody = {
       'itemList': Provider.of<HomeBillItemProvider>(context, listen: false)
@@ -937,7 +936,7 @@ class HomePageState extends State<HomePage> {
         },
         selectedIndex: _selectedIndex,
       ),
-      appBar: customAppBar(string != "" ? string : "ReadyBill"),
+      appBar: customAppBar(string != "" ? string : "ReadyBill", []),
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -1498,7 +1497,7 @@ class HomePageState extends State<HomePage> {
       flex: flex,
       child: Text(
         title,
-        style: TextStyle(
+        style: const TextStyle(
           fontWeight: FontWeight.bold,
         ),
         textAlign: TextAlign.center,

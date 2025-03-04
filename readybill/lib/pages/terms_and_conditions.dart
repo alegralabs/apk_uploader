@@ -43,7 +43,7 @@ class TermsAndConditionsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: customAppBar("Terms & Conditions"),
+      appBar: customAppBar("Terms & Conditions",[]),
       body: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         child: SingleChildScrollView(
@@ -58,7 +58,7 @@ class TermsAndConditionsPage extends StatelessWidget {
               headingText("Changed terms"),
               divider(),
               subText(
-                  "Ready Bill shall have the right at any time to change or modify the terms and conditions applicable to user\'s use of website and mobile app, or any part thereof, or to impose new conditions, including, but not limited to, adding fees and charges for use. Such changes, modifications, additions or deletions shall be effective immediately upon notice thereof, which may be given by means including, but not limited to, posting on website, or by electronic or conventional mail, or by any other means by which user obtains notice thereof. Any use of website by user after such notice shall be deemed to constitute acceptance by user of such changes, modifications or additions."),
+                  "Ready Bill shall have the right at any time to change or modify the terms and conditions applicable to user's use of website and mobile app, or any part thereof, or to impose new conditions, including, but not limited to, adding fees and charges for use. Such changes, modifications, additions or deletions shall be effective immediately upon notice thereof, which may be given by means including, but not limited to, posting on website, or by electronic or conventional mail, or by any other means by which user obtains notice thereof. Any use of website by user after such notice shall be deemed to constitute acceptance by user of such changes, modifications or additions."),
               divider(),
               headingText("Description of services"),
               divider(),

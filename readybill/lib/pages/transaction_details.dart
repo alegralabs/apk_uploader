@@ -17,7 +17,7 @@ class TransactionDetailPage extends StatelessWidget {
     int totalPrice = int.parse(transaction.totalPrice);
 
     return Scaffold(
-      appBar: customAppBar("Transaction Details"),
+      appBar: customAppBar("Transaction Details",[]),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(

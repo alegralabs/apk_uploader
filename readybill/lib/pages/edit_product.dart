@@ -413,7 +413,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: customAppBar('Edit Product'),
+      appBar: customAppBar('Edit Product',[]),
       body: isLoading
           ? const Center(
               child: CircularProgressIndicator(
