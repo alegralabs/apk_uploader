@@ -15,7 +15,9 @@ import 'package:readybill/services/global_internet_connection_handler.dart';
 
 class AddPasswordPage extends StatefulWidget {
   final String phoneNumber;
-  const AddPasswordPage({super.key, required this.phoneNumber});
+  final String countryCode;
+  const AddPasswordPage(
+      {super.key, required this.phoneNumber, required this.countryCode});
 
   @override
   State<AddPasswordPage> createState() => _AddPasswordPageState();
@@ -144,6 +146,7 @@ class _AddPasswordPageState extends State<AddPasswordPage> {
               'mobile': widget.phoneNumber,
               'password': passwordController.text,
               'password_confirmation': confirmPasswordController.text,
+              'country_code': widget.countryCode,
               'shop_type': 'grocery',
             });
 

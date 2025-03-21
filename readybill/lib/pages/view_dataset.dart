@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:data_table_2/data_table_2.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:readybill/components/api_constants.dart';
@@ -12,7 +11,9 @@ import 'package:readybill/models/item_model.dart';
 
 import 'package:readybill/services/api_services.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
-import 'package:readybill/temp/utils.dart';
+import 'package:readybill/services/local_database_2.dart';
+import 'package:readybill/services/result.dart';
+import 'package:readybill/services/utils.dart';
 import 'package:http/http.dart' as http;
 
 class ViewDataset extends StatefulWidget {
@@ -53,28 +54,98 @@ class _ViewDatasetState extends State<ViewDataset> {
     'SQF',
     'SQM'
   ];
+  List<String> fullUnits = [
+    'Full Unit',
+    'Bags',
+    'Bottle',
+    'Box',
+    'Bundle',
+    'Can',
+    'Cartoon',
+    'Gram',
+    'Kilogram',
+    'Litre',
+    'Meter',
+    'Millilitre',
+    'Number',
+    'Pack',
+    'Pair',
+    'Piece',
+    'Roll',
+    'Square Feet',
+    'Square Meter'
+  ];
+  List<String> shortUnits = [
+    'Short Unit *',
+    'BAG',
+    'BTL',
+    'BOX',
+    'BDL',
+    'CAN',
+    'CTN',
+    'GM',
+    'KG',
+    'LTR',
+    'MTR',
+    'ML',
+    'NUM',
+    'PCK',
+    'PRS',
+    'PCS',
+    'ROL',
+    'SQF',
+    'SQM'
+  ];
 
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  List<Widget> taxRateRows = [];
+  List<Key> taxRateRowKeys = [];
+  TextEditingController itemNameValueController = TextEditingController();
+  TextEditingController mrpValueController = TextEditingController();
+  TextEditingController salePriceValueController = TextEditingController();
+  TextEditingController stockQuantityValueController = TextEditingController();
+  TextEditingController codeHSNSACvalueController = TextEditingController();
+  TextEditingController rateOneValueController = TextEditingController();
+  TextEditingController rateTwoValueController = TextEditingController();
+  TextEditingController minumumStockController = TextEditingController();
+
+  Map<int, String> rateControllers = {};
+  Map<int, String> taxControllers = {};
+
+  String? fullUnitDropdownValue;
+  String? shortUnitDropdownValue;
+
+  bool maintainMRP = false;
+  bool maintainStock = false;
+  bool showHSNSACCode = false;
+  bool isLoading = false;
 
   List<ItemModel> _filteredItems = [];
   String _searchTerm = '';
   List<ItemModel> items = [];
+  var apiKey;
 
-  getItems() async {
+  var token;
+
+  getItems(String reset) async {
     if (widget.jsonResponse == null) {
-      var token = await APIService.getToken();
-      var apiKey = await APIService.getXApiKey();
+      token = await APIService.getToken();
+      apiKey = await APIService.getXApiKey();
       EasyLoading.show(status: 'loading...');
-      var response = await http.get(
+      var response = await http.post(
         Uri.parse('$baseUrl/dataset'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
           'auth-key': '$apiKey',
         },
+        body: jsonEncode({
+          'isReset': reset,
+        }),
       );
       EasyLoading.dismiss();
+      print(response.body);
 
       if (response.statusCode == 200) {
         setState(() {
@@ -123,7 +194,7 @@ class _ViewDatasetState extends State<ViewDataset> {
   @override
   void initState() {
     super.initState();
-    getItems();
+    getItems('0');
   }
 
   @override
@@ -145,7 +216,7 @@ class _ViewDatasetState extends State<ViewDataset> {
                 fontFamily: 'Roboto-Regular',
                 fontWeight: FontWeight.bold),
           ),
-          onPressed: _addNewRow,
+          onPressed: _showNewRowDialog,
           tooltip: 'Add new row',
         ),
         if (_selectedItems.isNotEmpty)
@@ -160,30 +231,6 @@ class _ViewDatasetState extends State<ViewDataset> {
       ]),
       body: Column(
         children: [
-          errorMessages.isNotEmpty
-              ? Container(
-                  color: Colors.red.shade100,
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        height: errorMessages.length * 50.0,
-                        child: Center(
-                          child: ListView.builder(
-                            itemCount: errorMessages.length,
-                            itemBuilder: (context, index) {
-                              return ListTile(
-                                title: Text(errorMessages[index]),
-                              );
-                            },
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                )
-              : const SizedBox.shrink(),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
@@ -227,6 +274,29 @@ class _ViewDatasetState extends State<ViewDataset> {
             ),
           ),
           const SizedBox(height: 8),
+          errorMessages.isNotEmpty && errorCoordinates.isNotEmpty
+              ? Container(
+                  height: errorMessages.length <= 3
+                      ? errorMessages.length * 50.0
+                      : 150,
+                  color: Colors.red.shade100,
+                  padding: const EdgeInsets.all(8.0),
+                  child: Scrollbar(
+                    trackVisibility: true,
+                    thumbVisibility: true,
+                    interactive: true,
+                    child: ListView.builder(
+                      itemCount: errorMessages.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          title: Text(errorMessages[index]),
+                        );
+                      },
+                    ),
+                  ),
+                )
+              : const SizedBox.shrink(),
+          const SizedBox(height: 8),
 
           Expanded(
               child: _filteredItems.isEmpty
@@ -265,7 +335,7 @@ class _ViewDatasetState extends State<ViewDataset> {
             },
           );
         },
-        tooltip: 'Add new row',
+        tooltip: 'Submit',
         child: const Icon(
           Icons.upload_file,
         ),
@@ -301,8 +371,9 @@ class _ViewDatasetState extends State<ViewDataset> {
                     .any((coord) => coord.startsWith('${items.indexOf(b)},'))
                 ? 1
                 : 0;
-            if (aHasError != bHasError)
+            if (aHasError != bHasError) {
               return bHasError - aHasError; // Error rows first
+            }
 
             // 2. Exact match gets highest priority
             if (a.itemName.toLowerCase() == searchTermLower) return -1;
@@ -323,32 +394,358 @@ class _ViewDatasetState extends State<ViewDataset> {
     });
   }
 
-  void _addNewRow() {
+  Widget _buildCombinedDropdown(
+      List<String> items, void Function(String?) onChanged) {
+    return DropdownButtonFormField<String>(
+      decoration: InputDecoration(
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8.0),
+          borderSide: const BorderSide(
+            color: Color(0xffbfbfbf),
+            width: 3.0,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8.0),
+          borderSide: const BorderSide(
+            color: green2,
+            width: 3.0,
+          ),
+        ),
+      ),
+      hint: const Text(
+        'Full Unit (Short Unit)' ' *',
+      ),
+      value: fullUnitDropdownValue == null
+          ? null
+          : '$fullUnitDropdownValue ($shortUnitDropdownValue)', // Initial value
+      items: items.map((item) {
+        return DropdownMenuItem<String>(
+          value: item,
+          child: Text(item),
+        );
+      }).toList(),
+      onChanged: onChanged,
+    );
+  }
+
+  Widget _buildTaxRateRow(Key key, int index, StateSetter dialogSetState) {
+    bool isFirstRow = index == 0;
+    bool isMaxRowsReached = taxRateRows.length >= 2;
+
+    return Row(
+      key: key,
+      children: [
+        Expanded(
+          child: DropdownButtonFormField<String>(
+              value: taxControllers[index] ?? 'GST',
+              onChanged: (String? value) {
+                dialogSetState(() {
+                  taxControllers[index] = value!;
+                });
+              },
+              items: const [
+                DropdownMenuItem<String>(
+                  value: 'GST',
+                  child: Text('GST'),
+                ),
+                DropdownMenuItem<String>(
+                  value: 'SASS',
+                  child: Text('SASS'),
+                ),
+              ],
+              hint: const Text('Select Tax'),
+              decoration: customTfInputDecoration("Select Tax")),
+        ),
+        const SizedBox(width: 16.0),
+        Expanded(
+          child: TextField(
+              controller:
+                  index == 0 ? rateOneValueController : rateTwoValueController,
+              keyboardType: TextInputType.number,
+              decoration: customTfInputDecoration("Rate *")),
+        ),
+        IconButton(
+          icon: Icon(isFirstRow ? Icons.add : Icons.remove),
+          onPressed: () {
+            try {
+              if (isMaxRowsReached && isFirstRow) {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return customAlertBox(
+                      title: 'Warning',
+                      content: 'You cannot add more than 2 tax rows.',
+                      actions: <Widget>[
+                        customElevatedButton("OK", green2, white, () {
+                          navigatorKey.currentState?.pop();
+                        }),
+                      ],
+                    );
+                  },
+                );
+              } else {
+                dialogSetState(() {
+                  if (isFirstRow) {
+                    var newKey = GlobalKey();
+                    taxRateRowKeys.insert(index + 1, newKey);
+                    taxRateRows.insert(index + 1,
+                        _buildTaxRateRow(newKey, index + 1, dialogSetState));
+                    rateControllers[index + 1] = '';
+                    taxControllers[index + 1] = '';
+                  } else {
+                    taxRateRowKeys.removeAt(index);
+                    taxRateRows.removeAt(index);
+                    rateControllers.remove(index);
+                    taxControllers.remove(index);
+                  }
+                });
+              }
+            } catch (e) {
+              Result.error("Book list not available");
+            }
+          },
+        ),
+      ],
+    );
+  }
+
+  void _showNewRowDialog() {
+    showDialog(
+        barrierDismissible: false,
+        useSafeArea: false,
+        context: context,
+        builder: (context) {
+          taxRateRows.clear();
+          var key = GlobalKey();
+          taxRateRowKeys.add(key);
+
+          return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              if (taxRateRows.isEmpty) {
+                taxRateRows.add(_buildTaxRateRow(key, 0, setState));
+              }
+
+              return AlertDialog(
+                insetPadding: EdgeInsets.zero,
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Add New Row'),
+                    IconButton(
+                        onPressed: () {
+                          navigatorKey.currentState!.pop();
+                        },
+                        icon: const Icon(Icons.close))
+                  ],
+                ),
+                content: SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        _buildInputBox(' Item Name *', itemNameValueController,
+                            (value) {
+                          setState(() {
+                            itemNameValueController.text = value;
+                          });
+                        }),
+                        const SizedBox(height: 20.0),
+                        Row(children: [
+                          Expanded(
+                            child: _buildCombinedDropdown(
+                                fullUnits
+                                    .map((unit) =>
+                                        '$unit (${shortUnits[fullUnits.indexOf(unit)]})')
+                                    .toList(), (value) {
+                              List<String> units = value!.split(' (');
+                              String fullUnit = units[0];
+                              String shortUnit =
+                                  units[1].substring(0, units[1].length - 1);
+                              setState(() {
+                                fullUnitDropdownValue = fullUnit;
+                                shortUnitDropdownValue = shortUnit;
+                              });
+                            }),
+                          )
+                        ]),
+                        const SizedBox(height: 20.0),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildInputBox(' Sale price: Rs. *',
+                                  salePriceValueController, (value) {
+                                setState(() {
+                                  salePriceValueController.text = value;
+                                });
+                              }, isNumeric: true),
+                            ),
+                            const SizedBox(width: 16.0),
+                            Expanded(
+                              child: _buildInputBox(
+                                  ' MRP ${maintainMRP ? '*' : ''}',
+                                  mrpValueController, (value) {
+                                setState(() {
+                                  mrpValueController.text = value;
+                                });
+                              }, isNumeric: true),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16.0),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildInputBox(
+                                  ' Stock Quantity ${maintainStock ? '*' : ''}',
+                                  stockQuantityValueController, (value) {
+                                setState(() {
+                                  stockQuantityValueController.text = value;
+                                });
+                              }, isNumeric: true),
+                            ),
+                            const SizedBox(width: 16.0),
+                            Expanded(
+                                child: Visibility(
+                              visible:
+                                  stockQuantityValueController.text.isNotEmpty,
+                              child: _buildInputBox(
+                                  ' Minimum Stock ', minumumStockController,
+                                  (value) {
+                                setState(() {
+                                  minumumStockController.text = value;
+                                });
+                              }, isNumeric: true),
+                            ))
+                          ],
+                        ),
+                        const SizedBox(height: 16.0),
+                        _buildInputBox(
+                            ' HSN/ SAC Code ${showHSNSACCode ? '*' : ''}',
+                            codeHSNSACvalueController, (value) {
+                          setState(() {
+                            codeHSNSACvalueController.text = value;
+                          });
+                        }, isNumeric: true),
+                        const SizedBox(height: 20.0),
+                        Column(
+                          children: [
+                            for (int i = 0; i < taxRateRows.length; i++)
+                              Column(
+                                children: [
+                                  taxRateRows[i],
+                                  const SizedBox(height: 8.0),
+                                ],
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 20.0),
+                      ],
+                    ),
+                  ),
+                ),
+                actions: [
+                  customElevatedButton('Save', green2, white, () async {
+                    var response = await addNewRow();
+
+                    print('response: $response');
+
+                    if (response['status'] == 'success') {
+                      navigatorKey.currentState!.pop();
+                    } else {
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return customAlertBox(
+                            title: 'Error',
+                            content:
+                                "${response['message']}\nPlease enter valid data.",
+                            actions: [
+                              customElevatedButton('OK', green2, white, () {
+                                navigatorKey.currentState!.pop();
+                              })
+                            ],
+                          );
+                        },
+                      );
+                    }
+                  }),
+                  customElevatedButton('Cancel', red, white, () {
+                    navigatorKey.currentState!.pop();
+                  })
+                ],
+              );
+            },
+          );
+        });
+  }
+
+  addNewRow() async {
     final newId =
         items.isEmpty ? 1 : items.map((u) => u.originalIndex).reduce(max) + 1;
+    print(newId);
 
     final newItem = ItemModel(
       originalIndex: newId,
-      itemName: "",
-      quantity: "",
-      minStockAlert: "",
-      mrp: "",
-      salePrice: "",
-      unit: "",
-      hsn: "",
-      gst: "",
-      cess: "",
+      itemName: itemNameValueController.text,
+      quantity: stockQuantityValueController.text,
+      minStockAlert: minumumStockController.text,
+      mrp: mrpValueController.text,
+      salePrice: salePriceValueController.text,
+      unit: shortUnitDropdownValue ?? '',
+      hsn: codeHSNSACvalueController.text,
+      gst: rateOneValueController.text,
+      cess: rateTwoValueController.text,
       flag: 0,
     );
-
-    setState(() {
-      items.add(newItem);
-
-      if (_searchTerm.isEmpty) {
-        _filteredItems.add(newItem);
-      }
-      _scrollController.jumpTo(_scrollController.position.maxScrollExtent + 70);
+    EasyLoading.show(status: 'loading...');
+    var response =
+        await http.post(Uri.parse('$baseUrl/update-cell-data'), headers: {
+      'Authorization': 'Bearer $token',
+      'auth-key': '$apiKey',
+    }, body: {
+      'id': '0',
+      'row_index': '$newId',
+      'item_name': newItem.itemName,
+      'quantity': newItem.quantity,
+      'min_stock_alert': newItem.minStockAlert,
+      'mrp': newItem.mrp,
+      'sale_price': newItem.salePrice,
+      'short_unit': newItem.unit,
+      'hsn': newItem.hsn,
+      'gst': newItem.gst,
+      'cess': newItem.cess,
     });
+    EasyLoading.dismiss();
+    if (response.statusCode == 200) {
+      setState(() {
+        items.add(newItem);
+
+        if (_searchTerm.isEmpty) {
+          _filteredItems.add(newItem);
+        }
+        _scrollController
+            .jumpTo(_scrollController.position.maxScrollExtent + 70);
+      });
+    }
+    print(jsonDecode(response.body));
+    return jsonDecode(response.body);
+  }
+
+  Widget _buildInputBox(String hintText, TextEditingController textControllers,
+      void Function(String) updateIdentifier,
+      {bool isNumeric = false}) {
+    return TextField(
+      controller: textControllers,
+      decoration: customTfInputDecoration("$hintText "),
+      keyboardType: isNumeric
+          ? TextInputType.number
+          : TextInputType.text, // Set keyboardType based on isNumeric flag
+      onChanged: (value) {
+        updateIdentifier(
+            value); // Call the callback function to update the identifier
+      },
+    );
   }
 
   void _deleteSelectedRows() {
@@ -553,7 +950,8 @@ class _ViewDatasetState extends State<ViewDataset> {
                           }).toList(),
                           onChanged: (newValue) {
                             setState(() {
-                              _updateItem(item, unit: newValue.toString());
+                              _updateItem(item,
+                                  unit: newValue.toString(), cellIndex: 6);
                             });
                           })
                       : cellContent,
@@ -661,7 +1059,7 @@ class _ViewDatasetState extends State<ViewDataset> {
     );
 
     setState(() {
-      _updateItem(editItem, quantity: quantity);
+      _updateItem(editItem, quantity: quantity, cellIndex: 2);
     });
   }
 
@@ -673,7 +1071,7 @@ class _ViewDatasetState extends State<ViewDataset> {
     );
 
     setState(() {
-      _updateItem(editItem, itemName: itemName);
+      _updateItem(editItem, itemName: itemName, cellIndex: 1);
     });
   }
 
@@ -685,7 +1083,7 @@ class _ViewDatasetState extends State<ViewDataset> {
     );
 
     setState(() {
-      _updateItem(editItem, minStockAlert: minStockAlert);
+      _updateItem(editItem, minStockAlert: minStockAlert, cellIndex: 3);
     });
   }
 
@@ -697,7 +1095,7 @@ class _ViewDatasetState extends State<ViewDataset> {
     );
 
     setState(() {
-      _updateItem(editItem, mrp: mrp);
+      _updateItem(editItem, mrp: mrp, cellIndex: 4);
     });
   }
 
@@ -710,19 +1108,7 @@ class _ViewDatasetState extends State<ViewDataset> {
     final salePrice = salePriceString ?? editItem.salePrice;
 
     setState(() {
-      _updateItem(editItem, salePrice: salePrice);
-    });
-  }
-
-  Future<void> editUnit(ItemModel editItem) async {
-    final unit = await showTextDialog(
-      context,
-      title: 'Edit Unit',
-      value: editItem.unit,
-    );
-
-    setState(() {
-      _updateItem(editItem, unit: unit);
+      _updateItem(editItem, salePrice: salePrice, cellIndex: 5);
     });
   }
 
@@ -734,7 +1120,7 @@ class _ViewDatasetState extends State<ViewDataset> {
     );
 
     setState(() {
-      _updateItem(editItem, hsn: hsn);
+      _updateItem(editItem, hsn: hsn, cellIndex: 9);
     });
   }
 
@@ -746,7 +1132,7 @@ class _ViewDatasetState extends State<ViewDataset> {
     );
 
     setState(() {
-      _updateItem(editItem, gst: gst);
+      _updateItem(editItem, gst: gst, cellIndex: 7);
     });
   }
 
@@ -758,24 +1144,23 @@ class _ViewDatasetState extends State<ViewDataset> {
     );
 
     setState(() {
-      _updateItem(editItem, cess: cess);
+      _updateItem(editItem, cess: cess, cellIndex: 8);
     });
   }
 
 // Helper function to update an item in the list
-  void _updateItem(
-    ItemModel editItem, {
-    String? itemName,
-    String? quantity,
-    String? minStockAlert,
-    String? mrp,
-    String? salePrice,
-    String? unit,
-    String? hsn,
-    String? gst,
-    String? cess,
-    int? flag,
-  }) {
+  void _updateItem(ItemModel editItem,
+      {String? itemName,
+      String? quantity,
+      String? minStockAlert,
+      String? mrp,
+      String? salePrice,
+      String? unit,
+      String? hsn,
+      String? gst,
+      String? cess,
+      int? flag,
+      required int cellIndex}) async {
     final index = items
         .indexWhere((item) => item.originalIndex == editItem.originalIndex);
     if (index >= 0) {
@@ -809,6 +1194,39 @@ class _ViewDatasetState extends State<ViewDataset> {
         flag: flag,
       );
     }
+
+    print('cellIndex: $cellIndex');
+
+    EasyLoading.show(status: 'loading...');
+    var response =
+        await http.post(Uri.parse('$baseUrl/update-cell-data'), headers: {
+      'Authorization': 'Bearer $token',
+      'auth-key': '$apiKey',
+    }, body: {
+      'id': (_filteredItems[filteredIndex].originalIndex + 1).toString(),
+      'cell_index': cellIndex.toString(),
+      'row_index': items.indexOf(_filteredItems[filteredIndex]).toString(),
+      'item_name': _filteredItems[filteredIndex].itemName,
+      'quantity': _filteredItems[filteredIndex].quantity,
+      'min_stock_alert': _filteredItems[filteredIndex].minStockAlert,
+      'mrp': _filteredItems[filteredIndex].mrp,
+      'sale_price': _filteredItems[filteredIndex].salePrice,
+      'unit': _filteredItems[filteredIndex].unit,
+      'hsn': _filteredItems[filteredIndex].hsn,
+      'gst': _filteredItems[filteredIndex].gst,
+      'cess': _filteredItems[filteredIndex].cess,
+    });
+    EasyLoading.dismiss();
+    if (response.statusCode == 200) {
+      print('success');
+      print(response.body);
+    } else {
+      print(editItem.originalIndex + 1);
+      print(cellIndex);
+      print(response.statusCode);
+      print(response.body);
+      print('failed');
+    }
   }
 
   submitList(String action) async {
@@ -817,13 +1235,12 @@ class _ViewDatasetState extends State<ViewDataset> {
     var token = await APIService.getToken();
     var apiKey = await APIService.getXApiKey();
     List<Map<String, dynamic>> uploadItems = [];
-
+    print('submitList');
     for (var item in items) {
-      //print(item.unit);
       uploadItems.add({
         'item_name': item.itemName,
         'quantity': item.quantity,
-        'minimum_stock_alert': item.minStockAlert,
+        'min_stock_alert': item.minStockAlert,
         'mrp': item.mrp,
         'sale_price': item.salePrice,
         'unit': item.unit.toUpperCase(),
@@ -832,47 +1249,59 @@ class _ViewDatasetState extends State<ViewDataset> {
         'cess': item.cess,
       });
     }
+    var jsonData;
 
-    EasyLoading.show(status: 'loading...');
+    // EasyLoading.show(status: 'loading...');
 
-    try {
-      var response =
-          await http.post(Uri.parse('$baseUrl/inventory-store-multiple'),
-              headers: {
-                'Authorization': 'Bearer $token',
-                'auth-key': '$apiKey',
-                'Content-Type': 'application/json',
-              },
-              body: jsonEncode({
-                'items': uploadItems,
-                'action': action,
-              }));
+    // try {
 
-      var jsonData = jsonDecode(response.body);
-      print(jsonData['errors']['grid_coordinates']);
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Data uploaded successfully')));
-      } else {
-        setState(() {
-          errorMessages = (jsonData['errors']['messages'] as List)
-              .map((item) => item.toString())
-              .toList();
+    var request = http.post(Uri.parse('$baseUrl/inventory-store-multiple'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'auth-key': '$apiKey',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'items': uploadItems,
+          'action': action,
+        }));
+    var response = await request;
+    print("request: ${jsonEncode({
+          'items': uploadItems,
+          'action': action,
+        })}");
 
-          errorCoordinates = (jsonData['errors']['grid_coordinates'] as List)
-              .map((item) => item.toString())
-              .toList();
+    jsonData = jsonDecode(response.body);
 
-          items = parseItems(response.body);
-          _filteredItems = List.from(items);
-          print('object'); // Update filtered items
-        });
-      }
-      //print(errorCoordinates);
-    } catch (e) {
-      //  print("error: $e");
+    if (response.statusCode == 200) {
+      print('successful');
+      LocalDatabase2.instance.clearTable();
+      LocalDatabase2.instance.fetchDataAndStoreLocally();
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Data uploaded successfully')));
+    } else {
+      print('failed');
+      print(response.body);
+      setState(() {
+        errorMessages = (jsonData['errors']['messages'] as List)
+            .map((item) => item.toString())
+            .toList();
+
+        errorCoordinates = (jsonData['errors']['grid_coordinates'] as List)
+            .map((item) => item.toString())
+            .toList();
+
+        items = parseItems(response.body);
+        _filteredItems = List.from(items);
+        print('object'); // Update filtered items
+      });
     }
+    //  }
+    //  catch (e) {
+    //   print('jsonData: $jsonData');
+    //   print("error: $e");
+    // }
 
-    EasyLoading.dismiss();
+    // EasyLoading.dismiss();
   }
 }

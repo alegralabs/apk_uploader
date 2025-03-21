@@ -12,7 +12,7 @@ import 'package:readybill/pages/account.dart';
 import 'package:readybill/pages/add_product.dart';
 import 'package:readybill/pages/change_password_page.dart';
 import 'package:readybill/pages/contact_us.dart';
-import 'package:readybill/pages/view_dataset.dart';
+import 'package:readybill/pages/new_dataset.dart';
 
 import 'package:readybill/pages/home_page.dart';
 import 'package:readybill/pages/login_page.dart';
@@ -166,6 +166,8 @@ class _SidebarState extends State<Sidebar> {
                         SharedPreferences prefs =
                             await SharedPreferences.getInstance();
                         await prefs.setString('paperSize', value);
+
+                        print('paper size: ${prefs.getString('paperSize')}');
                       }
                     },
                   ),
@@ -187,9 +189,11 @@ class _SidebarState extends State<Sidebar> {
                 ],
               ),
               actions: [
-                customElevatedButton("Save", blue, white, () {
+                customElevatedButton("Save", blue, white, () async {
                   navigatorKey.currentState?.pop();
-
+                  SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
+                  await prefs.setString('paperSize', _selectedPaperSize);
                   navigatorKey.currentState
                       ?.push(MaterialPageRoute(builder: (context) {
                     return const PrinterConnected();
@@ -411,7 +415,7 @@ class _SidebarState extends State<Sidebar> {
                           ? navigatorKey.currentState?.push(
                               CupertinoPageRoute(
                                   builder: (context) =>
-                                      const ViewDataset(title: "Dataset")),
+                                      const NewDataset(title: "Dataset")),
                             )
                           : noSubscriptionDialog();
                     },

@@ -321,6 +321,9 @@ class _OtpModalBottomSheetState extends State<OtpModalBottomSheet> {
         CupertinoPageRoute(
           builder: (context) => AddPasswordPage(
             phoneNumber: widget.phoneNumber,
+            countryCode:
+                Provider.of<CountryCodeProvider>(context, listen: false)
+                    .registerPageCountryCode,
           ),
         ),
       );

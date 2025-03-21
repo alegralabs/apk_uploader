@@ -25,6 +25,7 @@ import 'package:readybill/services/refund_bill_item_provider.dart';
 import 'package:readybill/services/result.dart';
 import 'package:readybill/services/text_to_num.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:http/http.dart' as http;
@@ -147,6 +148,7 @@ class RefundPageState extends State<RefundPage> {
   var listQuantity = 1;
   Map? currentVoice;
   List<Map>? voices;
+  String? currencySymbol;
 
   @override
   void initState() {
@@ -154,13 +156,12 @@ class RefundPageState extends State<RefundPage> {
     initializeData();
     initTTS();
     initSpeech();
+    setCurrencySymbol();
   }
 
   @override
   void dispose() {
-    // _stopListening();
     _speechToText.stop();
-
     _speechToText.cancel();
     _nameController.dispose();
     quantityController.dispose();
@@ -169,6 +170,14 @@ class RefundPageState extends State<RefundPage> {
     _scrollController.dispose();
     _searchFocus.dispose();
     super.dispose();
+  }
+
+  setCurrencySymbol() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      currencySymbol = prefs.getString('currencySymbol');
+    });
+    print('currencySymbol: $currencySymbol');
   }
 
   void initSpeech() async {
@@ -606,7 +615,6 @@ class RefundPageState extends State<RefundPage> {
           //   print("Stock Status: $stockStatus");
           return stockStatus;
         } else {
-          // If stockStatus is not present in the response, return -1 to indicate an error
           return -1;
         }
       } else {
@@ -895,7 +903,7 @@ class RefundPageState extends State<RefundPage> {
         },
         selectedIndex: _selectedIndex,
       ),
-      appBar: customAppBar(string != "" ? string : "ReadyBill",[]),
+      appBar: customAppBar(string != "" ? string : "ReadyBill", []),
       body: SingleChildScrollView(
         child: GestureDetector(
           onTap: () {
@@ -1436,7 +1444,7 @@ class RefundPageState extends State<RefundPage> {
                         Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Text(
-                            "₹${calculateOverallTotal()}",
+                            "$currencySymbol${calculateOverallTotal()}",
                             style: const TextStyle(
                               fontSize: 18.0,
                             ),

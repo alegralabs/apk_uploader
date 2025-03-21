@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class BillWidget extends StatefulWidget {
   final Map<String, dynamic> item;
@@ -20,6 +21,21 @@ class BillWidget extends StatefulWidget {
 }
 
 class _BillWidgetState extends State<BillWidget> {
+  String? currencySymbol;
+  @override
+  void initState() {
+    super.initState();
+    setCurrencySymbol();
+  }
+
+  setCurrencySymbol() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      currencySymbol = prefs.getString('currencySymbol');
+    });
+    print('currencySymbol: $currencySymbol');
+  }
+
   @override
   Widget build(BuildContext context) {
     double amount = widget.itemForBillRows[widget.index]['amount'];
@@ -140,8 +156,8 @@ class _BillWidgetState extends State<BillWidget> {
               child: itemDetailWidget(
                   context,
                   amount > 0
-                      ? '₹${widget.item['amount'].toStringAsFixed(2)}'
-                      : "-₹${widget.item['amount'].abs().toStringAsFixed(2)}",
+                      ? '$currencySymbol${widget.item['amount'].toStringAsFixed(2)}'
+                      : "-$currencySymbol${widget.item['amount'].abs().toStringAsFixed(2)}",
                   0.15),
             ),
             Expanded(
