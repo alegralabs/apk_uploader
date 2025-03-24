@@ -9,6 +9,7 @@ import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/services/api_services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Subscriptions extends StatefulWidget {
   const Subscriptions({super.key});
@@ -22,12 +23,22 @@ class _SubscriptionsState extends State<Subscriptions> {
   bool isLoading = true;
   String currentPlan = '';
   String expiryDate = '';
+  String? currencySymbol;
 
   @override
   void initState() {
     super.initState();
     getPlans();
     getCurrentPlan();
+    setCurrencySymbol();
+  }
+
+  setCurrencySymbol() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      currencySymbol = prefs.getString('currencySymbol');
+    });
+    print('currencySymbol: $currencySymbol');
   }
 
   Future<void> getPlans() async {
@@ -114,7 +125,7 @@ class _SubscriptionsState extends State<Subscriptions> {
           ),
           const SizedBox(height: 10),
           Text(
-            "Price: ₹${plan['price'].toString()}/-",
+            "Price: $currencySymbol${plan['price'].toString()}/-",
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontFamily: 'Roboto_Regular',
@@ -166,7 +177,7 @@ class _SubscriptionsState extends State<Subscriptions> {
 
   @override
   Widget build(BuildContext context) {
-    AppBar appBar = customAppBar("Subscriptions");
+    AppBar appBar = customAppBar("Subscriptions", []);
 
     final screenHeight =
         MediaQuery.of(context).size.height - appBar.preferredSize.height;

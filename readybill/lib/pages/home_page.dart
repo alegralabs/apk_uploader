@@ -13,6 +13,7 @@ import 'package:readybill/components/bill_widget.dart';
 import 'package:readybill/components/bottom_navigation_bar.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/components/custom_components.dart';
+import 'package:readybill/components/decimal_seperator.dart';
 import 'package:readybill/components/quantity_modal_bottom_sheet.dart';
 import 'package:readybill/components/sidebar.dart';
 import 'package:readybill/components/microphone_button.dart';
@@ -150,6 +151,8 @@ class HomePageState extends State<HomePage> {
   var listQuantity = 1;
   Map? currentVoice;
   List<Map>? voices;
+  String? currencySymbol;
+  String? decimalSeparator;
 
   @override
   void initState() {
@@ -164,6 +167,7 @@ class HomePageState extends State<HomePage> {
             : Provider.of<HomeBillItemProvider>(context, listen: false)
                 .quantity
                 .toString();
+    setCurrencySymbol();
   }
 
   @override
@@ -179,6 +183,16 @@ class HomePageState extends State<HomePage> {
     _scrollController.dispose();
     _searchFocus.dispose();
     super.dispose();
+  }
+
+  setCurrencySymbol() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      currencySymbol = prefs.getString('currencySymbol');
+      decimalSeparator = prefs.getString('decimalSeparator');
+    });
+    print('currencySymbol: $currencySymbol');
+    print('decimalSeparator: $decimalSeparator');
   }
 
   void checkSubscription() async {
@@ -381,8 +395,6 @@ class HomePageState extends State<HomePage> {
     String quantity = match?.group(2) ?? "one";
 
     String unitOfQuantity = match?.group(3) ?? "";
-    // Provider.of(context, listen: false).assignQuantity(quantity);
-    // Provider.of(context, listen: false).assignUnit(unitOfQuantity);
 
     print("product: $product");
     print("quantity: $quantity");
@@ -648,8 +660,9 @@ class HomePageState extends State<HomePage> {
 
   Future<int?> checkStockStatus(String itemId, String quantity,
       String relatedUnit, String token, String apiKey) async {
+    print(itemId);
     relatedUnit = relatedUnit.toLowerCase();
-    //  print('itemId: $itemId, quantity: $quantity, relatedUnit: $relatedUnit');
+
     print('checkStockStatus');
 
     try {
@@ -671,6 +684,7 @@ class HomePageState extends State<HomePage> {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
+        print(responseData);
         if (responseData.containsKey('stockStatus')) {
           itemNameforTable = responseData['data']?['item_name'] as String?;
           print('itemnamefortable: $itemNameforTable');
@@ -732,7 +746,7 @@ class HomePageState extends State<HomePage> {
   void addProductTable(
       String itemName, double finalQuantity, String unit, double salePrice) {
     double amount = salePrice * finalQuantity;
-    print('addProductTable '); // Calculate the amount
+    // Calculate the amount
     if (mounted) {
       setState(() {
         Provider.of<HomeBillItemProvider>(context, listen: false).addItem({
@@ -794,8 +808,7 @@ class HomePageState extends State<HomePage> {
 
   Future<String> saveData(String action) async {
     const String apiUrl = '$baseUrl/billing';
-    double grandTotal = calculateOverallTotal(); // Calculate overall total
-// Determine print flag
+    double grandTotal = calculateOverallTotal();
 
     Map<String, dynamic> requestBody = {
       'itemList': Provider.of<HomeBillItemProvider>(context, listen: false)
@@ -816,14 +829,14 @@ class HomePageState extends State<HomePage> {
         body: formData,
       );
       EasyLoading.dismiss();
-
+      print(response.body);
       if (response.statusCode == 200) {
         if (action == 'save') {
           Provider.of<HomeBillItemProvider>(context, listen: false)
               .clearItems();
         }
         clearProductName();
-        return jsonDecode(response.body)['data']['invoice_number'].toString();
+        return response.body;
       } else {
         EasyLoading.dismiss();
       }
@@ -937,7 +950,7 @@ class HomePageState extends State<HomePage> {
         },
         selectedIndex: _selectedIndex,
       ),
-      appBar: customAppBar(string != "" ? string : "ReadyBill"),
+      appBar: customAppBar(string != "" ? string : "ReadyBill", []),
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -1327,7 +1340,7 @@ class HomePageState extends State<HomePage> {
                             Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Text(
-                                "₹${calculateOverallTotal()}",
+                                "$currencySymbol${convertPriceToNumber(calculateOverallTotal().toString(), "$decimalSeparator")}",
                                 style: const TextStyle(
                                   fontSize: 18.0,
                                 ),
@@ -1469,19 +1482,10 @@ class HomePageState extends State<HomePage> {
                       borderRadius: BorderRadius.circular(screenWidth * 0.1)),
                   child: IconButton(
                     onPressed: () async {
-                      String invoiceNumber = await saveData("print");
+                      String billData = await saveData("print");
 
                       navigatorKey.currentState?.push(CupertinoPageRoute(
-                          builder: (context) => PrintPage(
-                                invoiceNumber: invoiceNumber,
-                                data: Provider.of<HomeBillItemProvider>(context)
-                                    .homeItemForBillRows,
-                                totalAmount: total.toString(),
-                                clearData: Provider.of<HomeBillItemProvider>(
-                                        context,
-                                        listen: false)
-                                    .clearItems,
-                              )));
+                          builder: (context) => PrintPage(billData: billData)));
                     },
                     icon: const Icon(Icons.print),
                     color: white,
@@ -1498,7 +1502,7 @@ class HomePageState extends State<HomePage> {
       flex: flex,
       child: Text(
         title,
-        style: TextStyle(
+        style: const TextStyle(
           fontWeight: FontWeight.bold,
         ),
         textAlign: TextAlign.center,

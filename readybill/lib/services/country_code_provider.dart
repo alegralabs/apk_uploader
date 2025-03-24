@@ -9,6 +9,17 @@ class CountryCodeProvider extends ChangeNotifier {
   String editEmployeePageCountryCode = '';
   String forgotPasswordPageCountryCode = '';
 
+  void setAllCountryCodes(String code) {
+    accountPageCountryCode = code;
+    contactPageCountryCode = code;
+    loginPageCountryCode = code;
+    registerPageCountryCode = code;
+    addEmployeePageCountryCode = code;
+    editEmployeePageCountryCode = code;
+    forgotPasswordPageCountryCode = code;
+    notifyListeners();
+  }
+
   void setAccountPageCountryCode(String code) {
     accountPageCountryCode = code;
     notifyListeners();

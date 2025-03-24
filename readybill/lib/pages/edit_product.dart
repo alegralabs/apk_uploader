@@ -213,7 +213,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
           tax2DropdownValue = jsonData['tax2'];
           rateOneValueController.text = jsonData['rate1'];
           rateTwoValueController.text = jsonData['rate2'];
-          mrpController.text = jsonData['mrp'];
+          mrpController.text = jsonData['mrp'] ?? '0';
           fullUnitDropdownValue = jsonData['full_unit'];
           shortUnitDropdownValue = jsonData['short_unit'];
           hsnCodeController.text = jsonData['hsn'];
@@ -277,6 +277,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
     try {
       print(
           "fullUnitDropdoenMenu: $fullUnitDropdownValue, shortUnitDropdoenValue: $shortUnitDropdownValue");
+
       var response = await http.post(
         Uri.parse('$baseUrl/update-item'),
         headers: {
@@ -289,7 +290,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
           'mrp': mrpController.text,
           'item_name': itemNameController.text,
           maintainStock ? 'quantity' : quantityController.text: '',
-          //'quantity': quantityController.text,
+          'quantity': quantityController.text ?? '',
           'sale_price': salePriceController.text,
           'full_unit': fullUnitDropdownValue,
           'short_unit': shortUnitDropdownValue,
@@ -298,9 +299,10 @@ class _ProductEditPageState extends State<ProductEditPage> {
           'tax1': tax1DropdownValue,
           'tax2': tax2DropdownValue,
           showHSNSACCode ? 'hsn' : hsnCodeController.text: '',
-          //'hsn': hsnCodeController.text,
         }),
       );
+
+      print(response.body);
 
       if (response.statusCode == 200) {
         var jsonResponse = jsonDecode(response.body);
@@ -413,7 +415,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: customAppBar('Edit Product'),
+      appBar: customAppBar('Edit Product', []),
       body: isLoading
           ? const Center(
               child: CircularProgressIndicator(

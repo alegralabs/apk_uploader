@@ -1,37 +1,58 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/models/transaction.dart';
-import 'package:readybill/pages/print_page.dart';
-import 'package:readybill/services/global_internet_connection_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class TransactionDetailPage extends StatelessWidget {
+class TransactionDetailPage extends StatefulWidget {
   final Transaction transaction;
 
   const TransactionDetailPage({super.key, required this.transaction});
 
   @override
+  State<TransactionDetailPage> createState() => _TransactionDetailPageState();
+}
+
+class _TransactionDetailPageState extends State<TransactionDetailPage> {
+  String? currencySymbol;
+  @override
+  void initState() {
+    super.initState();
+    setCurrencySymbol();
+  }
+
+  setCurrencySymbol() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      currencySymbol = prefs.getString('currencySymbol');
+    });
+    print('currencySymbol: $currencySymbol');
+  }
+
+  @override
   Widget build(BuildContext context) {
-    int totalPrice = int.parse(transaction.totalPrice);
+    int totalPrice = int.parse(widget.transaction.totalPrice);
 
     return Scaffold(
-      appBar: customAppBar("Transaction Details"),
+      appBar: customAppBar("Transaction Details", []),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildInfoRow('Invoice Number', transaction.invoiceNumber),
+            _buildInfoRow('Invoice Number', widget.transaction.invoiceNumber),
             const SizedBox(height: 16),
-            _buildInfoRow('Total Price',
-                totalPrice > 0 ? "₹$totalPrice" : "-₹${totalPrice.abs()}"),
+            _buildInfoRow(
+                'Total Price',
+                totalPrice > 0
+                    ? "$currencySymbol$totalPrice"
+                    : "-$currencySymbol${totalPrice.abs()}"),
             const SizedBox(height: 16),
             _buildInfoRow(
                 'Created at',
                 DateFormat('dd-MM-yyyy \n hh:mm a')
-                    .format(DateTime.parse(transaction.createdAt))),
+                    .format(DateTime.parse(widget.transaction.createdAt))),
             const SizedBox(height: 16),
             const Text(
               'Items:',
@@ -60,9 +81,10 @@ class TransactionDetailPage extends StatelessWidget {
             const SizedBox(height: 8),
             Expanded(
               child: ListView.builder(
-                itemCount: transaction.itemList.length,
+                itemCount: widget.transaction.itemList.length,
                 itemBuilder: (context, index) {
-                  return itemWidget(transaction.itemList[index], context);
+                  return itemWidget(
+                      widget.transaction.itemList[index], context);
                 },
               ),
             ),
@@ -70,11 +92,11 @@ class TransactionDetailPage extends StatelessWidget {
             SizedBox(
                 width: double.infinity,
                 child: customElevatedButton("Print", blue, white, () {
-                  navigatorKey.currentState?.push(CupertinoPageRoute(
-                      builder: (context) => PrintPage(
-                          data: transaction.itemList,
-                          totalAmount: transaction.totalPrice,
-                          invoiceNumber: transaction.invoiceNumber)));
+                  // navigatorKey.currentState?.push(CupertinoPageRoute(
+                  //     builder: (context) => PrintPage(
+                  //         data: widget.transaction.itemList,
+                  //         totalAmount: widget.transaction.totalPrice,
+                  //         invoiceNumber: widget.transaction.invoiceNumber)));
                 })),
             const SizedBox(height: 30),
           ],
@@ -115,12 +137,12 @@ class TransactionDetailPage extends StatelessWidget {
             itemDetailWidget(
                 context, '${item['quantity'] + item['selectedUnit']}'),
             itemDetailWidget(context, '${item['hsn']}'),
-            itemDetailWidget(context, '₹${item['rate']}'),
+            itemDetailWidget(context, '$currencySymbol${item['rate']}'),
             itemDetailWidget(
                 context,
                 double.parse(item['amount']) > 0
-                    ? '₹${double.parse(item['amount']).abs().toStringAsFixed(2)}'
-                    : '-₹${double.parse(item['amount']).abs().toStringAsFixed(2)}'),
+                    ? '$currencySymbol${double.parse(item['amount']).abs().toStringAsFixed(2)}'
+                    : '-$currencySymbol${double.parse(item['amount']).abs().toStringAsFixed(2)}'),
           ],
         ),
         const Divider(

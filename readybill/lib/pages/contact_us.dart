@@ -87,7 +87,7 @@ class _ContactUsPageState extends State<ContactUsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: customAppBar("Contact Us"),
+      appBar: customAppBar("Contact Us",[]),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(

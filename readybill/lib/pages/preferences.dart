@@ -194,7 +194,7 @@ class _PreferencesPageState extends State<PreferencesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: customAppBar("Preferences"),
+      appBar: customAppBar("Preferences",[]),
       body: isLoading
           ? const Center(
               child: CircularProgressIndicator(

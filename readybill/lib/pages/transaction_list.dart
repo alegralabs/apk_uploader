@@ -15,6 +15,7 @@ import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/models/transaction.dart';
 import 'package:readybill/pages/transaction_details.dart';
 import 'package:readybill/services/api_services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 String getProductNames(List<Map<String, dynamic>> itemList) {
   final productNames = itemList.map((item) => item['itemName']).toList();
@@ -63,6 +64,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
   List<Transaction> _transactions = [];
   List<Transaction> _filteredTransactions = [];
   final ScrollController scrollController = ScrollController();
+  String? currencySymbol;
 
   @override
   void initState() {
@@ -75,6 +77,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
     ]);
   }
 
+  @override
   void dispose() {
     scrollController.dispose();
     super.dispose();
@@ -135,7 +138,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: customAppBar("Transactions"),
+      appBar: customAppBar("Transactions", []),
       body: Column(
         children: [
           _SearchBar(
@@ -215,10 +218,31 @@ class _SearchBarState extends State<_SearchBar> {
 }
 
 // Widget for displaying the list of transactions
-class _TransactionList extends StatelessWidget {
+class _TransactionList extends StatefulWidget {
   final List<Transaction> filteredTransactions;
 
   const _TransactionList({required this.filteredTransactions});
+
+  @override
+  State<_TransactionList> createState() => _TransactionListState();
+}
+
+class _TransactionListState extends State<_TransactionList> {
+  String? currencySymbol;
+
+  @override
+  void initState() {
+    super.initState();
+    setCurrencySymbol();
+  }
+
+  setCurrencySymbol() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      currencySymbol = prefs.getString('currencySymbol');
+    });
+    print('currencySymbol: $currencySymbol');
+  }
 
   Map<String, List<Transaction>> _groupTransactionsByMonth(
       List<Transaction> transactions) {
@@ -242,16 +266,17 @@ class _TransactionList extends StatelessWidget {
     }
 
     if (totalAmount > 0) {
-      return "₹${totalAmount.abs().toStringAsFixed(2)}";
+      return "$currencySymbol${totalAmount.abs().toStringAsFixed(2)}";
     } else {
-      return "-₹${totalAmount.abs().toStringAsFixed(2)}";
+      return "-$currencySymbol${totalAmount.abs().toStringAsFixed(2)}";
     }
   }
 
   @override
   Widget build(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
-    var groupedTransactions = _groupTransactionsByMonth(filteredTransactions);
+    var groupedTransactions =
+        _groupTransactionsByMonth(widget.filteredTransactions);
     var sortedMonths = groupedTransactions.keys.toList()
       ..sort((a, b) =>
           DateFormat.yMMMM().parse(b).compareTo(DateFormat.yMMMM().parse(a)));
@@ -332,8 +357,8 @@ class _TransactionList extends StatelessWidget {
                       SizedBox(
                         width: screenWidth * 0.12,
                         child: Text(totalPrice > 0
-                            ? "₹$totalPrice"
-                            : "-₹${totalPrice.abs()}"),
+                            ? "$currencySymbol$totalPrice"
+                            : "-$currencySymbol${totalPrice.abs()}"),
                       ),
                     ),
                     DataCell(

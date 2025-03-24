@@ -18,7 +18,7 @@ import 'package:readybill/pages/home_page.dart';
 import 'package:readybill/services/api_services.dart';
 import 'package:readybill/services/country_code_provider.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
-//import 'package:readybill/services/local_database.dart';
+
 import 'package:readybill/services/local_database_2.dart';
 import 'package:readybill/services/result.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -82,7 +82,7 @@ class _LoginPageState extends State<LoginPage> {
       content = "Please check the following errors:\n";
 
       // Loop through validation errors
-      Map<String, dynamic> errors = response['data'];
+      Map<String, dynamic> errors = response['data'][0];
       errors.forEach((field, messages) {
         content += "$field: ${messages[0]}\n";
       });
@@ -307,32 +307,32 @@ class _LoginPageState extends State<LoginPage> {
                                                   phoneNumInt!, password);
                                           EasyLoading.dismiss();
 
-                                          if (response['status'] == 'success' ||
+                                          if (response['status'] == 1 ||
                                               response['status'] ==
                                                   'subscription-failed') {
                                             APIService
                                                 .getUserDetailsWithoutDialog(
-                                                    response['data']['token'],
-                                                    response['data']
+                                                    response['data'][0]
+                                                        ['token'],
+                                                    response['data'][0]
                                                         ['api_key']);
 
                                             await storeTokenAndUser(
-                                                response['data']['token'],
-                                                response['data']['user'],
-                                                response['data']['api_key']);
-                                            Navigator.pushReplacement(
-                                              context,
-                                              CupertinoPageRoute(
-                                                  builder: (context) =>
-                                                      const HomePage()),
-                                            );
+                                                response['data'][0]['token'],
+                                                response['data'][0]['user'],
+                                                response['data'][0]['api_key']);
+                                            navigatorKey.currentState!
+                                                .pushReplacement(
+                                                    CupertinoPageRoute(
+                                                        builder: (context) =>
+                                                            const HomePage()));
                                           } else if (response['status'] ==
                                                   'failed' &&
                                               response['message'] ==
                                                   'Validation Error!') {
                                             // Validation error, display error messages
                                             Map<String, dynamic> errors =
-                                                response['data'];
+                                                response['data'][0];
                                             errors.forEach((field, messages) {
                                               // You can display these error messages to the user
                                             });
@@ -344,7 +344,6 @@ class _LoginPageState extends State<LoginPage> {
                                             debugPrint('Invalid credentials');
                                             // You can display this error message to the user
                                           } else {
-                                            // Handle other cases or unexpected responses
                                             debugPrint(
                                                 'Unexpected response: $response');
                                           }
@@ -413,13 +412,20 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<Map<String, dynamic>> loginUser(
       int phoneNumber, String password) async {
+    print(Provider.of<CountryCodeProvider>(context, listen: false)
+        .loginPageCountryCode);
     final response = await http.post(
       Uri.parse("$baseUrl/login"),
       headers: {
         'Content-Type': 'application/json',
         'User-Agent': 'YourApp/1.0',
       },
-      body: jsonEncode({"mobile": phoneNumber, "password": password}),
+      body: jsonEncode({
+        "mobile": phoneNumber,
+        "password": password,
+        "country_code": Provider.of<CountryCodeProvider>(context, listen: false)
+            .loginPageCountryCode
+      }),
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {

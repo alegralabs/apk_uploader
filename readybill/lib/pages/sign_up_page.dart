@@ -36,7 +36,7 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-  String? _selectedShopType = "grocery";
+  final String _selectedShopType = "grocery";
   //XFile? logoImageFile;
   bool isPasswordObscure = true;
   bool isConfirmPasswordObscure = true;

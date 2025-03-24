@@ -85,6 +85,11 @@ class APIService {
       int isAdmin = userData['data']['isAdmin'];
       int isSubscriptionExpired = userData['isSubscriptionExpired'];
       String subscriptionExpiryDate = userData['subscription_expiry_date'];
+      String currencySymbol =
+          userData['data']['country_details']['currency_symbol'];
+      print('currencySymbol: $currencySymbol');
+      String decimalSeparator =
+          userData['data']['country_details']['decimal_separator'];
 
       print('issubscriptionexpired: $isSubscriptionExpired');
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -92,6 +97,8 @@ class APIService {
       await prefs.setInt('isAdmin', isAdmin);
       await prefs.setInt('isSubscriptionExpired', isSubscriptionExpired);
       await prefs.setString('subscriptionExpiryDate', subscriptionExpiryDate);
+      await prefs.setString('currencySymbol', currencySymbol);
+      await prefs.setString('decimalSeparator', decimalSeparator);
 
       return response.statusCode;
     } catch (error) {

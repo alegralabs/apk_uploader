@@ -13,7 +13,7 @@ import 'package:http/http.dart' as http;
 class ResetPasswordPage extends StatefulWidget {
   final String phoneNumber;
 
-  ResetPasswordPage({super.key, required this.phoneNumber});
+  const ResetPasswordPage({super.key, required this.phoneNumber});
 
   @override
   State<ResetPasswordPage> createState() => _ResetPasswordPageState();

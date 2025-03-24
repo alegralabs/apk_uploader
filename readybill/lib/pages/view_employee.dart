@@ -25,8 +25,10 @@ class Employee {
   final String address;
   final String photo;
   final String countryCode;
+  final String dialCode;
 
   Employee({
+    required this.dialCode,
     required this.id,
     required this.name,
     required this.mobile,
@@ -42,7 +44,8 @@ class Employee {
       mobile: json['mobile'],
       address: json['address'],
       photo: json['photo'],
-      countryCode: json['country_code'],
+      countryCode: json['country_details']['code'],
+      dialCode: json['country_details']['dial_code'],
     );
   }
 }
@@ -82,6 +85,7 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
     _fetchEmployees();
   }
 
+  @override
   void dispose() {
     _scrollController.dispose();
     SystemChrome.setPreferredOrientations([
@@ -273,7 +277,7 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
       drawer: const Drawer(
         child: Sidebar(),
       ),
-      appBar: customAppBar("Employees"),
+      appBar: customAppBar("Employees", []),
       body: isSubscriptionExpired == 0
           ? Column(
               children: [
@@ -367,7 +371,7 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
                               Expanded(
                                 flex: 4, // Larger space for item name
                                 child: Text(
-                                  '${employee.countryCode} ${employee.mobile}',
+                                  '${employee.dialCode} ${employee.mobile}',
                                   style: const TextStyle(fontSize: 14),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,

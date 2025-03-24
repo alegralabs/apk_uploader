@@ -10,13 +10,13 @@ import 'package:flutter/material.dart';
 
 import 'package:readybill/components/api_constants.dart';
 
-
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/color_constants.dart';
 
 import 'package:readybill/pages/home_page.dart';
 import 'package:readybill/pages/how_to_upload_xls.dart';
 import 'package:readybill/pages/login_page.dart';
+import 'package:readybill/pages/view_dataset.dart';
 import 'package:readybill/services/api_services.dart';
 
 import 'package:readybill/services/global_internet_connection_handler.dart';
@@ -121,6 +121,7 @@ class _AddInventoryState extends State<AddInventory> {
   TextEditingController codeHSNSACvalueController = TextEditingController();
   TextEditingController rateOneValueController = TextEditingController();
   TextEditingController rateTwoValueController = TextEditingController();
+  TextEditingController minumumStockController = TextEditingController();
 
   Map<int, String> rateControllers = {};
   Map<int, String> taxControllers = {};
@@ -151,14 +152,16 @@ class _AddInventoryState extends State<AddInventory> {
   Future<void> _handleUpload() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['xls', 'xlsx'],
+      allowedExtensions: ['xls', 'xlsx', 'csv'],
     );
 
     if (result != null) {
       File file = File(result.files.single.path!);
       var response = await AddInventoryService.uploadXLS(file);
-
-      if (response.statusCode == 200) {
+      var jsonData = jsonDecode(response.body);
+      print(response.body);
+      if (response.statusCode == 200 &&
+          jsonData['status'].toString().toLowerCase() == 'success') {
         LocalDatabase2.instance.clearTable();
         LocalDatabase2.instance.fetchDataAndStoreLocally();
         showDialog(
@@ -175,47 +178,23 @@ class _AddInventoryState extends State<AddInventory> {
             );
           },
         );
-      } else if (response.statusCode == 403) {
+      } else if (response.statusCode == 200) {
+        navigatorKey.currentState?.push(CupertinoPageRoute(
+            builder: (context) =>
+                ViewDataset(title: "Excel Preview", jsonResponse: response)));
+      } else {
         Map<String, dynamic> jsonResponse = jsonDecode(response.body);
-        print("jsonResponse: $jsonResponse");
-        if (jsonResponse['status'] == '0') {
-          List<String> excelDuplicates = [];
-          List<String> dbDuplicates = [];
-
-          if (jsonResponse['excel_duplicates'] != null) {
-            excelDuplicates = (jsonResponse['excel_duplicates'] as List)
-                .map((item) => item['ITEM NAME'].toString())
-                .toList();
-          }
-
-          if (jsonResponse['database_duplicates'] != null) {
-            dbDuplicates = (jsonResponse['database_duplicates'] as List)
-                .map((item) => item['ITEM NAME'].toString())
-                .toList();
-          }
-          // Show error message in a dialog
-          showDialog(
+        showDialog(
             context: context,
-            builder: (BuildContext context) {
-              return duplicatesAlertBox(
-                  context: context,
-                  excelDuplicates: excelDuplicates,
-                  dbDuplicates: dbDuplicates);
-            },
-          );
-        } else {
-          showDialog(
-              context: context,
-              builder: (context) => customAlertBox(
-                    title: "Failed to Upload",
-                    content: jsonResponse['message'],
-                    actions: [
-                      customElevatedButton("OK", green2, white, () {
-                        navigatorKey.currentState?.pop();
-                      })
-                    ],
-                  ));
-        }
+            builder: (context) => customAlertBox(
+                  title: "Failed to Upload",
+                  content: jsonResponse['message'],
+                  actions: [
+                    customElevatedButton("OK", green2, white, () {
+                      navigatorKey.currentState?.pop();
+                    })
+                  ],
+                ));
       }
     }
   }
@@ -319,19 +298,6 @@ class _AddInventoryState extends State<AddInventory> {
     }
   }
 
-  // void downloadFile() async {
-  //   final downloader = FileDownloadHandler();
-
-  //   try {
-  //     final file = await downloader.downloadFile(
-  //         'https://dev.readybill.app/storafe/media/exported_data.xlsx',
-  //         'readybill_inventory.xlsx');
-  //     customToast('File downloaded to: ${file.path}');
-  //   } catch (e) {
-  //     print('Download failed: $e');
-  //   }
-  // }
-
   Future<void> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -358,7 +324,7 @@ class _AddInventoryState extends State<AddInventory> {
       },
       child: Scaffold(
         backgroundColor: const Color.fromRGBO(246, 247, 255, 1),
-        appBar: customAppBar("Add Product"),
+        appBar: customAppBar("Add Product", []),
         body: isLoading
             ? const Center(
                 child: CircularProgressIndicator(), // Show loading indicator
@@ -400,7 +366,7 @@ class _AddInventoryState extends State<AddInventory> {
                         ),
                       ),
                       const SizedBox(height: 10.0),
-                      _buildInputBox(' Item Name', itemNameValueController,
+                      _buildInputBox(' Item Name *', itemNameValueController,
                           (value) {
                         setState(() {
                           itemNameValueController.text =
@@ -438,25 +404,9 @@ class _AddInventoryState extends State<AddInventory> {
                       Row(
                         children: [
                           Flexible(
-                            child: Visibility(
-                              visible: maintainMRP,
-                              child: _buildInputBox(' MRP', mrpValueController,
-                                  (value) {
-                                setState(() {
-                                  mrpValueController.text =
-                                      value; // Update the mrpValue
-                                });
-                              }, isNumeric: true),
-                            ),
-                          ),
-                          SizedBox(
-                              width: maintainMRP
-                                  ? 16.0
-                                  : 0), // Add spacing if MRP is visible
-                          Flexible(
                             // Use Flexible for salePriceValue as well
                             child: _buildInputBox(
-                                ' Sale price: Rs.', salePriceValueController,
+                                ' Sale price: Rs. *', salePriceValueController,
                                 (value) {
                               setState(() {
                                 salePriceValueController.text =
@@ -464,33 +414,59 @@ class _AddInventoryState extends State<AddInventory> {
                               });
                             }, isNumeric: true),
                           ),
+                          const SizedBox(
+                              width: 16.0), // Add spacing if MRP is visible
+                          Flexible(
+                            child: _buildInputBox(
+                                ' MRP ${maintainMRP ? '*' : ''}',
+                                mrpValueController, (value) {
+                              setState(() {
+                                mrpValueController.text =
+                                    value; // Update the mrpValue
+                              });
+                            }, isNumeric: true),
+                          ),
                         ],
                       ),
 
                       const SizedBox(height: 16.0),
-                      Visibility(
-                        visible: maintainStock,
-                        child: _buildInputBox(
-                            ' Stock Quantity', stockQuantityValueController,
-                            (value) {
-                          setState(() {
-                            stockQuantityValueController.text =
-                                value; // Update the stockValue
-                          });
-                        }, isNumeric: true),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: _buildInputBox(
+                                ' Stock Quantity ${maintainStock ? '*' : ''}',
+                                stockQuantityValueController, (value) {
+                              setState(() {
+                                stockQuantityValueController.text =
+                                    value; // Update the stockValue
+                              });
+                            }, isNumeric: true),
+                          ),
+                          const SizedBox(width: 16.0),
+                          Flexible(
+                              child: Visibility(
+                            visible:
+                                stockQuantityValueController.text.isNotEmpty,
+                            child: _buildInputBox(
+                                ' Minimum Stock ', minumumStockController,
+                                (value) {
+                              setState(() {
+                                codeHSNSACvalueController.text =
+                                    value; // Update the stockValue
+                              });
+                            }, isNumeric: true),
+                          ))
+                        ],
                       ),
                       const SizedBox(height: 16.0),
-                      Visibility(
-                        visible: showHSNSACCode,
-                        child: _buildInputBox(
-                            ' HSN/ SAC Code', codeHSNSACvalueController,
-                            (value) {
-                          setState(() {
-                            codeHSNSACvalueController.text =
-                                value; // Update the stockValue
-                          });
-                        }, isNumeric: true),
-                      ),
+                      _buildInputBox(
+                          ' HSN/ SAC Code ${showHSNSACCode ? '*' : ''}',
+                          codeHSNSACvalueController, (value) {
+                        setState(() {
+                          codeHSNSACvalueController.text =
+                              value; // Update the stockValue
+                        });
+                      }, isNumeric: true),
 
                       // new emplementation
 
@@ -509,6 +485,12 @@ class _AddInventoryState extends State<AddInventory> {
                       ),
 
                       const SizedBox(height: 20.0),
+
+                      SizedBox(
+                        width: double.infinity,
+                        child: customElevatedButton(
+                            "Submit", blue, white, submitData),
+                      )
                     ],
                   ),
                 ),
@@ -522,7 +504,7 @@ class _AddInventoryState extends State<AddInventory> {
       {bool isNumeric = false}) {
     return TextField(
       controller: textControllers,
-      decoration: customTfInputDecoration("$hintText *"),
+      decoration: customTfInputDecoration("$hintText "),
       keyboardType: isNumeric
           ? TextInputType.number
           : TextInputType.text, // Set keyboardType based on isNumeric flag
