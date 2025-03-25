@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -16,6 +17,7 @@ import 'package:readybill/components/color_constants.dart';
 import 'package:readybill/pages/home_page.dart';
 import 'package:readybill/pages/how_to_upload_xls.dart';
 import 'package:readybill/pages/login_page.dart';
+import 'package:readybill/pages/new_dataset.dart';
 import 'package:readybill/pages/view_dataset.dart';
 import 'package:readybill/services/api_services.dart';
 
@@ -38,9 +40,10 @@ class AddInventoryService {
       ..headers['Authorization'] = 'Bearer $token'
       ..headers['auth-key'] = '$apiKey'
       ..files.add(await http.MultipartFile.fromPath('file', file.path));
-
+    EasyLoading.show(status: 'Uploading...');
     var streamedResponse = await request.send();
     var response = await http.Response.fromStream(streamedResponse);
+    EasyLoading.dismiss();
     return response;
   }
 
@@ -158,30 +161,13 @@ class _AddInventoryState extends State<AddInventory> {
     if (result != null) {
       File file = File(result.files.single.path!);
       var response = await AddInventoryService.uploadXLS(file);
-      var jsonData = jsonDecode(response.body);
-      print(response.body);
-      if (response.statusCode == 200 &&
-          jsonData['status'].toString().toLowerCase() == 'success') {
-        LocalDatabase2.instance.clearTable();
-        LocalDatabase2.instance.fetchDataAndStoreLocally();
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return customAlertBox(
-              title: "Upload Succesful",
-              content: "File Uploaded Successfully",
-              actions: [
-                customElevatedButton("OK", green2, white, () {
-                  navigatorKey.currentState?.pop();
-                }),
-              ],
-            );
-          },
-        );
-      } else if (response.statusCode == 200) {
+
+      if (response.statusCode == 200) {
         navigatorKey.currentState?.push(CupertinoPageRoute(
-            builder: (context) =>
-                ViewDataset(title: "Excel Preview", jsonResponse: response)));
+            builder: (context) => const NewDataset(
+                  title: "Excel Preview",
+                  uploadExcel: 'uploadExcel',
+                )));
       } else {
         Map<String, dynamic> jsonResponse = jsonDecode(response.body);
         showDialog(
@@ -550,7 +536,7 @@ class _AddInventoryState extends State<AddInventory> {
           'auth-key': '$apiKey',
         },
       );
-      print("response: ${response.body}");
+
       if (response.statusCode == 200) {
         LocalDatabase2.instance.clearTable();
         LocalDatabase2.instance.fetchDataAndStoreLocally();

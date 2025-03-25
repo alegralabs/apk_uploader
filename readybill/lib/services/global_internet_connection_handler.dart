@@ -84,8 +84,6 @@ class _InternetConnectivityHandlerState
   void _handleConnectivityChange(bool hasInternet) {
     if (!_isInForeground) return; // Don't handle changes when in background
 
-
-
     // Cancel any existing timer
     _noInternetTimer?.cancel();
 
@@ -135,6 +133,7 @@ class _InternetConnectivityHandlerState
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      //  showPerformanceOverlay: true,
       theme: ThemeData(
         useMaterial3: true,
         fontFamily: 'Roboto',

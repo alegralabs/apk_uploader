@@ -17,9 +17,9 @@ import 'package:http/http.dart' as http;
 
 class NewDataset extends StatefulWidget {
   final String title;
-  final http.Response? jsonResponse;
+  final String? uploadExcel;
 
-  const NewDataset({super.key, required this.title, this.jsonResponse});
+  const NewDataset({super.key, required this.title, this.uploadExcel});
 
   @override
   State<NewDataset> createState() => _NewDatasetState();
@@ -28,7 +28,7 @@ class NewDataset extends StatefulWidget {
 class _NewDatasetState extends State<NewDataset> {
   final Set<ItemModel> _selectedItems = {};
   bool isSortAscending = true;
-
+  final int _rowsPerPage = 100;
   List<String> errorMessages = [];
   List<String> errorCoordinates = [];
 
@@ -96,6 +96,8 @@ class _NewDatasetState extends State<NewDataset> {
     'SQM'
   ];
 
+  int recordsTotal = 0;
+
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   List<Widget> taxRateRows = [];
@@ -120,6 +122,8 @@ class _NewDatasetState extends State<NewDataset> {
   bool showHSNSACCode = false;
   bool isLoading = false;
 
+  int start = 0;
+
   List<ItemModel> _filteredItems = [];
   String _searchTerm = '';
   List<ItemModel> items = [];
@@ -127,14 +131,10 @@ class _NewDatasetState extends State<NewDataset> {
   var token;
   Timer? _debounce;
 
-  // Pagination settings
-  static const int _rowsPerPage = 100;
-  int _currentPage = 0;
-
   @override
   void initState() {
     super.initState();
-    getItems('0');
+    getItems(reset: '0', start: '0', length: _rowsPerPage.toString());
     _searchController.addListener(_onSearchChanged);
   }
 
@@ -162,8 +162,46 @@ class _NewDatasetState extends State<NewDataset> {
     });
   }
 
-  Future<void> getItems(String reset) async {
-    if (widget.jsonResponse == null) {
+  getNextPage() {
+    start += _rowsPerPage;
+    if (start > recordsTotal) {
+      start -= _rowsPerPage;
+      print("start: $start, recordsTotal: $recordsTotal");
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+          'You have reached the end of the list',
+          textAlign: TextAlign.center,
+        ),
+        duration: Durations.extralong4,
+      ));
+    } else {
+      getItems(
+          reset: '0', start: start.toString(), length: _rowsPerPage.toString());
+    }
+  }
+
+  getPreviousPage() {
+    start -= _rowsPerPage;
+    if (start < 0) {
+      start += _rowsPerPage;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+          'You have reached the beginning of the list',
+          textAlign: TextAlign.center,
+        ),
+        duration: Durations.extralong4,
+      ));
+    } else {
+      getItems(
+          reset: '0', start: start.toString(), length: _rowsPerPage.toString());
+    }
+  }
+
+  Future<void> getItems(
+      {required String reset,
+      required String start,
+      required String length}) async {
+    if (widget.uploadExcel == null) {
       token = await APIService.getToken();
       apiKey = await APIService.getXApiKey();
       EasyLoading.show(status: 'loading...');
@@ -174,26 +212,52 @@ class _NewDatasetState extends State<NewDataset> {
           'Authorization': 'Bearer $token',
           'auth-key': '$apiKey',
         },
-        body: jsonEncode({'isReset': reset}),
+        body: jsonEncode(
+            {'isReset': reset, 'start': start, 'length': length, 'draw': '1'}),
       );
       EasyLoading.dismiss();
       if (response.statusCode == 200) {
         setState(() {
           items = parseItems(response.body);
           _filteredItems = List.from(items);
+          errorCoordinates = jsonDecode(response.body)['errors']
+                  ['grid_coordinates']
+              .map<String>((item) => item.toString())
+              .toList();
+          errorMessages = jsonDecode(response.body)['errors']['messages']
+              .map<String>((item) => item.toString())
+              .toList();
+
+          recordsTotal = jsonDecode(response.body)['recordsTotal'];
         });
       }
     } else {
-      items = parseItems(widget.jsonResponse!.body);
+      print('token: $token');
+      print('apiKey: $apiKey');
+      token = await APIService.getToken();
+      apiKey = await APIService.getXApiKey();
+      EasyLoading.show(status: 'loading...');
+      var jsonResponse = await http.post(
+          Uri.parse('$baseUrl/preview/fetch/excel/data'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+            'auth-key': '$apiKey',
+          },
+          body: jsonEncode({'draw': '1', 'start': start, 'length': length}));
+      EasyLoading.dismiss();
+      print(jsonResponse.body);
+      items = parseItems(jsonResponse.body);
       _filteredItems = List.from(items);
-      errorCoordinates = jsonDecode(widget.jsonResponse!.body)['errors']
+      errorCoordinates = jsonDecode(jsonResponse.body)['errors']
               ['grid_coordinates']
           .map<String>((item) => item.toString())
           .toList();
-      errorMessages = jsonDecode(widget.jsonResponse!.body)['errors']
-              ['messages']
+      errorMessages = jsonDecode(jsonResponse.body)['errors']['messages']
           .map<String>((item) => item.toString())
           .toList();
+      recordsTotal = jsonDecode(jsonResponse.body)['recordsTotal'];
+      setState(() {});
     }
   }
 
@@ -231,7 +295,6 @@ class _NewDatasetState extends State<NewDataset> {
                 (item) => item.itemName.toLowerCase().contains(searchTermLower))
             .toList();
       }
-      _currentPage = 0; // Reset to first page on filter
     });
   }
 
@@ -239,21 +302,63 @@ class _NewDatasetState extends State<NewDataset> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: customAppBar(widget.title, [
-        IconButton(
-          icon: const Text('Add Row',
-              style: TextStyle(
-                  color: white,
-                  fontFamily: 'Roboto-Regular',
-                  fontWeight: FontWeight.bold)),
+        TextButton(
           onPressed: _showNewRowDialog,
-          tooltip: 'Add new row',
+          child: const Text(
+            'Add Row',
+            style: TextStyle(
+                color: white,
+                fontFamily: 'Roboto-Regular',
+                fontWeight: FontWeight.bold),
+          ),
+          //tooltip: 'Add new row',
         ),
-        IconButton(
-          icon: const Text('Export Data',
-              style: TextStyle(
-                  color: white,
-                  fontFamily: 'Roboto-Regular',
-                  fontWeight: FontWeight.bold)),
+        widget.uploadExcel == null
+            ? TextButton(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => customAlertBox(
+                      title: 'Reset Dataset',
+                      content: 'Are you sure you want to reset the dataset?',
+                      actions: [
+                        customElevatedButton('Yes', red, white, () async {
+                          EasyLoading.show(status: 'Resetting...');
+                          var response = await http.get(
+                            Uri.parse('$baseUrl/reset-dataset'),
+                            headers: {
+                              'Content-Type': 'application/json',
+                              'Authorization': 'Bearer $token',
+                              'auth-key': '$apiKey',
+                            },
+                          );
+                          if (response.statusCode == 200) {
+                            getItems(
+                                reset: '0',
+                                start: '0',
+                                length: _rowsPerPage.toString());
+                          }
+                          EasyLoading.dismiss();
+
+                          navigatorKey.currentState?.pop();
+                        }),
+                        customElevatedButton('No', green2, white, () {
+                          navigatorKey.currentState?.pop();
+                        })
+                      ],
+                    ),
+                  );
+                },
+                child: const Text(
+                  'Reset',
+                  style: TextStyle(
+                      color: white,
+                      fontFamily: 'Roboto-Regular',
+                      fontWeight: FontWeight.bold),
+                ),
+              )
+            : const SizedBox.shrink(),
+        TextButton(
           onPressed: () {
             showDialog(
               context: context,
@@ -273,7 +378,11 @@ class _NewDatasetState extends State<NewDataset> {
               ),
             );
           },
-          tooltip: 'Add new row',
+          child: const Text('Export',
+              style: TextStyle(
+                  color: white,
+                  fontFamily: 'Roboto-Regular',
+                  fontWeight: FontWeight.bold)),
         ),
         if (_selectedItems.isNotEmpty)
           IconButton(
@@ -311,7 +420,7 @@ class _NewDatasetState extends State<NewDataset> {
               children: [
                 Text(
                   _searchTerm.isEmpty
-                      ? 'Showing all ${_filteredItems.length} rows'
+                      ? 'Showing  ${_filteredItems.length} rows'
                       : 'Found ${_filteredItems.length} ${_filteredItems.length == 1 ? 'row' : 'rows'} containing "$_searchTerm"',
                   style: const TextStyle(fontStyle: FontStyle.italic),
                 ),
@@ -350,7 +459,7 @@ class _NewDatasetState extends State<NewDataset> {
                       style: const TextStyle(fontSize: 16),
                     ),
                   )
-                : PaginatedDataTable2(
+                : DataTable2(
                     scrollController: _scrollController,
                     columns: getColumns([
                       'Item Name',
@@ -363,15 +472,8 @@ class _NewDatasetState extends State<NewDataset> {
                       'GST',
                       'Cess'
                     ]),
-                    source:
-                        _ItemDataSource(_filteredItems, _selectedItems, this),
-                    rowsPerPage: _rowsPerPage,
-                    initialFirstRowIndex: _currentPage * _rowsPerPage,
-                    onPageChanged: (firstRowIndex) {
-                      setState(() {
-                        _currentPage = firstRowIndex ~/ _rowsPerPage;
-                      });
-                    },
+                    rows: _ItemDataSource(_filteredItems, _selectedItems, this)
+                        .getRows(),
                     showCheckboxColumn: true,
                     minWidth: 9 * 130,
                     dataRowHeight: 70,
@@ -379,32 +481,24 @@ class _NewDatasetState extends State<NewDataset> {
                     fixedLeftColumns: 2,
                   ),
           ),
+          const SizedBox(
+            height: 20,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                  onPressed: getPreviousPage,
+                  icon: const Icon(Icons.arrow_left)),
+              Text(
+                  'Showing ${start + 1}-${(start + _rowsPerPage) > recordsTotal ? recordsTotal : (start + _rowsPerPage)} entries of  $recordsTotal '),
+              IconButton(
+                  onPressed: getNextPage, icon: const Icon(Icons.arrow_right)),
+            ],
+          ),
           SizedBox(height: MediaQuery.of(context).padding.bottom * 2),
         ],
       ),
-      // floatingActionButton: FloatingActionButton(
-      // onPressed: () {
-      //   showDialog(
-      //     context: context,
-      //     builder: (context) => customAlertBox(
-      //       title: 'Upload Dataset',
-      //       content: "Do you want to replace or append the data?",
-      //       actions: [
-      //         customElevatedButton('Append', green2, white, () {
-      //           submitList('1');
-      //           navigatorKey.currentState?.pop();
-      //         }),
-      //         customElevatedButton("Replace", blue, white, () {
-      //           submitList('2');
-      //           navigatorKey.currentState?.pop();
-      //         }),
-      //       ],
-      //     ),
-      //   );
-      // },
-      //   tooltip: 'Submit',
-      //   child: const Icon(Icons.upload_file),
-      // ),
     );
   }
 
@@ -981,7 +1075,6 @@ class _NewDatasetState extends State<NewDataset> {
     print(response.body);
     if (response.statusCode != 200) {
       print('Failed to update item: ${response.statusCode} - ${response.body}');
-      // Show error feedback using the context from State
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to update item: ${response.body}')),
       );
@@ -993,19 +1086,19 @@ class _NewDatasetState extends State<NewDataset> {
     errorMessages = [];
     var token = await APIService.getToken();
     var apiKey = await APIService.getXApiKey();
-    List<Map<String, dynamic>> uploadItems = items
-        .map((item) => {
-              'item_name': item.itemName,
-              'quantity': item.quantity,
-              'min_stock_alert': item.minStockAlert,
-              'mrp': item.mrp,
-              'sale_price': item.salePrice,
-              'unit': item.unit.toUpperCase(),
-              'hsn': item.hsn,
-              'gst': item.gst,
-              'cess': item.cess,
-            })
-        .toList();
+    // List<Map<String, dynamic>> uploadItems = items
+    //     .map((item) => {
+    //           'item_name': item.itemName,
+    //           'quantity': item.quantity,
+    //           'min_stock_alert': item.minStockAlert,
+    //           'mrp': item.mrp,
+    //           'sale_price': item.salePrice,
+    //           'unit': item.unit.toUpperCase(),
+    //           'hsn': item.hsn,
+    //           'gst': item.gst,
+    //           'cess': item.cess,
+    //         })
+    //     .toList();
 
     EasyLoading.show(status: 'loading...');
     var response = await http.post(
@@ -1015,8 +1108,9 @@ class _NewDatasetState extends State<NewDataset> {
         'auth-key': '$apiKey',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({'items': uploadItems, 'action': action}),
+      body: jsonEncode({'action': action}),
     );
+    print(response.body);
     EasyLoading.dismiss();
 
     var jsonData = jsonDecode(response.body);
@@ -1047,95 +1141,103 @@ class _ItemDataSource extends DataTableSource {
 
   _ItemDataSource(this._items, this._selectedItems, this._state);
 
-  @override
-  DataRow getRow(int index) {
-    final item = _items[index];
-    final cells = [
-      item.itemName,
-      item.mrp,
-      item.salePrice.toString(),
-      item.quantity,
-      item.minStockAlert,
-      item.unit,
-      item.hsn,
-      item.gst,
-      item.cess,
-    ];
+  List<DataRow> getRows() {
+    return _items.asMap().entries.map((entry) {
+      final index = entry.key;
+      final item = entry.value;
+      final cells = [
+        item.itemName,
+        item.mrp,
+        item.salePrice.toString(),
+        item.quantity,
+        item.minStockAlert,
+        item.unit,
+        item.hsn,
+        item.gst,
+        item.cess,
+      ];
 
-    return DataRow2(
-      color: WidgetStateProperty.resolveWith<Color?>((states) {
-        if (index < _state.errorCoordinates.length) return Colors.red.shade100;
-        return null;
-      }),
-      cells: Utils.modelBuilder(cells, (cellIndex, cell) {
-        Widget cellContent =
-            cellIndex == 0 && index < _state.errorCoordinates.length
-                ? Text(cell.toString(),
-                    style: const TextStyle(
-                        color: Colors.red, fontWeight: FontWeight.bold))
-                : Text(cell.toString());
-        return DataCell(
-          cellIndex == 5
-              ? DropdownButton(
-                  value: _state._dropdownItemsQuantity.firstWhere(
-                      (element) =>
-                          element.toLowerCase() == item.unit.toLowerCase(),
-                      orElse: () => _state._dropdownItemsQuantity.first),
-                  items: _state._dropdownItemsQuantity
-                      .map<DropdownMenuItem<String>>((value) {
-                    return DropdownMenuItem<String>(
-                        value: value,
-                        child:
-                            Text(value, style: const TextStyle(fontSize: 16)));
-                  }).toList(),
-                  onChanged: (newValue) {
-                    _state.setState(() {
-                      _state._updateItem(item,
-                          unit: newValue.toString(), cellIndex: 5);
-                    });
-                  },
-                )
-              : cellContent,
-          onTap: () {
-            switch (cellIndex) {
-              case 0:
-                _state.editItemName(item);
-                break;
-              case 1:
-                _state.editMrp(item);
-                break;
-              case 2:
-                _state.editSalePrice(item);
-                break;
-              case 3:
-                _state.editQuantity(item);
-                break;
-              case 4:
-                _state.editMinStockAlert(item);
-                break;
-              case 6:
-                _state.editHsn(item);
-                break;
-              case 7:
-                _state.editgst(item);
-                break;
-              case 8:
-                _state.editcess(item);
-                break;
+      return DataRow2(
+        color: WidgetStateProperty.resolveWith<Color?>((states) {
+          if (index < _state.errorCoordinates.length)
+            return Colors.red.shade100;
+          return null;
+        }),
+        cells: Utils.modelBuilder(cells, (cellIndex, cell) {
+          Widget cellContent =
+              cellIndex == 0 && index < _state.errorCoordinates.length
+                  ? Text(cell.toString(),
+                      style: const TextStyle(
+                          color: Colors.red, fontWeight: FontWeight.bold))
+                  : Text(cell.toString());
+          return DataCell(
+            cellIndex == 5
+                ? DropdownButton(
+                    value: _state._dropdownItemsQuantity.firstWhere(
+                        (element) =>
+                            element.toLowerCase() == item.unit.toLowerCase(),
+                        orElse: () => _state._dropdownItemsQuantity.first),
+                    items: _state._dropdownItemsQuantity
+                        .map<DropdownMenuItem<String>>((value) {
+                      return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value,
+                              style: const TextStyle(fontSize: 16)));
+                    }).toList(),
+                    onChanged: (newValue) {
+                      _state.setState(() {
+                        _state._updateItem(item,
+                            unit: newValue.toString(), cellIndex: 5);
+                      });
+                    },
+                  )
+                : cellContent,
+            onTap: () {
+              switch (cellIndex) {
+                case 0:
+                  _state.editItemName(item);
+                  break;
+                case 1:
+                  _state.editMrp(item);
+                  break;
+                case 2:
+                  _state.editSalePrice(item);
+                  break;
+                case 3:
+                  _state.editQuantity(item);
+                  break;
+                case 4:
+                  _state.editMinStockAlert(item);
+                  break;
+                case 6:
+                  _state.editHsn(item);
+                  break;
+                case 7:
+                  _state.editgst(item);
+                  break;
+                case 8:
+                  _state.editcess(item);
+                  break;
+              }
+            },
+          );
+        }),
+        selected: _selectedItems.contains(item),
+        onSelectChanged: (isSelected) {
+          _state.setState(() {
+            if (isSelected != null) {
+              isSelected
+                  ? _selectedItems.add(item)
+                  : _selectedItems.remove(item);
             }
-          },
-        );
-      }),
-      selected: _selectedItems.contains(item),
-      onSelectChanged: (isSelected) {
-        _state.setState(() {
-          if (isSelected != null) {
-            isSelected ? _selectedItems.add(item) : _selectedItems.remove(item);
-          }
-        });
-      },
-    );
+          });
+        },
+      );
+    }).toList();
   }
+
+  @override
+  DataRow getRow(int index) => getRows()[index];
 
   @override
   bool get isRowCountApproximate => false;
