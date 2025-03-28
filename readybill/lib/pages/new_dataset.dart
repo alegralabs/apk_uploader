@@ -1100,36 +1100,70 @@ class _NewDatasetState extends State<NewDataset> {
     //         })
     //     .toList();
 
-    EasyLoading.show(status: 'loading...');
-    var response = await http.post(
-      Uri.parse('$baseUrl/inventory-store-multiple'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'auth-key': '$apiKey',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({'action': action}),
-    );
-    print(response.body);
-    EasyLoading.dismiss();
-
-    var jsonData = jsonDecode(response.body);
-    if (response.statusCode == 200) {
-      LocalDatabase2.instance.clearTable();
-      LocalDatabase2.instance.fetchDataAndStoreLocally();
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Data uploaded successfully')));
+    if (widget.uploadExcel != null) {
+      EasyLoading.show(status: 'Uploading...');
+      var response = await http.post(
+        Uri.parse('$baseUrl/export-to-inventory'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'auth-key': '$apiKey',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'action': action}),
+      );
+      EasyLoading.dismiss();
+      print(response.body);
+      if (response.statusCode == 200) {
+        LocalDatabase2.instance.clearTable();
+        LocalDatabase2.instance.fetchDataAndStoreLocally();
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Data uploaded successfully')));
+        navigatorKey.currentState?.pop();
+      } else {
+        var jsonData = jsonDecode(response.body);
+        setState(() {
+          errorMessages = (jsonData['errors']['messages'] as List)
+              .map((item) => item.toString())
+              .toList();
+          errorCoordinates = (jsonData['errors']['grid_coordinates'] as List)
+              .map((item) => item.toString())
+              .toList();
+          items = parseItems(response.body);
+          _filteredItems = List.from(items);
+        });
+      }
     } else {
-      setState(() {
-        errorMessages = (jsonData['errors']['messages'] as List)
-            .map((item) => item.toString())
-            .toList();
-        errorCoordinates = (jsonData['errors']['grid_coordinates'] as List)
-            .map((item) => item.toString())
-            .toList();
-        items = parseItems(response.body);
-        _filteredItems = List.from(items);
-      });
+      EasyLoading.show(status: 'loading...');
+      var response = await http.post(
+        Uri.parse('$baseUrl/inventory-store-multiple'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'auth-key': '$apiKey',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'action': action}),
+      );
+      print(response.body);
+      EasyLoading.dismiss();
+
+      var jsonData = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        LocalDatabase2.instance.clearTable();
+        LocalDatabase2.instance.fetchDataAndStoreLocally();
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Data uploaded successfully')));
+      } else {
+        setState(() {
+          errorMessages = (jsonData['errors']['messages'] as List)
+              .map((item) => item.toString())
+              .toList();
+          errorCoordinates = (jsonData['errors']['grid_coordinates'] as List)
+              .map((item) => item.toString())
+              .toList();
+          items = parseItems(response.body);
+          _filteredItems = List.from(items);
+        });
+      }
     }
   }
 }
